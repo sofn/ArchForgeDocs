@@ -1,6 +1,6 @@
 # Production Guide
 
-A checklist and guide for deploying ArchSmith to a production environment.
+A checklist and guide for deploying ArchForge to a production environment.
 
 ## Pre-Deployment Checklist
 
@@ -9,10 +9,10 @@ A checklist and guide for deploying ArchSmith to a production environment.
 | 1 | Change JWT secret | **Critical** | Generate a new HMAC-SHA512 key |
 | 2 | Change RSA private key | **Critical** | Generate a new RSA key pair |
 | 3 | Change PostgreSQL password | **Critical** | Use a strong password |
-| 4 | Enable captcha | High | Set `arch-smith.captcha.enabled: true` |
+| 4 | Enable captcha | High | Set `arch-forge.captcha.enabled: true` |
 | 5 | Configure PostgreSQL (master/slave) | High | Set up replication if needed |
 | 6 | Configure Redis | High | Use a dedicated Redis instance |
-| 7 | Enable Flyway | High | Set `arch-smith.flyway.enabled: true` |
+| 7 | Enable Flyway | High | Set `arch-forge.flyway.enabled: true` |
 | 8 | Set JPA DDL to validate | High | `spring.jpa.hibernate.ddl-auto: validate` |
 | 9 | Configure HTTPS | High | Terminate SSL at Nginx or load balancer |
 | 10 | Set up database backups | High | Automated daily backups |
@@ -33,7 +33,7 @@ openssl rand -base64 64
 Set it in your `application-prod.yaml` or as an environment variable:
 
 ```yaml
-arch-smith:
+arch-forge:
   jwt:
     secret: "YOUR_GENERATED_BASE64_KEY"
 ```
@@ -54,7 +54,7 @@ openssl pkcs8 -topk8 -inform PEM -outform DER -in private.pem -out private.der -
 base64 private.der
 ```
 
-Set the Base64-encoded private key in `arch-smith.rsa-private-key`. Share the corresponding public key with the frontend.
+Set the Base64-encoded private key in `arch-forge.rsa-private-key`. Share the corresponding public key with the frontend.
 
 ## Production Configuration
 
@@ -80,12 +80,12 @@ spring:
       datasource:
         user_master:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://master:5432/archsmith
+          url: jdbc:postgresql://master:5432/archforge
           username: ${DB_USERNAME}
           password: ${DB_PASSWORD}
         user_slave:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://slave:5432/archsmith
+          url: jdbc:postgresql://slave:5432/archforge
           username: ${DB_USERNAME}
           password: ${DB_PASSWORD}
   data:
@@ -93,7 +93,7 @@ spring:
       host: ${REDIS_HOST:redis}
       port: 6379
 
-arch-smith:
+arch-forge:
   jwt:
     secret: ${JWT_SECRET}
     expire-seconds: 86400        # 24 hours for production
@@ -120,9 +120,9 @@ management:
 Option A: Docker (recommended for most deployments):
 
 ```bash
-docker run -d --name archsmith-pg \
+docker run -d --name archforge-pg \
   --restart unless-stopped \
-  -e POSTGRES_USER=archsmith \
+  -e POSTGRES_USER=archforge \
   -e POSTGRES_PASSWORD=${DB_PASSWORD} \
   -e POSTGRES_INITDB_ARGS="--encoding=UTF8 --locale=en_US.UTF-8" \
   -v postgres-data:/var/lib/postgresql/data \
@@ -133,20 +133,20 @@ Option B: Native install (Ubuntu):
 
 ```bash
 sudo apt install -y postgresql-17
-sudo -u postgres createuser --createdb archsmith
-sudo -u postgres psql -c "ALTER USER archsmith PASSWORD '<your-password>';"
+sudo -u postgres createuser --createdb archforge
+sudo -u postgres psql -c "ALTER USER archforge PASSWORD '<your-password>';"
 ```
 
 ### Create Databases
 
 ```bash
-psql -h <master-host> -U archsmith -c \
-  "CREATE DATABASE archsmith_user ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';"
+psql -h <master-host> -U archforge -c \
+  "CREATE DATABASE archforge_user ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';"
 ```
 
 ### Master/Slave Replication
 
-For read/write split with `dynamic-datasource`, set up PostgreSQL streaming replication between master and slave instances. ArchSmith routes queries automatically via the `@DS` annotation and datasource groups configured in `application-prod.yaml`.
+For read/write split with `dynamic-datasource`, set up PostgreSQL streaming replication between master and slave instances. ArchForge routes queries automatically via the `@DS` annotation and datasource groups configured in `application-prod.yaml`.
 
 Refer to the [PostgreSQL Replication Documentation](https://www.postgresql.org/docs/17/high-availability.html) for detailed setup instructions.
 
@@ -187,7 +187,7 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://archsmith:8080/;
+        proxy_pass http://archforge:8080/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Proto https;
@@ -211,14 +211,14 @@ If using AWS ALB, GCP Load Balancer, or similar, terminate SSL at the load balan
 
 ```bash
 # Daily automated backup
-pg_dump -h <master-host> -U archsmith archsmith_user | gzip > backup_$(date +%Y%m%d).sql.gz
+pg_dump -h <master-host> -U archforge archforge_user | gzip > backup_$(date +%Y%m%d).sql.gz
 ```
 
 Schedule via cron for daily backups and retain 30 days:
 
 ```bash
-# /etc/cron.d/archsmith-backup
-0 2 * * * archsmith pg_dump -h localhost -U archsmith archsmith_user | gzip > /backups/archsmith_$(date +\%Y\%m\%d).sql.gz && find /backups -name "archsmith_*.sql.gz" -mtime +30 -delete
+# /etc/cron.d/archforge-backup
+0 2 * * * archforge pg_dump -h localhost -U archforge archforge_user | gzip > /backups/archforge_$(date +\%Y\%m\%d).sql.gz && find /backups -name "archforge_*.sql.gz" -mtime +30 -delete
 ```
 
 ### Application Backup

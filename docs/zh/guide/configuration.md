@@ -1,6 +1,6 @@
 # 配置说明
 
-ArchSmith 使用 Spring Boot 基于 Profile 的配置系统，自定义属性前缀为 `arch-smith`。
+ArchForge 使用 Spring Boot 基于 Profile 的配置系统，自定义属性前缀为 `arch-forge`。
 
 ## Profile 体系
 
@@ -35,13 +35,13 @@ server-admin/src/main/resources/
 `application-test.yaml` 和 `application-prod.yaml` 已被 gitignore。请始终从 `.example` 文件复制并填入真实配置值。
 :::
 
-## ArchSmith 属性（`arch-smith.*`）
+## ArchForge 属性（`arch-forge.*`）
 
 ### 核心设置
 
 ```yaml
-arch-smith:
-  name: ArchSmith                      # Application name
+arch-forge:
+  name: ArchForge                      # Application name
   version: 1.0.0                      # Version string
   copyright-year: 2025                # Footer copyright year
   captcha-type: math                  # Captcha type: "math" or "text"
@@ -51,7 +51,7 @@ arch-smith:
 ### JWT 配置
 
 ```yaml
-arch-smith:
+arch-forge:
   jwt:
     secret: "your-base64-secret-key"  # HMAC-SHA512 signing key
     expire-seconds: 604800            # Token TTL (default: 7 days)
@@ -64,7 +64,7 @@ arch-smith:
 ### Token 配置
 
 ```yaml
-arch-smith:
+arch-forge:
   token:
     header: Authorization             # HTTP header name
     auto-refresh-time: 20             # Auto-refresh threshold (minutes)
@@ -73,7 +73,7 @@ arch-smith:
 ### 验证码配置
 
 ```yaml
-arch-smith:
+arch-forge:
   captcha:
     enabled: true                     # Enable/disable login captcha
 ```
@@ -81,7 +81,7 @@ arch-smith:
 ### 服务器监控
 
 ```yaml
-arch-smith:
+arch-forge:
   monitor:
     enabled: true                     # Enable Oshi system monitoring
 ```
@@ -89,7 +89,7 @@ arch-smith:
 ### 内嵌服务（仅开发环境）
 
 ```yaml
-arch-smith:
+arch-forge:
   embedded:
     redis: true                       # Start Redis via Testcontainers
     postgresql: true                  # Start PostgreSQL via Testcontainers
@@ -99,14 +99,14 @@ arch-smith:
 ### 数据脱敏
 
 ```yaml
-arch-smith:
+arch-forge:
   sensitive:
     enabled: true                     # Enable sensitive data masking in responses
 ```
 
 ## 数据源配置
 
-ArchSmith 使用 `dynamic-datasource-spring-boot4-starter` 实现多数据源支持和主从路由。
+ArchForge 使用 `dynamic-datasource-spring-boot4-starter` 实现多数据源支持和主从路由。
 
 ### 开发环境（Testcontainers PostgreSQL）
 
@@ -119,14 +119,14 @@ spring:
       datasource:
         user_master:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://${TESTCONTAINERS_PG_HOST}:${TESTCONTAINERS_PG_PORT}/archsmith
-          username: archsmith
-          password: archsmith
+          url: jdbc:postgresql://${TESTCONTAINERS_PG_HOST}:${TESTCONTAINERS_PG_PORT}/archforge
+          username: archforge
+          password: archforge
         user_slave:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://${TESTCONTAINERS_PG_HOST}:${TESTCONTAINERS_PG_PORT}/archsmith
-          username: archsmith
-          password: archsmith
+          url: jdbc:postgresql://${TESTCONTAINERS_PG_HOST}:${TESTCONTAINERS_PG_PORT}/archforge
+          username: archforge
+          password: archforge
 ```
 
 ::: tip
@@ -144,12 +144,12 @@ spring:
       datasource:
         user_master:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://master-host:5432/archsmith
+          url: jdbc:postgresql://master-host:5432/archforge
           username: ${DB_USERNAME}
           password: ${DB_PASSWORD}
         user_slave:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://slave-host:5432/archsmith
+          url: jdbc:postgresql://slave-host:5432/archforge
           username: ${DB_USERNAME}
           password: ${DB_PASSWORD}
 ```
@@ -159,7 +159,7 @@ spring:
 ## Flyway 配置
 
 ```yaml
-arch-smith:
+arch-forge:
   flyway:
     enabled: true    # Enable Flyway migrations (test/prod only)
 
@@ -173,29 +173,29 @@ spring:
 
 ## 文件存储配置
 
-ArchSmith 支持文件上传/下载，提供两种后端选项：**本地**文件系统和 **S3 兼容**存储（如 RustFS）。
+ArchForge 支持文件上传/下载，提供两种后端选项：**本地**文件系统和 **S3 兼容**存储（如 RustFS）。
 
 ### 本地存储
 
 ```yaml
-arch-smith:
+arch-forge:
   file-storage:
     type: local
     local:
-      base-path: /data/archsmith/uploads    # Directory for stored files
+      base-path: /data/archforge/uploads    # Directory for stored files
 ```
 
 ### S3 / RustFS 存储
 
 ```yaml
-arch-smith:
+arch-forge:
   file-storage:
     type: s3
     s3:
       endpoint: http://localhost:9000       # RustFS or S3 endpoint
       access-key: ${MINIO_ACCESS_KEY}
       secret-key: ${MINIO_SECRET_KEY}
-      bucket: archsmith                      # Default bucket name
+      bucket: archforge                      # Default bucket name
       region: us-east-1                     # AWS region (or leave default for RustFS)
 ```
 

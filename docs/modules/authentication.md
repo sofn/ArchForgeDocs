@@ -1,6 +1,6 @@
 # Authentication (JWT)
 
-ArchSmith uses JWT (JSON Web Token) for stateless authentication, integrated with Spring Security for request filtering and authorization.
+ArchForge uses JWT (JSON Web Token) for stateless authentication, integrated with Spring Security for request filtering and authorization.
 
 ## Login Flow
 
@@ -35,7 +35,7 @@ ArchSmith uses JWT (JSON Web Token) for stateless authentication, integrated wit
 - Generated on successful login
 - Signed with HMAC-SHA512 using the configured secret
 - Contains: user ID, username, roles, issue time, expiration
-- Default TTL: 7 days (604800 seconds), configurable via `arch-smith.jwt.expire-seconds`
+- Default TTL: 7 days (604800 seconds), configurable via `arch-forge.jwt.expire-seconds`
 
 ### Token Refresh
 
@@ -47,7 +47,7 @@ ArchSmith uses JWT (JSON Web Token) for stateless authentication, integrated wit
 ### Configuration
 
 ```yaml
-arch-smith:
+arch-forge:
   jwt:
     secret: "your-base64-encoded-hmac-sha512-key"
     expire-seconds: 604800          # 7 days
@@ -58,11 +58,11 @@ arch-smith:
 
 ## Password Encryption
 
-ArchSmith uses a two-layer encryption approach:
+ArchForge uses a two-layer encryption approach:
 
 ### Layer 1: RSA Transport Encryption
 
-The frontend encrypts the plaintext password with the server's **RSA public key** before sending it over the network. The backend decrypts it using the private key configured in `arch-smith.rsa-private-key`.
+The frontend encrypts the plaintext password with the server's **RSA public key** before sending it over the network. The backend decrypts it using the private key configured in `arch-forge.rsa-private-key`.
 
 ### Layer 2: BCrypt Storage Hashing
 
@@ -114,7 +114,7 @@ List<String> roles = loginUser.getRoles();
 Login captcha is optional and configurable:
 
 ```yaml
-arch-smith:
+arch-forge:
   captcha:
     enabled: true        # Enable captcha on login
   captcha-type: math     # "math" (arithmetic) or "text" (random characters)

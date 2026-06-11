@@ -1,6 +1,6 @@
 # Tech Stack & Architecture Choices
 
-ArchSmith adopts modern technologies with clear rationale for each choice.
+ArchForge adopts modern technologies with clear rationale for each choice.
 
 ## Runtime
 

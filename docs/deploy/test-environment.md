@@ -1,6 +1,6 @@
 # Test Environment Setup
 
-Guide for setting up ArchSmith in a test/staging environment.
+Guide for setting up ArchForge in a test/staging environment.
 
 ## Prerequisites
 
@@ -15,21 +15,21 @@ Guide for setting up ArchSmith in a test/staging environment.
 Option A: Docker (recommended for test):
 
 ```bash
-docker run -d --name archsmith-pg \
-  -e POSTGRES_USER=archsmith \
+docker run -d --name archforge-pg \
+  -e POSTGRES_USER=archforge \
   -e POSTGRES_PASSWORD=<your-password> \
   -p 5432:5432 postgres:17-alpine
 
 # Create databases
-docker exec -i archsmith-pg psql -U archsmith -c "CREATE DATABASE archsmith_user;"
-docker exec -i archsmith-pg psql -U archsmith -c "CREATE DATABASE archsmith_task;"
+docker exec -i archforge-pg psql -U archforge -c "CREATE DATABASE archforge_user;"
+docker exec -i archforge-pg psql -U archforge -c "CREATE DATABASE archforge_task;"
 ```
 
 Option B: Native install (apt/yum).
 
 ### Schema Creation (Flyway)
 
-ArchSmith uses **Flyway** for automatic schema management. On first startup, Flyway executes migration scripts located in `server-admin/src/main/resources/db/migration/`:
+ArchForge uses **Flyway** for automatic schema management. On first startup, Flyway executes migration scripts located in `server-admin/src/main/resources/db/migration/`:
 
 - `V1__init_schema.sql` -- Creates all tables (sys_user, sys_role, sys_menu, sys_dept, etc.)
 - `V2__init_data.sql` -- Inserts initial admin user and system configuration
@@ -38,7 +38,7 @@ ArchSmith uses **Flyway** for automatic schema management. On first startup, Fly
 No manual SQL execution needed -- just configure the connection and enable Flyway:
 
 ```yaml
-arch-smith:
+arch-forge:
   flyway:
     enabled: true
 ```
@@ -56,7 +56,7 @@ SELECT * FROM flyway_schema_history ORDER BY installed_rank;
 ## Redis Setup
 
 ```bash
-docker run -d --name archsmith-redis \
+docker run -d --name archforge-redis \
   -p 6379:6379 redis:7-alpine \
   redis-server --requirepass <your-password>
 ```
@@ -75,7 +75,7 @@ Key settings to configure:
 - Database connection URLs and credentials
 - Redis host and password
 - JWT secret (generate with `openssl rand -base64 64`)
-- `arch-smith.flyway.enabled: true` (to run migrations)
+- `arch-forge.flyway.enabled: true` (to run migrations)
 
 ## Start the Application
 

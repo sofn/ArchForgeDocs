@@ -2,7 +2,7 @@
 
 ## Overview
 
-ArchSmith uses two mechanisms to manage dependency versions, achieving functionality similar to Maven's `dependencyManagement`:
+ArchForge uses two mechanisms to manage dependency versions, achieving functionality similar to Maven's `dependencyManagement`:
 
 1. **Spring Boot BOM** -- manages versions for all Spring Boot ecosystem dependencies
 2. **Custom BOM** (`dependencies` module) -- manages versions for third-party libraries

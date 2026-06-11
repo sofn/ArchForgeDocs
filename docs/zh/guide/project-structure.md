@@ -1,11 +1,11 @@
 # 项目结构
 
-ArchSmith 采用领域驱动的多模块架构。每个模块职责清晰、边界明确。
+ArchForge 采用领域驱动的多模块架构。每个模块职责清晰、边界明确。
 
-## 后端（ArchSmith）
+## 后端（ArchForge）
 
 ```
-ArchSmith/
+ArchForge/
 ├── common/                          # 公共库
 │   ├── common-core/                 # 核心工具
 │   │   └── src/main/java/
@@ -22,7 +22,7 @@ ArchSmith/
 ├── infrastructure/                  # 横切关注点
 │   └── src/main/java/
 │       ├── auth/                    # Authentication service, JWT, login models
-│       ├── config/                  # ArchSmithConfig, SwaggerConfig, CaptchaConfig
+│       ├── config/                  # ArchForgeConfig, SwaggerConfig, CaptchaConfig
 │       ├── db/                      # RedisUtil, GroupDataSourceProxy
 │       ├── frame/
 │       │   ├── context/             # RequestContext, RequestIDGenerator
@@ -86,10 +86,10 @@ ArchSmith/
 └── Dockerfile.native                # Native Docker 镜像（Liberica NIK 25）
 ```
 
-## 前端（ArchSmithAdmin）
+## 前端（ArchForgeAdmin）
 
 ```
-ArchSmithAdmin/
+ArchForgeAdmin/
 ├── src/
 │   ├── api/                 # API 端点定义（Axios）
 │   ├── assets/              # 静态资源（图片、SVG）

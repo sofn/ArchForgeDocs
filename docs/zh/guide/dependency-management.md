@@ -2,7 +2,7 @@
 
 ## 概述
 
-ArchSmith 使用两种机制管理依赖版本，实现了类似 Maven `dependencyManagement` 的功能：
+ArchForge 使用两种机制管理依赖版本，实现了类似 Maven `dependencyManagement` 的功能：
 
 1. **Spring Boot BOM** -- 管理所有 Spring Boot 生态系统依赖的版本
 2. **自定义 BOM**（`dependencies` 模块）-- 管理第三方库的版本

@@ -1,6 +1,6 @@
-# ArchSmith Documentation
+# ArchForge Documentation
 
-Documentation site for [ArchSmith](https://github.com/sofn/ArchSmith), powered by [VitePress](https://vitepress.dev/).
+Documentation site for [ArchForge](https://github.com/sofn/ArchForge), powered by [VitePress](https://vitepress.dev/).
 
 ## Development
 

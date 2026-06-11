@@ -2,19 +2,19 @@
 layout: home
 
 hero:
-  name: ArchSmith
+  name: ArchForge
   text: Enterprise Admin Platform
   tagline: Production-ready admin system built with Spring Boot 4 + Vue 3. From zero to full-stack in minutes.
   image:
     src: /logo.svg
-    alt: ArchSmith
+    alt: ArchForge
   actions:
     - theme: brand
       text: Get Started
       link: /guide/quick-start
     - theme: alt
       text: View on GitHub
-      link: https://github.com/sofn/ArchSmith
+      link: https://github.com/sofn/ArchForge
 
 features:
   - icon: 🚀

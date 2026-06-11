@@ -1,6 +1,6 @@
 # 生产环境指南
 
-ArchSmith 生产环境部署的检查清单与指南。
+ArchForge 生产环境部署的检查清单与指南。
 
 ## 部署前检查清单
 
@@ -9,10 +9,10 @@ ArchSmith 生产环境部署的检查清单与指南。
 | 1 | 更换 JWT 密钥 | **关键** | 生成新的 HMAC-SHA512 密钥 |
 | 2 | 更换 RSA 私钥 | **关键** | 生成新的 RSA 密钥对 |
 | 3 | 更换 PostgreSQL 密码 | **关键** | 使用强密码 |
-| 4 | 启用验证码 | 高 | 设置 `arch-smith.captcha.enabled: true` |
+| 4 | 启用验证码 | 高 | 设置 `arch-forge.captcha.enabled: true` |
 | 5 | 配置 PostgreSQL（主/从） | 高 | 按需设置数据库复制 |
 | 6 | 配置 Redis | 高 | 使用独立的 Redis 实例 |
-| 7 | 启用 Flyway | 高 | 设置 `arch-smith.flyway.enabled: true` |
+| 7 | 启用 Flyway | 高 | 设置 `arch-forge.flyway.enabled: true` |
 | 8 | 设置 JPA DDL 为 validate | 高 | `spring.jpa.hibernate.ddl-auto: validate` |
 | 9 | 配置 HTTPS | 高 | 在 Nginx 或负载均衡器处终止 SSL |
 | 10 | 设置数据库备份 | 高 | 自动化每日备份 |
@@ -33,7 +33,7 @@ openssl rand -base64 64
 在 `application-prod.yaml` 中设置，或作为环境变量传入：
 
 ```yaml
-arch-smith:
+arch-forge:
   jwt:
     secret: "YOUR_GENERATED_BASE64_KEY"
 ```
@@ -54,7 +54,7 @@ openssl pkcs8 -topk8 -inform PEM -outform DER -in private.pem -out private.der -
 base64 private.der
 ```
 
-将 Base64 编码的私钥设置到 `arch-smith.rsa-private-key` 中。将对应的公钥分享给前端。
+将 Base64 编码的私钥设置到 `arch-forge.rsa-private-key` 中。将对应的公钥分享给前端。
 
 ## 生产环境配置
 
@@ -80,12 +80,12 @@ spring:
       datasource:
         user_master:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://master:5432/archsmith
+          url: jdbc:postgresql://master:5432/archforge
           username: ${DB_USERNAME}
           password: ${DB_PASSWORD}
         user_slave:
           driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://slave:5432/archsmith
+          url: jdbc:postgresql://slave:5432/archforge
           username: ${DB_USERNAME}
           password: ${DB_PASSWORD}
   data:
@@ -93,7 +93,7 @@ spring:
       host: ${REDIS_HOST:redis}
       port: 6379
 
-arch-smith:
+arch-forge:
   jwt:
     secret: ${JWT_SECRET}
     expire-seconds: 86400        # 24 hours for production
@@ -120,9 +120,9 @@ management:
 方案 A：Docker（推荐用于大多数部署场景）：
 
 ```bash
-docker run -d --name archsmith-pg \
+docker run -d --name archforge-pg \
   --restart unless-stopped \
-  -e POSTGRES_USER=archsmith \
+  -e POSTGRES_USER=archforge \
   -e POSTGRES_PASSWORD=${DB_PASSWORD} \
   -e POSTGRES_INITDB_ARGS="--encoding=UTF8 --locale=en_US.UTF-8" \
   -v postgres-data:/var/lib/postgresql/data \
@@ -133,20 +133,20 @@ docker run -d --name archsmith-pg \
 
 ```bash
 sudo apt install -y postgresql-17
-sudo -u postgres createuser --createdb archsmith
-sudo -u postgres psql -c "ALTER USER archsmith PASSWORD '<your-password>';"
+sudo -u postgres createuser --createdb archforge
+sudo -u postgres psql -c "ALTER USER archforge PASSWORD '<your-password>';"
 ```
 
 ### 创建数据库
 
 ```bash
-psql -h <master-host> -U archsmith -c \
-  "CREATE DATABASE archsmith_user ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';"
+psql -h <master-host> -U archforge -c \
+  "CREATE DATABASE archforge_user ENCODING 'UTF8' LC_COLLATE 'en_US.UTF-8' LC_CTYPE 'en_US.UTF-8';"
 ```
 
 ### 主从复制
 
-使用 `dynamic-datasource` 进行读写分离时，需要在主库和从库实例之间搭建 PostgreSQL 流复制。ArchSmith 通过 `@DS` 注解和 `application-prod.yaml` 中配置的数据源组自动路由查询。
+使用 `dynamic-datasource` 进行读写分离时，需要在主库和从库实例之间搭建 PostgreSQL 流复制。ArchForge 通过 `@DS` 注解和 `application-prod.yaml` 中配置的数据源组自动路由查询。
 
 详细搭建说明请参考 [PostgreSQL 复制文档](https://www.postgresql.org/docs/17/high-availability.html)。
 
@@ -187,7 +187,7 @@ server {
     }
 
     location /api/ {
-        proxy_pass http://archsmith:8080/;
+        proxy_pass http://archforge:8080/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Proto https;
@@ -211,14 +211,14 @@ server {
 
 ```bash
 # Daily automated backup
-pg_dump -h <master-host> -U archsmith archsmith_user | gzip > backup_$(date +%Y%m%d).sql.gz
+pg_dump -h <master-host> -U archforge archforge_user | gzip > backup_$(date +%Y%m%d).sql.gz
 ```
 
 通过 cron 定时任务实现每日备份并保留 30 天：
 
 ```bash
-# /etc/cron.d/archsmith-backup
-0 2 * * * archsmith pg_dump -h localhost -U archsmith archsmith_user | gzip > /backups/archsmith_$(date +\%Y\%m\%d).sql.gz && find /backups -name "archsmith_*.sql.gz" -mtime +30 -delete
+# /etc/cron.d/archforge-backup
+0 2 * * * archforge pg_dump -h localhost -U archforge archforge_user | gzip > /backups/archforge_$(date +\%Y\%m\%d).sql.gz && find /backups -name "archforge_*.sql.gz" -mtime +30 -delete
 ```
 
 ### 应用备份

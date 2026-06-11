@@ -1,6 +1,6 @@
 # Log Management
 
-ArchSmith provides built-in logging for both user operations and login attempts, enabling audit trails and security monitoring.
+ArchForge provides built-in logging for both user operations and login attempts, enabling audit trails and security monitoring.
 
 ## Operation Logs
 

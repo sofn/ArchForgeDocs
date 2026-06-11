@@ -1,6 +1,6 @@
 # Server Monitor (Oshi)
 
-ArchSmith includes a built-in server monitoring dashboard powered by [Oshi](https://github.com/oshi/oshi), providing real-time visibility into system resources directly from the admin panel.
+ArchForge includes a built-in server monitoring dashboard powered by [Oshi](https://github.com/oshi/oshi), providing real-time visibility into system resources directly from the admin panel.
 
 ## Features
 
@@ -16,7 +16,7 @@ ArchSmith includes a built-in server monitoring dashboard powered by [Oshi](http
 Enable or disable the monitor in your application YAML:
 
 ```yaml
-arch-smith:
+arch-forge:
   monitor:
     enabled: true    # Set to false to disable the /server-info endpoint
 ```
@@ -56,7 +56,7 @@ The monitor is enabled by default in the dev profile.
     "home": "/usr/lib/jvm/java-21"
   },
   "sys": {
-    "computerName": "archsmith-server",
+    "computerName": "archforge-server",
     "osName": "Linux",
     "osArch": "amd64",
     "userDir": "/app"

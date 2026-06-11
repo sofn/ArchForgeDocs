@@ -1,6 +1,6 @@
 # 认证鉴权（JWT）
 
-ArchSmith 使用 JWT（JSON Web Token）实现无状态认证，并集成 Spring Security 进行请求过滤和授权。
+ArchForge 使用 JWT（JSON Web Token）实现无状态认证，并集成 Spring Security 进行请求过滤和授权。
 
 ## 登录流程
 
@@ -35,7 +35,7 @@ ArchSmith 使用 JWT（JSON Web Token）实现无状态认证，并集成 Spring
 - 登录成功后生成
 - 使用配置的密钥通过 HMAC-SHA512 签名
 - 包含：用户 ID、用户名、角色、签发时间、过期时间
-- 默认有效期：7 天（604800 秒），可通过 `arch-smith.jwt.expire-seconds` 配置
+- 默认有效期：7 天（604800 秒），可通过 `arch-forge.jwt.expire-seconds` 配置
 
 ### 令牌刷新
 
@@ -47,7 +47,7 @@ ArchSmith 使用 JWT（JSON Web Token）实现无状态认证，并集成 Spring
 ### 配置
 
 ```yaml
-arch-smith:
+arch-forge:
   jwt:
     secret: "your-base64-encoded-hmac-sha512-key"
     expire-seconds: 604800          # 7 days
@@ -58,11 +58,11 @@ arch-smith:
 
 ## 密码加密
 
-ArchSmith 采用双层加密方案：
+ArchForge 采用双层加密方案：
 
 ### 第一层：RSA 传输加密
 
-前端使用服务器的 **RSA 公钥**加密明文密码后再通过网络传输。后端使用在 `arch-smith.rsa-private-key` 中配置的私钥进行解密。
+前端使用服务器的 **RSA 公钥**加密明文密码后再通过网络传输。后端使用在 `arch-forge.rsa-private-key` 中配置的私钥进行解密。
 
 ### 第二层：BCrypt 存储哈希
 
@@ -114,7 +114,7 @@ List<String> roles = loginUser.getRoles();
 登录验证码是可选的，可通过配置启用：
 
 ```yaml
-arch-smith:
+arch-forge:
   captcha:
     enabled: true        # Enable captcha on login
   captcha-type: math     # "math" (arithmetic) or "text" (random characters)

@@ -68,7 +68,7 @@ The user list page includes a department tree on the left side. Clicking a depar
 - Passwords are encrypted with **BCrypt** before storage
 - The frontend encrypts the password with **RSA** (using the server's public key) before transmitting
 - The server decrypts with the RSA private key, then hashes with BCrypt
-- The RSA private key is configured in `arch-smith.rsa-private-key`
+- The RSA private key is configured in `arch-forge.rsa-private-key`
 
 ## Service Layer
 

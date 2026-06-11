@@ -1,6 +1,6 @@
 # 测试环境搭建
 
-本指南介绍如何在测试/预发布环境中搭建 ArchSmith。
+本指南介绍如何在测试/预发布环境中搭建 ArchForge。
 
 ## 前置条件
 
@@ -15,21 +15,21 @@
 方案 A：Docker（推荐用于测试环境）：
 
 ```bash
-docker run -d --name archsmith-pg \
-  -e POSTGRES_USER=archsmith \
+docker run -d --name archforge-pg \
+  -e POSTGRES_USER=archforge \
   -e POSTGRES_PASSWORD=<your-password> \
   -p 5432:5432 postgres:17-alpine
 
 # Create databases
-docker exec -i archsmith-pg psql -U archsmith -c "CREATE DATABASE archsmith_user;"
-docker exec -i archsmith-pg psql -U archsmith -c "CREATE DATABASE archsmith_task;"
+docker exec -i archforge-pg psql -U archforge -c "CREATE DATABASE archforge_user;"
+docker exec -i archforge-pg psql -U archforge -c "CREATE DATABASE archforge_task;"
 ```
 
 方案 B：原生安装（apt/yum）。
 
 ### Schema 创建（Flyway）
 
-ArchSmith 使用 **Flyway** 进行自动化 Schema 管理。首次启动时，Flyway 会执行位于 `server-admin/src/main/resources/db/migration/` 目录下的迁移脚本：
+ArchForge 使用 **Flyway** 进行自动化 Schema 管理。首次启动时，Flyway 会执行位于 `server-admin/src/main/resources/db/migration/` 目录下的迁移脚本：
 
 - `V1__init_schema.sql` -- 创建所有表（sys_user、sys_role、sys_menu、sys_dept 等）
 - `V2__init_data.sql` -- 插入初始管理员用户和系统配置
@@ -38,7 +38,7 @@ ArchSmith 使用 **Flyway** 进行自动化 Schema 管理。首次启动时，Fl
 无需手动执行 SQL —— 只需配置数据库连接并启用 Flyway：
 
 ```yaml
-arch-smith:
+arch-forge:
   flyway:
     enabled: true
 ```
@@ -56,7 +56,7 @@ SELECT * FROM flyway_schema_history ORDER BY installed_rank;
 ## Redis 搭建
 
 ```bash
-docker run -d --name archsmith-redis \
+docker run -d --name archforge-redis \
   -p 6379:6379 redis:7-alpine \
   redis-server --requirepass <your-password>
 ```
@@ -75,7 +75,7 @@ cp application-test.yaml.example application-test.yaml
 - 数据库连接 URL 和凭据
 - Redis 主机地址和密码
 - JWT 密钥（使用 `openssl rand -base64 64` 生成）
-- `arch-smith.flyway.enabled: true`（启用数据库迁移）
+- `arch-forge.flyway.enabled: true`（启用数据库迁移）
 
 ## 启动应用
 

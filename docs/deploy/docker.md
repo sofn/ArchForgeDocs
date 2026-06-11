@@ -1,6 +1,6 @@
 # Docker Deployment
 
-ArchSmith provides two Docker Compose deployment modes: **Native Image** (BellSoft Liberica NIK 25) for production and **JVM** (Project Leyden CDS) for development/testing.
+ArchForge provides two Docker Compose deployment modes: **Native Image** (BellSoft Liberica NIK 25) for production and **JVM** (Project Leyden CDS) for development/testing.
 
 ## Deployment Modes
 
@@ -13,7 +13,7 @@ ArchSmith provides two Docker Compose deployment modes: **Native Image** (BellSo
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌───────────┐
-│  Browser     │────►│  Nginx (:80) │────►│ ArchSmith  │
+│  Browser     │────►│  Nginx (:80) │────►│ ArchForge  │
 │              │     │  Static files│     │  (:8080)  │
 │              │     │  /api/* proxy│     │           │
 └─────────────┘     └──────────────┘     └─────┬─────┘
@@ -29,7 +29,7 @@ ArchSmith provides two Docker Compose deployment modes: **Native Image** (BellSo
 ## Quick Start
 
 ```bash
-cd ArchSmith/docker
+cd ArchForge/docker
 
 # Default: Native Image mode
 ./start.sh
@@ -42,7 +42,7 @@ cd ArchSmith/docker
 Or use `docker compose` directly:
 
 ```bash
-cd ArchSmith/docker
+cd ArchForge/docker
 
 # Native mode
 docker compose -f docker-compose.native.yml up -d --build
@@ -69,7 +69,7 @@ cp .env.example .env
 | Service | Port | Description |
 |---------|------|-------------|
 | Frontend (Nginx) | 80 | Admin panel |
-| Backend (ArchSmith) | 8080 | REST API |
+| Backend (ArchForge) | 8080 | REST API |
 | PostgreSQL | 5432 | Database |
 | Redis | 6379 | Cache |
 
@@ -108,7 +108,7 @@ server {
 
     # Backend API proxy
     location /api/ {
-        proxy_pass http://archsmith:8080/;
+        proxy_pass http://archforge:8080/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -117,12 +117,12 @@ server {
 
     # Swagger UI proxy
     location /swagger-ui/ {
-        proxy_pass http://archsmith:8080/swagger-ui/;
+        proxy_pass http://archforge:8080/swagger-ui/;
     }
 
     # OpenAPI docs proxy
     location /v3/api-docs {
-        proxy_pass http://archsmith:8080/v3/api-docs;
+        proxy_pass http://archforge:8080/v3/api-docs;
     }
 }
 ```
@@ -144,8 +144,8 @@ Both compose files define four services:
 
 1. **postgresdb**: PostgreSQL 17 with health check and persistent volume
 2. **redis**: Redis 7 Alpine with health check
-3. **archsmith**: Backend application (depends on postgresdb and redis being healthy)
-4. **archsmith-admin**: Frontend Nginx container (depends on archsmith)
+3. **archforge**: Backend application (depends on postgresdb and redis being healthy)
+4. **archforge-admin**: Frontend Nginx container (depends on archforge)
 
 The backend container receives all datasource configuration via environment variables:
 
@@ -153,21 +153,21 @@ The backend container receives all datasource configuration via environment vari
 environment:
   SPRING_PROFILES_ACTIVE: prod
   SPRING_DATA_REDIS_HOST: redis
-  DB_USERNAME: archsmith
+  DB_USERNAME: archforge
   DB_PASSWORD: ${DB_PASSWORD:-123}
   JWT_SECRET: ${JWT_SECRET:-...}
-  SPRING_DATASOURCE_DYNAMIC_DATASOURCE_USER_MASTER_URL: jdbc:postgresql://postgresdb:5432/archsmith
-  SPRING_DATASOURCE_DYNAMIC_DATASOURCE_USER_SLAVE_URL: jdbc:postgresql://postgresdb:5432/archsmith
+  SPRING_DATASOURCE_DYNAMIC_DATASOURCE_USER_MASTER_URL: jdbc:postgresql://postgresdb:5432/archforge
+  SPRING_DATASOURCE_DYNAMIC_DATASOURCE_USER_SLAVE_URL: jdbc:postgresql://postgresdb:5432/archforge
 ```
 
 ## Managing the Deployment
 
 ```bash
 # View logs
-docker compose -f docker-compose.native.yml logs -f archsmith
+docker compose -f docker-compose.native.yml logs -f archforge
 
 # Restart a service
-docker compose -f docker-compose.native.yml restart archsmith
+docker compose -f docker-compose.native.yml restart archforge
 
 # Stop everything
 docker compose -f docker-compose.native.yml down
@@ -176,7 +176,7 @@ docker compose -f docker-compose.native.yml down
 docker compose -f docker-compose.native.yml down -v
 
 # Rebuild a specific service
-docker compose -f docker-compose.native.yml up -d --build archsmith
+docker compose -f docker-compose.native.yml up -d --build archforge
 ```
 
 ## Related Pages

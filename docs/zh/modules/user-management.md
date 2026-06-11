@@ -68,7 +68,7 @@
 - 密码在存储前使用 **BCrypt** 加密
 - 前端使用服务器的公钥通过 **RSA** 加密密码后再传输
 - 服务器使用 RSA 私钥解密，然后使用 BCrypt 进行哈希
-- RSA 私钥在 `arch-smith.rsa-private-key` 中配置
+- RSA 私钥在 `arch-forge.rsa-private-key` 中配置
 
 ## 服务层
 

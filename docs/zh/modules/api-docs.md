@@ -1,6 +1,6 @@
 # API 文档（Swagger）
 
-ArchSmith 集成了 SpringDoc OpenAPI，提供交互式 API 文档，既可作为独立页面访问，也可嵌入管理后台中。
+ArchForge 集成了 SpringDoc OpenAPI，提供交互式 API 文档，既可作为独立页面访问，也可嵌入管理后台中。
 
 ## 配置
 
@@ -48,7 +48,7 @@ Nginx 配置将 Swagger 请求代理到后端：
 ```nginx
 # Swagger UI proxy (for iframe embedding)
 location /swagger-ui/ {
-    proxy_pass http://archsmith:8080/swagger-ui/;
+    proxy_pass http://archforge:8080/swagger-ui/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -56,7 +56,7 @@ location /swagger-ui/ {
 
 # OpenAPI docs proxy
 location /v3/api-docs {
-    proxy_pass http://archsmith:8080/v3/api-docs;
+    proxy_pass http://archforge:8080/v3/api-docs;
     proxy_set_header Host $host;
 }
 ```

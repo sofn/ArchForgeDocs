@@ -1,10 +1,10 @@
-# 什么是 ArchSmith？
+# 什么是 ArchForge？
 
-ArchSmith 是一个基于 **Spring Boot 4** 和 **Vue 3** 构建的现代企业级管理平台，专为希望使用最新 Java 和前端技术的团队打造，提供开箱即用的生产级管理系统。
+ArchForge 是一个基于 **Spring Boot 4** 和 **Vue 3** 构建的现代企业级管理平台，专为希望使用最新 Java 和前端技术的团队打造，提供开箱即用的生产级管理系统。
 
-## 为什么选择 ArchSmith？
+## 为什么选择 ArchForge？
 
-Java 生态中大多数开源管理框架仍然停留在老旧技术栈上——Spring Boot 2.x、Java 8 以及基于 Webpack 的前端。ArchSmith 采用了不同的方式：从最新的稳定版本起步，从第一天起就应用整洁架构。
+Java 生态中大多数开源管理框架仍然停留在老旧技术栈上——Spring Boot 2.x、Java 8 以及基于 Webpack 的前端。ArchForge 采用了不同的方式：从最新的稳定版本起步，从第一天起就应用整洁架构。
 
 ### 核心亮点
 
@@ -19,7 +19,7 @@ Java 生态中大多数开源管理框架仍然停留在老旧技术栈上——
 
 ## 与同类项目对比
 
-| 特性 | ArchSmith | RuoYi | JeecgBoot | AgileBoot |
+| 特性 | ArchForge | RuoYi | JeecgBoot | AgileBoot |
 |---------|----------|-------|-----------|-----------|
 | Spring Boot | **4.0.5** | 2.x | 3.x | 3.x |
 | Java 版本 | **25（Azul Zulu，虚拟线程）** | 8 | 8/17 | 17 |

@@ -1,6 +1,6 @@
 # 快速开始
 
-5 分钟内在本地运行 ArchSmith。
+5 分钟内在本地运行 ArchForge。
 
 ## 前置条件
 
@@ -26,16 +26,16 @@ java -version
 
 ```bash
 # 后端
-git clone https://github.com/sofn/ArchSmith.git
+git clone https://github.com/sofn/ArchForge.git
 
 # 前端
-git clone https://github.com/sofn/ArchSmithAdmin.git
+git clone https://github.com/sofn/ArchForgeAdmin.git
 ```
 
 ### 2. 启动后端
 
 ```bash
-cd ArchSmith
+cd ArchForge
 ./gradlew server-admin:bootRun
 ```
 

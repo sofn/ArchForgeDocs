@@ -1,6 +1,6 @@
 # Database Migration (Flyway)
 
-ArchSmith uses [Flyway](https://flywaydb.org/) to manage database schema migrations, ensuring test and production environments have consistent, traceable, and reproducible database structures.
+ArchForge uses [Flyway](https://flywaydb.org/) to manage database schema migrations, ensuring test and production environments have consistent, traceable, and reproducible database structures.
 
 ## Environment Strategy
 
@@ -88,7 +88,7 @@ Flyway executes only the new incremental migrations.
 
 ```bash
 # 1. Create the database
-psql -U postgres -c "CREATE DATABASE archsmith_test;"
+psql -U postgres -c "CREATE DATABASE archforge_test;"
 
 # 2. Configure the profile
 cd server-admin/src/main/resources
@@ -111,7 +111,7 @@ SELECT * FROM flyway_schema_history ORDER BY installed_rank;
 
 ```bash
 # 1. Create database (on master, replication handles slave)
-psql -h <master-host> -U postgres -c "CREATE DATABASE archsmith;"
+psql -h <master-host> -U postgres -c "CREATE DATABASE archforge;"
 
 # 2. Configure the profile
 cd server-admin/src/main/resources
@@ -150,10 +150,10 @@ SPRING_PROFILES_ACTIVE=prod java -jar server-admin.jar
 
 ```bash
 # Execute reverse SQL
-psql -h <master-host> -U archsmith -d archsmith -f rollback_V4.sql
+psql -h <master-host> -U archforge -d archforge -f rollback_V4.sql
 
 # Fix Flyway history
-psql -h <master-host> -U archsmith -d archsmith -c \
+psql -h <master-host> -U archforge -d archforge -c \
   "DELETE FROM flyway_schema_history WHERE version = '4';"
 ```
 
@@ -167,7 +167,7 @@ spring:
     hibernate:
       ddl-auto: update          # Hibernate manages DDL
 
-arch-smith:
+arch-forge:
   flyway:
     enabled: false              # Flyway disabled
   embedded:
@@ -182,7 +182,7 @@ spring:
     hibernate:
       ddl-auto: validate        # Flyway manages DDL, Hibernate only validates
 
-arch-smith:
+arch-forge:
   flyway:
     enabled: true               # Flyway enabled
 ```

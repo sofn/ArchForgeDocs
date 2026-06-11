@@ -2,19 +2,19 @@
 layout: home
 
 hero:
-  name: ArchSmith
+  name: ArchForge
   text: 企业级管理平台
   tagline: 基于 Spring Boot 4 + Vue 3 的生产就绪管理系统，从零到全栈只需几分钟。
   image:
     src: /logo.svg
-    alt: ArchSmith
+    alt: ArchForge
   actions:
     - theme: brand
       text: 快速开始
       link: /zh/guide/quick-start
     - theme: alt
       text: GitHub
-      link: https://github.com/sofn/ArchSmith
+      link: https://github.com/sofn/ArchForge
 
 features:
   - icon: 🚀

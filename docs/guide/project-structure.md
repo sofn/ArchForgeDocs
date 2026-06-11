@@ -1,11 +1,11 @@
 # Project Structure
 
-ArchSmith follows a domain-driven, multi-module architecture. Each module has a clear responsibility and well-defined boundaries.
+ArchForge follows a domain-driven, multi-module architecture. Each module has a clear responsibility and well-defined boundaries.
 
-## Backend (ArchSmith)
+## Backend (ArchForge)
 
 ```
-ArchSmith/
+ArchForge/
 ├── common/                          # Shared libraries
 │   ├── common-core/                 # Core utilities
 │   │   └── src/main/java/
@@ -22,7 +22,7 @@ ArchSmith/
 ├── infrastructure/                  # Cross-cutting concerns
 │   └── src/main/java/
 │       ├── auth/                    # Authentication service, JWT, login models
-│       ├── config/                  # ArchSmithConfig, SwaggerConfig, CaptchaConfig
+│       ├── config/                  # ArchForgeConfig, SwaggerConfig, CaptchaConfig
 │       ├── db/                      # RedisUtil, GroupDataSourceProxy
 │       ├── frame/
 │       │   ├── context/             # RequestContext, RequestIDGenerator
@@ -86,10 +86,10 @@ ArchSmith/
 └── Dockerfile.native                # Native Docker image (Liberica NIK 25)
 ```
 
-## Frontend (ArchSmithAdmin)
+## Frontend (ArchForgeAdmin)
 
 ```
-ArchSmithAdmin/
+ArchForgeAdmin/
 ├── src/
 │   ├── api/                 # API endpoint definitions (Axios)
 │   ├── assets/              # Static assets (images, SVGs)

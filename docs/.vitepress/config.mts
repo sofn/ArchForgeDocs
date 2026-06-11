@@ -4,7 +4,7 @@ const guideSidebarEN = [
   {
     text: 'Introduction',
     items: [
-      { text: 'What is ArchSmith?', link: '/guide/introduction' },
+      { text: 'What is ArchForge?', link: '/guide/introduction' },
       { text: 'Quick Start', link: '/guide/quick-start' },
       { text: 'Tech Stack', link: '/guide/tech-stack' },
       { text: 'Project Structure', link: '/guide/project-structure' },
@@ -57,7 +57,7 @@ const guideSidebarZH = [
   {
     text: '介绍',
     items: [
-      { text: '什么是 ArchSmith？', link: '/zh/guide/introduction' },
+      { text: '什么是 ArchForge？', link: '/zh/guide/introduction' },
       { text: '快速开始', link: '/zh/guide/quick-start' },
       { text: '技术选型', link: '/zh/guide/tech-stack' },
       { text: '项目结构', link: '/zh/guide/project-structure' },
@@ -107,7 +107,7 @@ const deploySidebarZH = [
 ]
 
 export default defineConfig({
-  title: 'ArchSmith',
+  title: 'ArchForge',
   description: 'Modern enterprise admin platform built with Spring Boot 4 + Vue 3',
   base: '/',
   lastUpdated: true,
@@ -129,8 +129,8 @@ export default defineConfig({
           {
             text: 'Links',
             items: [
-              { text: 'Backend (ArchSmith)', link: 'https://github.com/sofn/ArchSmith' },
-              { text: 'Frontend (ArchSmithAdmin)', link: 'https://github.com/sofn/ArchSmithAdmin' },
+              { text: 'Backend (ArchForge)', link: 'https://github.com/sofn/ArchForge' },
+              { text: 'Frontend (ArchForgeAdmin)', link: 'https://github.com/sofn/ArchForgeAdmin' },
             ]
           }
         ],
@@ -140,7 +140,7 @@ export default defineConfig({
           '/deploy/': deploySidebarEN,
         },
         editLink: {
-          pattern: 'https://github.com/sofn/ArchSmithDocs/edit/master/docs/:path',
+          pattern: 'https://github.com/sofn/ArchForgeDocs/edit/master/docs/:path',
           text: 'Edit this page on GitHub'
         }
       }
@@ -156,8 +156,8 @@ export default defineConfig({
           {
             text: '链接',
             items: [
-              { text: '后端 (ArchSmith)', link: 'https://github.com/sofn/ArchSmith' },
-              { text: '前端 (ArchSmithAdmin)', link: 'https://github.com/sofn/ArchSmithAdmin' },
+              { text: '后端 (ArchForge)', link: 'https://github.com/sofn/ArchForge' },
+              { text: '前端 (ArchForgeAdmin)', link: 'https://github.com/sofn/ArchForgeAdmin' },
             ]
           }
         ],
@@ -167,7 +167,7 @@ export default defineConfig({
           '/zh/deploy/': deploySidebarZH,
         },
         editLink: {
-          pattern: 'https://github.com/sofn/ArchSmithDocs/edit/master/docs/:path',
+          pattern: 'https://github.com/sofn/ArchForgeDocs/edit/master/docs/:path',
           text: '在 GitHub 上编辑此页'
         },
         lastUpdatedText: '最后更新',
@@ -182,15 +182,15 @@ export default defineConfig({
 
   themeConfig: {
     logo: '/logo.svg',
-    siteTitle: 'ArchSmith',
+    siteTitle: 'ArchForge',
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/sofn/ArchSmith' },
+      { icon: 'github', link: 'https://github.com/sofn/ArchForge' },
     ],
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024-present ArchSmith'
+      copyright: 'Copyright © 2024-present ArchForge'
     },
 
     search: {

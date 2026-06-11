@@ -1,6 +1,6 @@
 # Docker 部署
 
-ArchSmith 提供两种 Docker Compose 部署模式：**Native Image**（BellSoft Liberica NIK 25）适用于生产环境，**JVM**（Project Leyden CDS）适用于开发/测试环境。
+ArchForge 提供两种 Docker Compose 部署模式：**Native Image**（BellSoft Liberica NIK 25）适用于生产环境，**JVM**（Project Leyden CDS）适用于开发/测试环境。
 
 ## 部署模式
 
@@ -13,7 +13,7 @@ ArchSmith 提供两种 Docker Compose 部署模式：**Native Image**（BellSoft
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌───────────┐
-│  Browser     │────►│  Nginx (:80) │────►│ ArchSmith  │
+│  Browser     │────►│  Nginx (:80) │────►│ ArchForge  │
 │              │     │  Static files│     │  (:8080)  │
 │              │     │  /api/* proxy│     │           │
 └─────────────┘     └──────────────┘     └─────┬─────┘
@@ -29,7 +29,7 @@ ArchSmith 提供两种 Docker Compose 部署模式：**Native Image**（BellSoft
 ## 快速开始
 
 ```bash
-cd ArchSmith/docker
+cd ArchForge/docker
 
 # 默认：Native Image 模式
 ./start.sh
@@ -42,7 +42,7 @@ cd ArchSmith/docker
 也可以直接使用 `docker compose`：
 
 ```bash
-cd ArchSmith/docker
+cd ArchForge/docker
 
 # Native 模式
 docker compose -f docker-compose.native.yml up -d --build
@@ -69,7 +69,7 @@ cp .env.example .env
 | 服务 | 端口 | 说明 |
 |------|------|------|
 | 前端（Nginx） | 80 | 管理面板 |
-| 后端（ArchSmith） | 8080 | REST API |
+| 后端（ArchForge） | 8080 | REST API |
 | PostgreSQL | 5432 | 数据库 |
 | Redis | 6379 | 缓存 |
 
@@ -108,7 +108,7 @@ server {
 
     # Backend API proxy
     location /api/ {
-        proxy_pass http://archsmith:8080/;
+        proxy_pass http://archforge:8080/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -117,12 +117,12 @@ server {
 
     # Swagger UI proxy
     location /swagger-ui/ {
-        proxy_pass http://archsmith:8080/swagger-ui/;
+        proxy_pass http://archforge:8080/swagger-ui/;
     }
 
     # OpenAPI docs proxy
     location /v3/api-docs {
-        proxy_pass http://archsmith:8080/v3/api-docs;
+        proxy_pass http://archforge:8080/v3/api-docs;
     }
 }
 ```
@@ -144,8 +144,8 @@ server {
 
 1. **postgresdb**：PostgreSQL 17，带健康检查和持久化存储卷
 2. **redis**：Redis 7 Alpine，带健康检查
-3. **archsmith**：后端应用（依赖 postgresdb 和 redis 健康就绪）
-4. **archsmith-admin**：前端 Nginx 容器（依赖 archsmith）
+3. **archforge**：后端应用（依赖 postgresdb 和 redis 健康就绪）
+4. **archforge-admin**：前端 Nginx 容器（依赖 archforge）
 
 后端容器通过环境变量接收所有数据源配置：
 
@@ -153,21 +153,21 @@ server {
 environment:
   SPRING_PROFILES_ACTIVE: prod
   SPRING_DATA_REDIS_HOST: redis
-  DB_USERNAME: archsmith
+  DB_USERNAME: archforge
   DB_PASSWORD: ${DB_PASSWORD:-123}
   JWT_SECRET: ${JWT_SECRET:-...}
-  SPRING_DATASOURCE_DYNAMIC_DATASOURCE_USER_MASTER_URL: jdbc:postgresql://postgresdb:5432/archsmith
-  SPRING_DATASOURCE_DYNAMIC_DATASOURCE_USER_SLAVE_URL: jdbc:postgresql://postgresdb:5432/archsmith
+  SPRING_DATASOURCE_DYNAMIC_DATASOURCE_USER_MASTER_URL: jdbc:postgresql://postgresdb:5432/archforge
+  SPRING_DATASOURCE_DYNAMIC_DATASOURCE_USER_SLAVE_URL: jdbc:postgresql://postgresdb:5432/archforge
 ```
 
 ## 管理部署
 
 ```bash
 # 查看日志
-docker compose -f docker-compose.native.yml logs -f archsmith
+docker compose -f docker-compose.native.yml logs -f archforge
 
 # 重启服务
-docker compose -f docker-compose.native.yml restart archsmith
+docker compose -f docker-compose.native.yml restart archforge
 
 # 停止所有服务
 docker compose -f docker-compose.native.yml down
@@ -176,7 +176,7 @@ docker compose -f docker-compose.native.yml down
 docker compose -f docker-compose.native.yml down -v
 
 # 重新构建指定服务
-docker compose -f docker-compose.native.yml up -d --build archsmith
+docker compose -f docker-compose.native.yml up -d --build archforge
 ```
 
 ## 相关页面

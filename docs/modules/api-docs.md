@@ -1,6 +1,6 @@
 # API Documentation (Swagger)
 
-ArchSmith integrates SpringDoc OpenAPI to provide interactive API documentation, accessible both as a standalone page and embedded within the admin panel.
+ArchForge integrates SpringDoc OpenAPI to provide interactive API documentation, accessible both as a standalone page and embedded within the admin panel.
 
 ## Configuration
 
@@ -48,7 +48,7 @@ The Nginx configuration proxies Swagger requests to the backend:
 ```nginx
 # Swagger UI proxy (for iframe embedding)
 location /swagger-ui/ {
-    proxy_pass http://archsmith:8080/swagger-ui/;
+    proxy_pass http://archforge:8080/swagger-ui/;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -56,7 +56,7 @@ location /swagger-ui/ {
 
 # OpenAPI docs proxy
 location /v3/api-docs {
-    proxy_pass http://archsmith:8080/v3/api-docs;
+    proxy_pass http://archforge:8080/v3/api-docs;
     proxy_set_header Host $host;
 }
 ```
