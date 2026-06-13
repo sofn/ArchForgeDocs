@@ -20,6 +20,16 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 | Dynamic Datasource | 4.5.0 | Master/slave routing, @DS annotation, group proxy for JPA |
 | AWS S3 SDK | 2.31 | File storage abstraction (works with RustFS in dev) |
 
+## ORM & Query
+
+| Technology | Version | Why |
+|-----------|---------|-----|
+| Spring Data JPA | 4.x | Repository abstraction, Specification for dynamic queries |
+| Hibernate Static Metamodel | 7.2.x | Compile-time type-safe field references (`Entity_` classes), replaces QueryDSL Q-classes |
+| SafeExpr / AliasExpr | -- | Type-safe JPQL expression builder using `SingularAttribute` |
+| JPA Criteria API | 3.2 | Type-safe query construction with metamodel, no raw JPQL strings |
+| QueryHelp | -- | Annotation-driven dynamic predicate builder for list/search endpoints |
+
 ## Web & API
 
 | Technology | Version | Why |
@@ -93,6 +103,7 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 
 ## Related Pages
 
+- [ORM Query Strategy](./orm-query.md) -- type-safe query patterns with Metamodel + SafeExpr
 - [Project Structure](./project-structure.md) -- how the modules are organized
 - [Dependency Management](./dependency-management.md) -- centralized version control with Gradle BOMs
 - [Configuration](./configuration.md) -- runtime configuration for each technology

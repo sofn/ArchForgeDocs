@@ -17,6 +17,7 @@ const guideSidebarEN = [
       { text: 'Configuration', link: '/guide/configuration' },
       { text: 'Database Migration', link: '/guide/database-migration' },
       { text: 'Dependency Management', link: '/guide/dependency-management' },
+      { text: 'ORM Query Strategy', link: '/guide/orm-query' },
     ]
   }
 ]
