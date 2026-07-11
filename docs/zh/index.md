@@ -35,4 +35,12 @@ features:
   - icon: 🐳
     title: Docker 原生 & JVM
     details: 双部署模式 — Liberica NIK 25 原生镜像（约 100ms 启动）或 JVM + Project Leyden CDS。一键部署。
+  - title: 文件管理
+    details: 后台直接上传、列表、下载、删除文件。支持本地文件系统或 S3 (RustFS) 后端，可配置扩展名、大小、MIME 白名单。
+  - title: 定时任务
+    details: 基于 Quartz 的反射式 Cron 任务，支持暂停、恢复、立即执行与执行日志查看。
+  - title: 国际化
+    details: 后端 Spring MessageSource 与前端 vue-i18n 联动，默认提供简体中文与英文消息。
+  - title: Spring Modulith
+    details: 显式模块边界、依赖校验与模块文档生成测试，支撑领域与基础设施层的整洁架构。
 ---

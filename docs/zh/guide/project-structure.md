@@ -7,28 +7,34 @@ ArchForge 采用领域驱动的多模块架构。每个模块职责清晰、边�
 ```
 ArchForge/
 ├── common/                          # 公共库
-│   ├── common-core/                 # 核心工具
+│   ├── common-base/                 # 核心工具
 │   │   └── src/main/java/
 │   │       ├── enums/               # BasicEnum, DictionaryEnum
-│   │       ├── repository/          # BaseEntity, base repository
-│   │       ├── utils/               # Encryption, IP, string utilities
-│   │       └── annotation/          # @Sensitive, @Dictionary, @BaseInfo
-│   └── common-error/                # 错误处理
+│   │       ├── utils/               # Encryption, IP, Jackson, i18n utilities
+│   │       ├── sensitive/           # @Sensitive 脱敏
+│   │       └── validation/          # 校验注解
+│   ├── common-error/                # 错误处理
+│   │   └── src/main/java/
+│   │       ├── ErrorCode.java       # Error code interface
+│   │       ├── ErrorInfo.java       # Error response model
+│   │       └── BizException.java    # Business exception base class
+│   └── common-jpa/                  # JPA 基础设施
 │       └── src/main/java/
-│           ├── ErrorCode.java       # Error code interface
-│           ├── ErrorInfo.java       # Error response model
-│           └── BizException.java    # Business exception base class
+│           ├── repository/          # BaseEntity, JPA converters
+│           ├── utils/query/         # QueryHelp, SafeExpr, AliasExpr
+│           └── annotation/          # @Query
 │
 ├── infrastructure/                  # 横切关注点
 │   └── src/main/java/
+│       ├── annotation/              # @Log, @RepeatSubmit
 │       ├── auth/                    # Authentication service, JWT, login models
-│       ├── config/                  # ArchForgeConfig, SwaggerConfig, CaptchaConfig
-│       ├── db/                      # RedisUtil, GroupDataSourceProxy
+│       ├── config/                  # ArchForgeConfig, SwaggerConfig, I18nConfig
+│       ├── file/                    # FileStorageService, adaptive local/S3 storage
 │       ├── frame/
 │       │   ├── context/             # RequestContext, RequestIDGenerator
 │       │   ├── filters/             # AuthResourceFilter, RequestLogFilter
 │       │   ├── response/            # ResultValueWrapper, ErrorExceptionHandle
-│       │   ├── database/            # GroupDataSourceProxy (dynamic-datasource bridge)
+│       │   ├── interceptor/         # RepeatSubmitInterceptor
 │       │   └── spring/              # ApplicationContextHolder
 │       └── user/                    # BaseLoginUser, UserProvider SPI
 │
@@ -44,6 +50,9 @@ ArchForge/
 │           │   ├── SysNotice.java
 │           │   ├── SysOperLog.java
 │           │   ├── SysLoginLog.java
+│           │   ├── SysFile.java
+│           │   ├── SysQuartzJob.java
+│           │   ├── SysQuartzLog.java
 │           │   └── SysRoleMenu.java
 │           ├── dao/                 # Spring Data JPA repositories
 │           ├── service/             # Business services
@@ -54,11 +63,13 @@ ArchForge/
 ├── server-admin/                    # Web 应用入口
 │   └── src/main/
 │       ├── java/
-│       │   ├── Application.java     # @SpringBootApplication main class
+│       │   ├── com/lesofn/archforge/Application.java  # @SpringBootApplication main class
 │       │   ├── controller/
-│       │   │   ├── LoginController.java      # Login, captcha, token, routes
-│       │   │   ├── AdminApiController.java   # Admin CRUD APIs
-│       │   │   └── system/                   # RESTful system controllers
+│       │   │   ├── LoginController.java      # 登录、验证码、Token、路由
+│       │   │   ├── FileController.java       # 文件上传/下载/删除
+│       │   │   ├── QuartzJobController.java  # 定时任务管理
+│       │   │   ├── MonitorController.java    # 服务器监控
+│       │   │   └── admin/                    # 系统管理 RESTful 控制器
 │       │   ├── security/            # Spring Security filter chain config
 │       │   └── error/               # Error controller
 │       └── resources/
@@ -70,7 +81,7 @@ ArchForge/
 │           └── log4j2-spring.xml         # 日志配置（含 SpringProfile）
 │
 ├── example/                         # 示例/扩展模块
-│   └── example-task/                # Task domain example
+│   └── example-task/                # 任务领域示例
 │
 ├── dependencies/                    # 集中版本管理
 │   └── build.gradle.kts            # java-platform BOM
@@ -119,10 +130,12 @@ ArchForgeAdmin/
 ```
 server-admin
   ├── infrastructure
-  │     ├── common-core
+  │     ├── common-base
+  │     ├── common-jpa
   │     └── common-error
   └── domain/admin-user
-        ├── common-core
+        ├── common-base
+        ├── common-jpa
         └── common-error
 ```
 
@@ -135,9 +148,10 @@ server-admin
 | 多模块 Gradle | 层间边界清晰，支持并行编译 |
 | `dependencies/` BOM 模块 | 所有库版本的单一可信源 |
 | 按限界上下文划分领域 | `admin-user` 模块可独立替换或扩展 |
+| `common` 拆分为 `common-base`、`common-error`、`common-jpa` | 工具、错误、持久化关注点分离，JPA 依赖不污染 base |
 | QueryDSL 谓词放在 `domain/` | 类型安全的过滤逻辑紧贴实体 |
 | Flyway 脚本放在 `server-admin/resources/` | 迁移脚本随应用一起部署 |
-| 独立 `infrastructure/` 模块 | 认证、过滤器和配置可跨领域复用 |
+| 独立 `infrastructure/` 模块 | 认证、过滤器、文件存储、国际化、配置可跨领域复用 |
 
 ## 相关页面
 

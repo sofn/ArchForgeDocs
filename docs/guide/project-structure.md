@@ -7,28 +7,34 @@ ArchForge follows a domain-driven, multi-module architecture. Each module has a 
 ```
 ArchForge/
 ├── common/                          # Shared libraries
-│   ├── common-core/                 # Core utilities
+│   ├── common-base/                 # Core utilities
 │   │   └── src/main/java/
 │   │       ├── enums/               # BasicEnum, DictionaryEnum
-│   │       ├── repository/          # BaseEntity, base repository
-│   │       ├── utils/               # Encryption, IP, string utilities
-│   │       └── annotation/          # @Sensitive, @Dictionary, @BaseInfo
-│   └── common-error/                # Error handling
+│   │       ├── utils/               # Encryption, IP, Jackson, i18n utilities
+│   │       ├── sensitive/           # @Sensitive data masking
+│   │       └── validation/          # Validation annotations
+│   ├── common-error/                # Error handling
+│   │   └── src/main/java/
+│   │       ├── ErrorCode.java       # Error code interface
+│   │       ├── ErrorInfo.java       # Error response model
+│   │       └── BizException.java    # Business exception base class
+│   └── common-jpa/                  # JPA infrastructure
 │       └── src/main/java/
-│           ├── ErrorCode.java       # Error code interface
-│           ├── ErrorInfo.java       # Error response model
-│           └── BizException.java    # Business exception base class
+│           ├── repository/          # BaseEntity, JPA converters
+│           ├── utils/query/         # QueryHelp, SafeExpr, AliasExpr
+│           └── annotation/          # @Query
 │
 ├── infrastructure/                  # Cross-cutting concerns
 │   └── src/main/java/
+│       ├── annotation/              # @Log, @RepeatSubmit
 │       ├── auth/                    # Authentication service, JWT, login models
-│       ├── config/                  # ArchForgeConfig, SwaggerConfig, CaptchaConfig
-│       ├── db/                      # RedisUtil, GroupDataSourceProxy
+│       ├── config/                  # ArchForgeConfig, SwaggerConfig, I18nConfig
+│       ├── file/                    # FileStorageService, adaptive local/S3 storage
 │       ├── frame/
 │       │   ├── context/             # RequestContext, RequestIDGenerator
 │       │   ├── filters/             # AuthResourceFilter, RequestLogFilter
 │       │   ├── response/            # ResultValueWrapper, ErrorExceptionHandle
-│       │   ├── database/            # GroupDataSourceProxy (dynamic-datasource bridge)
+│       │   ├── interceptor/         # RepeatSubmitInterceptor
 │       │   └── spring/              # ApplicationContextHolder
 │       └── user/                    # BaseLoginUser, UserProvider SPI
 │
@@ -44,6 +50,9 @@ ArchForge/
 │           │   ├── SysNotice.java
 │           │   ├── SysOperLog.java
 │           │   ├── SysLoginLog.java
+│           │   ├── SysFile.java
+│           │   ├── SysQuartzJob.java
+│           │   ├── SysQuartzLog.java
 │           │   └── SysRoleMenu.java
 │           ├── dao/                 # Spring Data JPA repositories
 │           ├── service/             # Business services
@@ -54,11 +63,13 @@ ArchForge/
 ├── server-admin/                    # Web application entry point
 │   └── src/main/
 │       ├── java/
-│       │   ├── Application.java     # @SpringBootApplication main class
+│       │   ├── com/lesofn/archforge/Application.java  # @SpringBootApplication main class
 │       │   ├── controller/
 │       │   │   ├── LoginController.java      # Login, captcha, token, routes
-│       │   │   ├── AdminApiController.java   # Admin CRUD APIs
-│       │   │   └── system/                   # RESTful system controllers
+│       │   │   ├── FileController.java       # File upload/download/delete
+│       │   │   ├── QuartzJobController.java  # Quartz job scheduling
+│       │   │   ├── MonitorController.java    # Server monitoring
+│       │   │   └── admin/                    # Admin RESTful controllers
 │       │   ├── security/            # Spring Security filter chain config
 │       │   └── error/               # Error controller
 │       └── resources/
@@ -119,10 +130,12 @@ ArchForgeAdmin/
 ```
 server-admin
   ├── infrastructure
-  │     ├── common-core
+  │     ├── common-base
+  │     ├── common-jpa
   │     └── common-error
   └── domain/admin-user
-        ├── common-core
+        ├── common-base
+        ├── common-jpa
         └── common-error
 ```
 
@@ -135,9 +148,10 @@ The dependency flow is strictly top-down: `server-admin` depends on `infrastruct
 | Multi-module Gradle | Clear boundaries between layers, parallel compilation |
 | `dependencies/` BOM module | Single source of truth for all library versions |
 | Domain per bounded context | `admin-user` module can be replaced or extended independently |
+| `common` split into `common-base`, `common-error`, `common-jpa` | Separates utilities, errors, and persistence; JPA dependencies do not leak into base |
 | QueryDSL predicates in `domain/` | Type-safe filtering logic stays close to entities |
 | Flyway scripts in `server-admin/resources/` | Migration scripts deploy with the application |
-| Separate `infrastructure/` | Auth, filters, and config are reusable across domains |
+| Separate `infrastructure/` | Auth, filters, file storage, i18n, and config are reusable across domains |
 
 ## Related Pages
 

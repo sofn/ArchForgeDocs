@@ -32,6 +32,8 @@ const modulesSidebarEN = [
       { text: 'Config & Notice', link: '/modules/config-notice' },
       { text: 'Log Management', link: '/modules/log-management' },
       { text: 'Server Monitor', link: '/modules/server-monitor' },
+      { text: 'File Management', link: '/modules/file-management' },
+      { text: 'Quartz Scheduling', link: '/modules/quartz' },
     ]
   },
   {
@@ -85,6 +87,8 @@ const modulesSidebarZH = [
       { text: '参数与公告', link: '/zh/modules/config-notice' },
       { text: '日志管理', link: '/zh/modules/log-management' },
       { text: '服务监控', link: '/zh/modules/server-monitor' },
+      { text: '文件管理', link: '/zh/modules/file-management' },
+      { text: '定时任务', link: '/zh/modules/quartz' },
     ]
   },
   {

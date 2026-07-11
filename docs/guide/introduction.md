@@ -15,7 +15,11 @@ Most open-source admin frameworks in the Java ecosystem are stuck on older stack
 - **Flyway Migrations** — version-controlled schema management instead of manual SQL scripts
 - **Real-time Server Monitoring** — CPU, memory, JVM, and disk metrics via Oshi, viewable in the admin panel
 - **Dual Docker Deployment** — choose between Native Image (fast startup) or JVM with Leyden CDS (easy debugging)
-- **File Upload/Download** — pluggable storage backends with local filesystem and S3 (RustFS) support
+- **File Management** — pluggable storage backends with local filesystem and S3 (RustFS) support, extension/size/MIME allow-lists, and full CRUD from the admin UI
+- **Quartz Scheduling** — reflective cron jobs with pause, resume, run-once, and execution logs
+- **i18n** — backend and frontend locale sync with English and Simplified Chinese bundles
+- **Druid Monitoring** — SQL monitoring enabled in non-production environments and hidden in production
+- **Spring Modulith 2.0** — explicit module boundaries and dependency verification for the domain and infrastructure layers
 
 ## Comparison with Similar Projects
 

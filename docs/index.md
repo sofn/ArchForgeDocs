@@ -35,4 +35,12 @@ features:
   - icon: 🐳
     title: Docker Native & JVM
     details: Dual deployment modes — Liberica NIK 25 Native Image (~100ms startup) or JVM with Project Leyden CDS. One-command deployment.
+  - title: File Management
+    details: Upload, list, download, and delete files from the admin UI. Pluggable local filesystem or S3 (RustFS) backends with extension/size/MIME allow-lists.
+  - title: Quartz Scheduling
+    details: Reflective cron jobs with pause, resume, run-once, and execution logs, managed from the admin panel.
+  - title: i18n
+    details: Backend and frontend locale sync with English and Simplified Chinese message bundles out of the box.
+  - title: Spring Modulith
+    details: Explicit module boundaries, dependency verification, and documentation tests for the domain and infrastructure layers.
 ---
