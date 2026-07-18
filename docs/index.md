@@ -38,6 +38,9 @@ features:
   - icon: 🐳
     title: Docker Native & JVM
     details: Dual deployment modes — Liberica NIK 25 Native Image (~100ms startup) or JVM with Project Leyden CDS. One-command deployment.
+  - icon: 📈
+    title: Observability
+    details: Prometheus + Grafana + Jaeger + Alertmanager out of the box — dashboards, alerts, and distributed traces.
   - title: File Management
     details: Upload, list, download, and delete files from the admin UI. Pluggable local filesystem or S3 (RustFS) backends with extension/size/MIME allow-lists.
   - title: Quartz Scheduling

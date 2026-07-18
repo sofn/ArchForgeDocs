@@ -50,6 +50,7 @@ const deploySidebarEN = [
     text: 'Deployment',
     items: [
       { text: 'Docker Compose', link: '/deploy/docker' },
+      { text: 'Observability', link: '/deploy/observability' },
       { text: 'Test Environment', link: '/deploy/test-environment' },
       { text: 'Production Guide', link: '/deploy/production' },
     ]
@@ -105,6 +106,7 @@ const deploySidebarZH = [
     text: '部署',
     items: [
       { text: 'Docker Compose', link: '/zh/deploy/docker' },
+      { text: '可观测性', link: '/zh/deploy/observability' },
       { text: '测试环境', link: '/zh/deploy/test-environment' },
       { text: '生产环境', link: '/zh/deploy/production' },
     ]
@@ -117,6 +119,10 @@ export default defineConfig({
   base: '/',
   lastUpdated: true,
   cleanUrls: true,
+  ignoreDeadLinks: [
+    /^http:\/\/localhost/,
+    /^https:\/\/localhost/,
+  ],
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],

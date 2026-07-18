@@ -38,6 +38,9 @@ features:
   - icon: 🐳
     title: Docker 原生 & JVM
     details: 双部署模式 — Liberica NIK 25 原生镜像（约 100ms 启动）或 JVM + Project Leyden CDS。一键部署。
+  - icon: 📈
+    title: 可观测性
+    details: 开箱即用的 Prometheus + Grafana + Jaeger + Alertmanager，支持仪表盘、告警与分布式 Trace。
   - title: 文件管理
     details: 后台直接上传、列表、下载、删除文件。支持本地文件系统或 S3 (RustFS) 后端，可配置扩展名、大小、MIME 白名单。
   - title: 定时任务
