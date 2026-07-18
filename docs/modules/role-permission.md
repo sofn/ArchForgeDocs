@@ -9,6 +9,7 @@ The role and permission system provides fine-grained access control with menu-ba
 - Button-level permission control via `permissions` array
 - Duplicate role key/name detection
 - Role-menu relationship management
+- Role-level data scope / data permission
 
 ## Data Model
 
@@ -21,6 +22,7 @@ The role and permission system provides fine-grained access control with menu-ba
 | roleKey | String | Unique identifier (e.g., "admin") |
 | roleSort | Integer | Sort order |
 | status | Integer | Status (0: disabled, 1: enabled) |
+| dataScope | Integer | Data scope (1 all, 2 custom, 3 single dept, 4 dept tree, 5 self-only) |
 | remark | String | Notes |
 
 ### SysRoleMenu (`sys_role_menu`)
@@ -61,6 +63,7 @@ This is a many-to-many join table linking roles to their permitted menus.
 | POST | `/system/role` | Create role |
 | PUT | `/system/role/{id}` | Update role |
 | DELETE | `/system/role/{id}` | Delete role |
+| POST | `/system/role/data-scope` | Update role data scope |
 | GET | `/system/role/exists/key` | Check if role key exists |
 | GET | `/system/role/exists/name` | Check if role name exists |
 
@@ -96,12 +99,44 @@ Permissions follow the pattern: `module:entity:action`
 | `system:role:create` | Create role |
 | `system:menu:create` | Create menu |
 
+## Data Permission
+
+In addition to menu and button permissions, each role can define a **data scope** that controls which records the role's members can see. The scope is stored on `sys_role.data_scope` and applied via the `@DataPermission` annotation combined with JPA Specifications.
+
+### Data Scopes
+
+| Scope | Value | Description |
+|-------|-------|-------------|
+| All | 1 | Access all data |
+| Custom | 2 | Access data only from selected departments |
+| Single Department | 3 | Access data from the user's own department |
+| Department Tree | 4 | Access data from the user's department and all descendants |
+| Self Only | 5 | Access only records created by the user |
+
+### Configuration
+
+Admins set the data scope in the role management UI. When **Custom** is selected, a department tree lets the admin pick the allowed departments. The backend exposes `POST /system/role/data-scope` to persist the configuration.
+
+### Usage in Code
+
+```java
+@GetMapping("/system/user")
+@DataPermission(deptAlias = "deptId", userAlias = "userId")
+public ResponseResult<PageResult<UserVO>> list(SysUserRequest request) {
+    Specification<SysUser> spec = dataScopeSpecification.apply(
+        queryHelper.build(request), DataScopeContextHolder.get()
+    );
+    return ResponseResult.success(userRepository.findAll(spec, pageable));
+}
+```
+
 ## Role Assignment Flow
 
 1. Admin creates a role and assigns menu permissions via the permission tree
-2. Admin assigns roles to users in the user management page
-3. On login, the backend fetches the user's roles and their combined menu permissions
-4. The frontend builds the sidebar and button visibility based on these permissions
+2. Admin sets the role's data scope (optional)
+3. Admin assigns roles to users in the user management page
+4. On login, the backend fetches the user's roles, menu permissions, and data scope
+5. The frontend builds the sidebar and button visibility based on these permissions
 
 ## Related Pages
 

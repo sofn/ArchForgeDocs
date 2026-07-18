@@ -25,7 +25,10 @@ features:
     details: Beautiful admin interface based on vue-pure-admin with Element Plus, Tailwind CSS, and dynamic menu routing.
   - icon: 🔐
     title: Complete RBAC
-    details: Role-based access control with JWT authentication, dynamic menus, button-level permissions, and token refresh.
+    details: Role-based access control with JWT authentication, dynamic menus, button-level permissions, token refresh, and role-based data scopes.
+  - icon: 🛡️
+    title: API Security
+    details: API request signing with HMAC-SHA256 and idempotent tokens to prevent replay attacks and duplicate submissions.
   - icon: 📊
     title: Server Monitoring
     details: Real-time CPU, memory, JVM, disk monitoring powered by Oshi with auto-refresh dashboards.

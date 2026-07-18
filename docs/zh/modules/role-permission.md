@@ -9,6 +9,7 @@
 - 通过 `permissions` 数组实现按钮级别的权限控制
 - 角色标识/名称重复检测
 - 角色-菜单关系管理
+- 角色数据范围（数据权限）
 
 ## 数据模型
 
@@ -21,6 +22,7 @@
 | roleKey | String | 唯一标识符（如"admin"） |
 | roleSort | Integer | 排序序号 |
 | status | Integer | 状态（0：禁用，1：启用） |
+| dataScope | Integer | 数据范围（1 全部，2 自定义，3 本部门，4 本部门及以下，5 仅本人） |
 | remark | String | 备注 |
 
 ### SysRoleMenu（`sys_role_menu`）
@@ -61,6 +63,7 @@
 | POST | `/system/role` | 创建角色 |
 | PUT | `/system/role/{id}` | 更新角色 |
 | DELETE | `/system/role/{id}` | 删除角色 |
+| POST | `/system/role/data-scope` | 更新角色数据范围 |
 | GET | `/system/role/exists/key` | 检查角色标识是否存在 |
 | GET | `/system/role/exists/name` | 检查角色名称是否存在 |
 
@@ -96,12 +99,44 @@
 | `system:role:create` | 创建角色 |
 | `system:menu:create` | 创建菜单 |
 
+## 数据权限
+
+除了菜单与按钮权限，每个角色还可以定义一个**数据范围**，控制该角色成员可查看的数据记录。数据范围存储在 `sys_role.data_scope` 中，通过 `@DataPermission` 注解与 JPA Specification 组合生效。
+
+### 数据范围
+
+| 范围 | 值 | 说明 |
+|-------|-------|-------------|
+| 全部数据权限 | 1 | 可访问所有数据 |
+| 自定义数据权限 | 2 | 仅可访问指定部门的数据 |
+| 本部门数据权限 | 3 | 仅可访问用户所在部门的数据 |
+| 本部门及以下数据权限 | 4 | 可访问用户所在部门及其所有子部门的数据 |
+| 仅本人数据权限 | 5 | 仅可访问本人创建的数据 |
+
+### 配置方式
+
+管理员在角色管理页面设置数据范围。选择**自定义数据权限**时，可通过部门树选择允许的部门。后端通过 `POST /system/role/data-scope` 接口保存配置。
+
+### 代码用法
+
+```java
+@GetMapping("/system/user")
+@DataPermission(deptAlias = "deptId", userAlias = "userId")
+public ResponseResult<PageResult<UserVO>> list(SysUserRequest request) {
+    Specification<SysUser> spec = dataScopeSpecification.apply(
+        queryHelper.build(request), DataScopeContextHolder.get()
+    );
+    return ResponseResult.success(userRepository.findAll(spec, pageable));
+}
+```
+
 ## 角色分配流程
 
 1. 管理员创建角色并通过权限树分配菜单权限
-2. 管理员在用户管理页面为用户分配角色
-3. 登录时，后端获取用户的角色及其合并后的菜单权限
-4. 前端根据这些权限构建侧边栏和按钮可见性
+2. 管理员设置角色的数据范围（可选）
+3. 管理员在用户管理页面为用户分配角色
+4. 登录时，后端获取用户的角色、菜单权限和数据范围
+5. 前端根据这些权限构建侧边栏和按钮可见性
 
 ## 相关页面
 

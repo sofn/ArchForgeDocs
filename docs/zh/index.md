@@ -25,7 +25,10 @@ features:
     details: 基于 vue-pure-admin 的精美后台界面，集成 Element Plus、Tailwind CSS、动态菜单路由。
   - icon: 🔐
     title: 完整 RBAC
-    details: 基于角色的访问控制，支持 JWT 认证、动态菜单、按钮级权限、Token 刷新。
+    details: 基于角色的访问控制，支持 JWT 认证、动态菜单、按钮级权限、Token 刷新、角色级数据范围。
+  - icon: 🛡️
+    title: API 安全
+    details: API 请求 HMAC-SHA256 签名与幂等 Token，防止请求篡改、重放攻击与重复提交。
   - icon: 📊
     title: 服务监控
     details: 基于 Oshi 的实时 CPU、内存、JVM、磁盘监控，自动刷新仪表盘。

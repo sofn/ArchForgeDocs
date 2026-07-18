@@ -137,12 +137,77 @@ arch-forge:
 }
 ```
 
+## API 请求签名
+
+对于敏感接口或第三方接入，使用 `@ApiSign` 注解。拦截器会校验以下请求头：
+
+| Header | 说明 |
+|--------|------|
+| `X-App-Key` | 应用标识 |
+| `X-Timestamp` | 请求时间戳（毫秒） |
+| `X-Nonce` | 一次性随机串（防重放） |
+| `X-Sign` | 小写十六进制 HMAC-SHA256 签名 |
+
+签名算法：
+
+```
+HMAC-SHA256(appSecret, appKey + timestamp + nonce + body)
+```
+
+在 `application.yaml` 中配置接入应用：
+
+```yaml
+arch-forge:
+  security:
+    sign:
+      enabled: true
+      timeoutSeconds: 300
+      nonceTtlSeconds: 600
+      apps:
+        test-app: test-secret
+```
+
+用法：
+
+```java
+@PostMapping("/external/order")
+@ApiSign
+public ResponseResult<Void> createOrder(@RequestBody OrderRequest request) {
+    // ...
+}
+```
+
+## 幂等 Token
+
+`@Idempotent` 注解用于防止重复提交，支持三种模式：
+
+- **PARAM**：基于方法签名 + 参数哈希生成 Redis SETNX 锁，支持通过 `key` 指定 SpEL 表达式。
+- **TOKEN**：客户端先调用 `GET /idempotent/token` 获取一次性 Token，再通过 `X-Idempotent-Token` 头部提交。
+- **HEADER**：基于指定请求头值进行幂等控制。
+
+配置：
+
+```yaml
+arch-forge:
+  idempotent:
+    enabled: true
+    tokenExpireSeconds: 600
+    headerName: X-Idempotent-Token
+```
+
+用法：
+
+```java
+@PostMapping("/order")
+@Idempotent(type = IdempotentType.PARAM, expireSeconds = 10)
+public ResponseResult<Long> createOrder(@RequestBody OrderRequest request) {
+    // ...
+}
+```
+
 ## 相关页面
 
 - [用户管理](./user-management.md) — 用户账户管理
-- [角色与权限](./role-permission.md) — 角色和权限
-- [配置说明](/zh/guide/configuration.md) — JWT 和验证码设置
+- [角色与权限](./role-permission.md) — 角色、权限与数据范围
+- [配置说明](/zh/guide/configuration.md) — JWT、验证码、API 签名与幂等配置
 - [菜单管理](./menu-management.md) — 登录后的异步路由加载
-```
-
----

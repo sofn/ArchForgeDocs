@@ -137,12 +137,77 @@ arch-forge:
 }
 ```
 
+## API Request Signing
+
+For sensitive endpoints or third-party integrations, use the `@ApiSign` annotation. The interceptor validates four headers:
+
+| Header | Description |
+|--------|-------------|
+| `X-App-Key` | Application identifier |
+| `X-Timestamp` | Request timestamp in milliseconds |
+| `X-Nonce` | One-time random string (replay protection) |
+| `X-Sign` | HMAC-SHA256 signature in lowercase hex |
+
+The signature is computed as:
+
+```
+HMAC-SHA256(appSecret, appKey + timestamp + nonce + body)
+```
+
+Configure allowed apps in `application.yaml`:
+
+```yaml
+arch-forge:
+  security:
+    sign:
+      enabled: true
+      timeoutSeconds: 300
+      nonceTtlSeconds: 600
+      apps:
+        test-app: test-secret
+```
+
+Usage:
+
+```java
+@PostMapping("/external/order")
+@ApiSign
+public ResponseResult<Void> createOrder(@RequestBody OrderRequest request) {
+    // ...
+}
+```
+
+## Idempotent Token
+
+The `@Idempotent` annotation prevents duplicate submissions:
+
+- **PARAM**: Redis SETNX lock keyed by method signature + parameter hash (supports SpEL via `key`).
+- **TOKEN**: Client requests a one-time token from `GET /idempotent/token` and submits it in the `X-Idempotent-Token` header.
+- **HEADER**: Lock based on a specified request header value.
+
+Configuration:
+
+```yaml
+arch-forge:
+  idempotent:
+    enabled: true
+    tokenExpireSeconds: 600
+    headerName: X-Idempotent-Token
+```
+
+Usage:
+
+```java
+@PostMapping("/order")
+@Idempotent(type = IdempotentType.PARAM, expireSeconds = 10)
+public ResponseResult<Long> createOrder(@RequestBody OrderRequest request) {
+    // ...
+}
+```
+
 ## Related Pages
 
 - [User Management](./user-management.md) — user account management
-- [Role & Permission](./role-permission.md) — roles and permissions
-- [Configuration](../guide/configuration.md) — JWT and captcha settings
+- [Role & Permission](./role-permission.md) — roles, permissions, and data scopes
+- [Configuration](../guide/configuration.md) — JWT, captcha, API signing, and idempotent settings
 - [Menu Management](./menu-management.md) — async route loading after login
-```
-
----
