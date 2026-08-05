@@ -49,4 +49,8 @@ features:
     details: Backend and frontend locale sync with English and Simplified Chinese message bundles out of the box.
   - title: Spring Modulith
     details: Explicit module boundaries, dependency verification, and documentation tests for the domain and infrastructure layers.
+  - title: Meta Table
+    details: Low-code dynamic table design with schema evolution, CRUD, import/export, and full-stack code generation from the admin panel.
+  - title: C-end Web
+    details: Next.js 16 consumer-facing demo with i18n, Sa-Token auth, articles dashboard, Playwright E2E tests, and Storybook.
 ---

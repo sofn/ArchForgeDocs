@@ -81,6 +81,22 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 | i18n | vue-i18n | -- | Internationalization |
 | Base Template | vue-pure-admin | -- | Enterprise admin template |
 
+## Frontend (C-end)
+
+| Category | Technology | Version | Purpose |
+|----------|-----------|---------|---------|
+| Framework | Next.js | 16.2.12 | React framework with App Router |
+| UI | React | 19.2.8 | Component library |
+| Language | TypeScript | 7.0.2 | Type-safe JavaScript |
+| Styling | Tailwind CSS | 4.3.3 | Utility-first CSS |
+| Components | shadcn/ui + lucide-react | -- | Headless UI primitives and icons |
+| i18n | next-intl | 4.13.4 | English / Chinese localization |
+| Auth | Sa-Token (server-web) | -- | C-end token-based authentication |
+| Markdown | react-markdown + remark-gfm + rehype-highlight | -- | Article content rendering |
+| E2E Tests | Playwright | 1.61.1 | End-to-end testing |
+| Component Docs | Storybook | 8.6.18 | Visual component documentation |
+| Build | Turborepo + pnpm workspaces | -- | Monorepo orchestration |
+
 ## Deployment
 
 | Technology | Why |

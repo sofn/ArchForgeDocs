@@ -71,6 +71,22 @@ ArchForge 采用现代技术，每项选择都有清晰的考量。
 | 国际化 | vue-i18n | -- | 多语言支持 |
 | 基础模板 | vue-pure-admin | -- | 企业级后台管理模板 |
 
+## 前端（C 端）
+
+| 类别 | 技术 | 版本 | 用途 |
+|------|------|------|------|
+| 框架 | Next.js | 16.2.12 | React 框架，App Router |
+| UI | React | 19.2.8 | 组件库 |
+| 语言 | TypeScript | 7.0.2 | 类型安全的 JavaScript |
+| 样式 | Tailwind CSS | 4.3.3 | 原子化 CSS |
+| 组件 | shadcn/ui + lucide-react | -- | 无头 UI 原语与图标 |
+| 国际化 | next-intl | 4.13.4 | 英文 / 中文多语言 |
+| 认证 | Sa-Token（server-web） | -- | C 端 Token 认证 |
+| Markdown | react-markdown + remark-gfm + rehype-highlight | -- | 文章内容渲染 |
+| E2E 测试 | Playwright | 1.61.1 | 端到端测试 |
+| 组件文档 | Storybook | 8.6.18 | 可视化组件文档 |
+| 构建 | Turborepo + pnpm workspaces | -- | Monorepo 编排 |
+
 ## 部署
 
 | 技术 | 选型理由 |

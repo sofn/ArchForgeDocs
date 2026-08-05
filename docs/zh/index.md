@@ -49,4 +49,8 @@ features:
     details: 后端 Spring MessageSource 与前端 vue-i18n 联动，默认提供简体中文与英文消息。
   - title: Spring Modulith
     details: 显式模块边界、依赖校验与模块文档生成测试，支撑领域与基础设施层的整洁架构。
+  - title: 元表格
+    details: 低代码动态表设计，支持 Schema 演进、数据 CRUD、导入导出，并可一键生成前后端完整模块脚手架。
+  - title: C 端 Web
+    details: 基于 Next.js 16 的 C 端示例站点，支持国际化、Sa-Token 认证、文章仪表盘、Playwright E2E 测试与 Storybook。
 ---

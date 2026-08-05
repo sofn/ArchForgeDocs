@@ -18,6 +18,7 @@ const guideSidebarEN = [
       { text: 'Database Migration', link: '/guide/database-migration' },
       { text: 'Dependency Management', link: '/guide/dependency-management' },
       { text: 'ORM Query Strategy', link: '/guide/orm-query' },
+      { text: 'C-end Web', link: '/guide/c-end-web' },
     ]
   }
 ]
@@ -34,6 +35,7 @@ const modulesSidebarEN = [
       { text: 'Server Monitor', link: '/modules/server-monitor' },
       { text: 'File Management', link: '/modules/file-management' },
       { text: 'Quartz Scheduling', link: '/modules/quartz' },
+      { text: 'Meta Table', link: '/modules/meta-table' },
     ]
   },
   {
@@ -74,6 +76,7 @@ const guideSidebarZH = [
       { text: '配置管理', link: '/zh/guide/configuration' },
       { text: '数据库迁移', link: '/zh/guide/database-migration' },
       { text: '依赖管理', link: '/zh/guide/dependency-management' },
+      { text: 'C 端 Web', link: '/zh/guide/c-end-web' },
     ]
   }
 ]
@@ -90,6 +93,7 @@ const modulesSidebarZH = [
       { text: '服务监控', link: '/zh/modules/server-monitor' },
       { text: '文件管理', link: '/zh/modules/file-management' },
       { text: '定时任务', link: '/zh/modules/quartz' },
+      { text: '元表格', link: '/zh/modules/meta-table' },
     ]
   },
   {
