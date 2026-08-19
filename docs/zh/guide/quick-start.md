@@ -22,21 +22,33 @@ java -version
 
 ## 方式一：手动安装
 
-### 1. 克隆仓库
+### 1. 并列克隆仓库
+
+五个仓库需 **并列克隆**：ArchForge、ArchForgeAdmin、ArchForgeWeb、ArchForgeDocs、ArchForgeSpec。
 
 ```bash
 # 后端
 git clone https://github.com/sofn/ArchForge.git
 
-# 前端
+# 管理端 UI
 git clone https://github.com/sofn/ArchForgeAdmin.git
+```
+
+克隆后也可以从后端根目录：
+
+```bash
+cd ArchForge
+./archforge init --write
+./archforge up
 ```
 
 ### 2. 启动后端
 
 ```bash
 cd ArchForge
-./gradlew server-admin:bootRun
+./gradlew :archforge-server-admin:bootRun
+# 可选 C 端 API：
+# ./gradlew :archforge-server-web:bootRun
 ```
 
 开发环境配置会自动激活，使用以下服务：

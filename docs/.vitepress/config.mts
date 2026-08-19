@@ -8,6 +8,7 @@ const guideSidebarEN = [
       { text: 'Quick Start', link: '/guide/quick-start' },
       { text: 'Tech Stack', link: '/guide/tech-stack' },
       { text: 'Project Structure', link: '/guide/project-structure' },
+      { text: 'CLI', link: '/guide/cli' },
     ]
   },
   {
@@ -19,6 +20,7 @@ const guideSidebarEN = [
       { text: 'Dependency Management', link: '/guide/dependency-management' },
       { text: 'ORM Query Strategy', link: '/guide/orm-query' },
       { text: 'C-end Web', link: '/guide/c-end-web' },
+      { text: 'Developer CLI', link: '/guide/cli' },
     ]
   }
 ]
@@ -41,7 +43,7 @@ const modulesSidebarEN = [
   {
     text: 'Core Features',
     items: [
-      { text: 'Authentication (JWT)', link: '/modules/authentication' },
+      { text: 'Authentication (Sa-Token)', link: '/modules/authentication' },
       { text: 'API Documentation', link: '/modules/api-docs' },
     ]
   }
@@ -67,6 +69,7 @@ const guideSidebarZH = [
       { text: '快速开始', link: '/zh/guide/quick-start' },
       { text: '技术选型', link: '/zh/guide/tech-stack' },
       { text: '项目结构', link: '/zh/guide/project-structure' },
+      { text: '命令行工具', link: '/zh/guide/cli' },
     ]
   },
   {
@@ -77,6 +80,7 @@ const guideSidebarZH = [
       { text: '数据库迁移', link: '/zh/guide/database-migration' },
       { text: '依赖管理', link: '/zh/guide/dependency-management' },
       { text: 'C 端 Web', link: '/zh/guide/c-end-web' },
+      { text: '开发 CLI', link: '/zh/guide/cli' },
     ]
   }
 ]
@@ -99,7 +103,7 @@ const modulesSidebarZH = [
   {
     text: '核心功能',
     items: [
-      { text: '认证 (JWT)', link: '/zh/modules/authentication' },
+      { text: '认证 (Sa-Token)', link: '/zh/modules/authentication' },
       { text: 'API 文档', link: '/zh/modules/api-docs' },
     ]
   }
@@ -117,9 +121,15 @@ const deploySidebarZH = [
   }
 ]
 
+const repoLinks = [
+  { text: 'Backend (ArchForge)', link: 'https://github.com/sofn/ArchForge' },
+  { text: 'Admin (ArchForgeAdmin)', link: 'https://github.com/sofn/ArchForgeAdmin' },
+  { text: 'Docs (ArchForgeDocs)', link: 'https://github.com/sofn/ArchForgeDocs' },
+]
+
 export default defineConfig({
   title: 'ArchForge',
-  description: 'Modern enterprise admin platform built with Spring Boot 4 + Vue 3',
+  description: 'Five-repo enterprise platform: Spring Boot 4.1 + Sa-Token + Vue 3 + Next.js',
   base: '/',
   lastUpdated: true,
   cleanUrls: true,
@@ -142,11 +152,8 @@ export default defineConfig({
           { text: 'Modules', link: '/modules/user-management' },
           { text: 'Deploy', link: '/deploy/docker' },
           {
-            text: 'Links',
-            items: [
-              { text: 'Backend (ArchForge)', link: 'https://github.com/sofn/ArchForge' },
-              { text: 'Frontend (ArchForgeAdmin)', link: 'https://github.com/sofn/ArchForgeAdmin' },
-            ]
+            text: 'Repos',
+            items: repoLinks
           }
         ],
         sidebar: {
@@ -169,11 +176,8 @@ export default defineConfig({
           { text: '模块', link: '/zh/modules/user-management' },
           { text: '部署', link: '/zh/deploy/docker' },
           {
-            text: '链接',
-            items: [
-              { text: '后端 (ArchForge)', link: 'https://github.com/sofn/ArchForge' },
-              { text: '前端 (ArchForgeAdmin)', link: 'https://github.com/sofn/ArchForgeAdmin' },
-            ]
+            text: '仓库',
+            items: repoLinks
           }
         ],
         sidebar: {

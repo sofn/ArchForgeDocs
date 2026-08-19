@@ -1,26 +1,30 @@
-# Authentication (JWT)
+# Authentication (Sa-Token)
 
-ArchForge uses JWT (JSON Web Token) for stateless authentication, integrated with Spring Security for request filtering and authorization.
+ArchForge authenticates with **Sa-Token 1.45.0**, not JWT and not Spring Security.
 
-## Login Flow
+Two independent login types share Redis-backed sessions:
+
+| App | Util | Sa-Token type | Port |
+|-----|------|---------------|------|
+| Admin | `StpAdminUtil` | `"admin"` | `:8080` |
+| C-end web | `StpWebUtil` | `"web"` | `:8081` |
+
+## Login Flow (admin)
 
 ```
 ┌──────────┐                  ┌──────────────┐                ┌──────────┐
-│ Frontend  │                  │ LoginController│               │ AuthService│
+│ Frontend  │                  │ LoginController│               │ TokenService│
 └────┬─────┘                  └──────┬───────┘                └────┬─────┘
-     │  POST /login                  │                              │
+     │  POST /auth/login             │                              │
      │  {username, password, code}   │                              │
      ├──────────────────────────────►│                              │
      │                               │  Verify captcha              │
      │                               │  Decrypt RSA password        │
-     │                               │  authenticate()              │
-     │                               ├─────────────────────────────►│
-     │                               │                              │ BCrypt verify
-     │                               │                              │ Load user + roles
-     │                               │  Return tokens               │
-     │                               │◄─────────────────────────────┤
+     │                               │  BCrypt verify               │
+     │                               │  StpAdminUtil.login(userId)  │
+     │                               │                              │
      │  {accessToken, refreshToken,  │                              │
-     │   expires}                    │                              │
+     │   expires, roles, perms}      │                              │
      │◄──────────────────────────────┤                              │
      │                               │                              │
      │  Subsequent requests:         │                              │
@@ -28,108 +32,98 @@ ArchForge uses JWT (JSON Web Token) for stateless authentication, integrated wit
      └──────────────────────────────►│                              │
 ```
 
+Login is rate-limited: `@RateLimit(key = "login", time = 60, maxCount = 5, limitType = IP)` — **5 requests per minute per IP**.
+
 ## Token Management
+
+Sa-Token issues a **UUID** access token (`token-style: uuid`). It is **not** a signed JWT.
 
 ### Access Token
 
-- Generated on successful login
-- Signed with HMAC-SHA512 using the configured secret
-- Contains: user ID, username, roles, issue time, expiration
-- Default TTL: 7 days (604800 seconds), configurable via `arch-forge.jwt.expire-seconds`
+- Created by `StpAdminUtil.login(userId)` / `StpWebUtil.login(userId)`
+- Stored in Sa-Token session (Redis)
+- Sent as `Authorization: Bearer <token>`
+- Default TTL: 7 days (`sa-token.timeout: 604800`)
 
-### Token Refresh
+### Refresh Token (admin)
 
-- Endpoint: `POST /refresh-token`
-- Accepts the current access token
-- Returns a new access token with a fresh expiration
-- The `auto-refresh-time` config (default: 20 minutes) determines when the frontend should proactively refresh
+- Endpoint: `POST /auth/refresh-token`
+- Random UUID stored in Redis, mapped to user id
+- Returns a new Sa-Token access token plus a new refresh token
 
 ### Configuration
 
 ```yaml
-arch-forge:
-  jwt:
-    secret: "your-base64-encoded-hmac-sha512-key"
-    expire-seconds: 604800          # 7 days
-  token:
-    header: Authorization           # HTTP header name
-    auto-refresh-time: 20           # Auto-refresh threshold (minutes)
+sa-token:
+  token-name: Authorization
+  token-prefix: Bearer
+  timeout: 604800
+  active-timeout: -1
+  is-concurrent: true
+  is-share: false
+  is-read-cookie: false
+  token-style: uuid
+  is-log: false
+  is-print: false
+```
+
+Production secrets have **no defaults**. Set Redis, datasource passwords, RSA keys, and related env vars yourself. Do not ship empty prod credentials.
+
+## Authorization
+
+Controllers use Sa-Token annotations with an explicit type:
+
+```java
+@SaCheckLogin(type = StpAdminUtil.TYPE)
+@SaCheckPermission(value = "system:user:add", type = StpAdminUtil.TYPE)
+@PostMapping
+public void addUser(...) { }
+```
+
+Permission strings come from `sys_menu.permission`, for example `system:user:add`, `system:role:query`, `monitor:job:list`.
+
+Current admin user:
+
+```java
+SystemLoginUser loginUser = LoginContext.getAdminUser();
 ```
 
 ## Password Encryption
 
-ArchForge uses a two-layer encryption approach:
+Two layers still apply:
 
-### Layer 1: RSA Transport Encryption
+1. **RSA** — frontend encrypts the password with the server public key; backend decrypts with `arch-forge.rsa-private-key`
+2. **BCrypt** — stored hash in the database
 
-The frontend encrypts the plaintext password with the server's **RSA public key** before sending it over the network. The backend decrypts it using the private key configured in `arch-forge.rsa-private-key`.
+## Public Endpoints (admin)
 
-### Layer 2: BCrypt Storage Hashing
+Typically unauthenticated:
 
-After RSA decryption, the plaintext password is hashed with **BCrypt** before being stored in the database. BCrypt includes a random salt, so the same password produces different hashes.
-
-```
-Frontend                          Backend
-   │                                │
-   │  RSA_encrypt(password) ───────►│  RSA_decrypt(encrypted)
-   │                                │  BCrypt.hash(plaintext)
-   │                                │  Store hash in DB
-```
-
-## Spring Security Integration
-
-### Filter Chain
-
-The `AuthResourceFilter` extends `RequestMappingHandlerAdapter` and intercepts requests:
-
-1. Extract JWT from the `Authorization` header
-2. Validate the token signature and expiration
-3. Load the `SystemLoginUser` (extends `UserDetails`) from the token claims
-4. Set the security context via `SecurityContextHolder`
-5. Check `@BaseInfo` annotation for login requirements
-
-### Public Endpoints
-
-The following endpoints skip authentication:
-
-- `POST /login` — user login
-- `GET /captchaImage` — captcha generation
-- `GET /actuator/**` — health and metrics
-- `GET /swagger-ui/**` — API documentation
-- `GET /v3/api-docs/**` — OpenAPI spec
-
-### Getting the Current User
-
-In any controller or service, retrieve the authenticated user:
-
-```java
-// In a controller
-SystemLoginUser loginUser = AuthenticationUtils.getLoginUser();
-String username = loginUser.getUsername();
-List<String> roles = loginUser.getRoles();
-```
+- `POST /auth/login`
+- `GET /auth/captchaImage`
+- `GET /auth/getConfig`
+- `GET /actuator/**` (profile-dependent)
+- `GET /swagger-ui/**` and `GET /v3/api-docs/**` (disabled in prod)
 
 ## Captcha
-
-Login captcha is optional and configurable:
 
 ```yaml
 arch-forge:
   captcha:
-    enabled: true        # Enable captcha on login
-  captcha-type: math     # "math" (arithmetic) or "text" (random characters)
+    enabled: true
+  captcha-type: math     # "math" or "text"
 ```
 
-- **Math captcha**: Shows an arithmetic expression (e.g., `3 + 7 = ?`)
-- **Text captcha**: Shows random characters to type
-- Captcha images are generated server-side using **Kaptcha** and stored temporarily in Redis
+Images are generated with **Kaptcha** and stored temporarily in Redis.
 
-## Login Response
+## Login Response (admin)
+
+Admin JSON is wrapped as `{code, message, data}`. The `data` payload looks like:
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzUxMiJ9...",
-  "refreshToken": "eyJhbGciOiJIUzUxMiJ9...",
+  "accessToken": "xxxxxxxx-uuid-style-token",
+  "refreshToken": "hex-without-dashes",
   "expires": "2025/01/14 00:00:00",
   "username": "admin",
   "roles": ["admin"],
@@ -137,9 +131,15 @@ arch-forge:
 }
 ```
 
+C-end (`archforge-server-web`) errors use RFC 9457 `ProblemDetail` instead of that envelope.
+
+## XSS Filter
+
+`XssFilter` sanitizes **query parameters and headers**. It skips `multipart/*`, `application/octet-stream`, `application/pdf`, and `image/*`. JSON bodies still need controller-level validation.
+
 ## API Request Signing
 
-For sensitive endpoints or third-party integrations, use the `@ApiSign` annotation. The interceptor validates four headers:
+For sensitive endpoints or third-party integrations, use `@ApiSign`. The interceptor validates:
 
 | Header | Description |
 |--------|-------------|
@@ -148,13 +148,9 @@ For sensitive endpoints or third-party integrations, use the `@ApiSign` annotati
 | `X-Nonce` | One-time random string (replay protection) |
 | `X-Sign` | HMAC-SHA256 signature in lowercase hex |
 
-The signature is computed as:
-
 ```
 HMAC-SHA256(appSecret, appKey + timestamp + nonce + body)
 ```
-
-Configure allowed apps in `application.yaml`:
 
 ```yaml
 arch-forge:
@@ -167,47 +163,18 @@ arch-forge:
         test-app: test-secret
 ```
 
-Usage:
-
-```java
-@PostMapping("/external/order")
-@ApiSign
-public ResponseResult<Void> createOrder(@RequestBody OrderRequest request) {
-    // ...
-}
-```
-
 ## Idempotent Token
 
-The `@Idempotent` annotation prevents duplicate submissions:
+`@Idempotent` prevents duplicate submissions:
 
-- **PARAM**: Redis SETNX lock keyed by method signature + parameter hash (supports SpEL via `key`).
-- **TOKEN**: Client requests a one-time token from `GET /idempotent/token` and submits it in the `X-Idempotent-Token` header.
-- **HEADER**: Lock based on a specified request header value.
-
-Configuration:
-
-```yaml
-arch-forge:
-  idempotent:
-    enabled: true
-    tokenExpireSeconds: 600
-    headerName: X-Idempotent-Token
-```
-
-Usage:
-
-```java
-@PostMapping("/order")
-@Idempotent(type = IdempotentType.PARAM, expireSeconds = 10)
-public ResponseResult<Long> createOrder(@RequestBody OrderRequest request) {
-    // ...
-}
-```
+- **PARAM**: Redis SETNX lock keyed by method signature + parameter hash
+- **TOKEN**: client fetches `GET /idempotent/token` and sends `X-Idempotent-Token`
+- **HEADER**: lock based on a specified request header
 
 ## Related Pages
 
 - [User Management](./user-management.md) — user account management
 - [Role & Permission](./role-permission.md) — roles, permissions, and data scopes
-- [Configuration](../guide/configuration.md) — JWT, captcha, API signing, and idempotent settings
+- [Configuration](../guide/configuration.md) — Sa-Token, captcha, signing, and idempotent settings
 - [Menu Management](./menu-management.md) — async route loading after login
+- [C-end Web](../guide/c-end-web.md) — `StpWebUtil` on `:8081`

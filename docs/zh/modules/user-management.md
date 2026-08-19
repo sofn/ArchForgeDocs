@@ -82,5 +82,5 @@
 ## 相关页面
 
 - [角色与权限](./role-permission.md) — 角色分配详情
-- [认证鉴权](./authentication.md) — 登录和 JWT 流程
+- [认证鉴权](./authentication.md) — 登录和 sa-token 流程
 - [日志管理](./log-management.md) — 用户操作日志

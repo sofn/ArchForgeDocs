@@ -211,7 +211,7 @@ pnpm dev
 
 ## 说明
 
-- C 端认证与管理端 JWT 流程独立：`server-web` 使用 Sa-Token，`server-admin` 使用 JWT。
+- C 端与管理端是两套 sa-token 登录类型（`StpWebUtil` / `StpAdminUtil`），不是 JWT vs sa-token。
 - 文章详情页结合 `next-intl` 与 `react-markdown` 做服务端渲染。
 - `next.config.ts` 启用 `experimental.useTypeScriptCli` 以保证与 TypeScript 7 兼容。
 

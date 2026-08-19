@@ -51,10 +51,10 @@ echo $JAVA_HOME
 ./gradlew build -x test
 
 # Run only backend
-./gradlew server-admin:bootRun
+./gradlew :archforge-server-admin:bootRun
 
 # Run specific test class
-./gradlew :server-admin:test --tests "com.lesofn.archforge.*"
+./gradlew :archforge-server-admin:test --tests "com.lesofn.archforge.*"
 
 # Check code formatting
 ./gradlew spotlessCheck
@@ -67,7 +67,7 @@ echo $JAVA_HOME
 ```
 
 ::: tip
-Gradle 9.4.1 支持配置缓存。首次构建后，后续构建速度将显著提升。
+Gradle 9.5.1 支持配置缓存。首次构建后，后续构建速度将显著提升。
 :::
 
 ## 开发环境特性
@@ -101,7 +101,7 @@ Gradle 9.4.1 支持配置缓存。首次构建后，后续构建速度将显著�
 
 ## Testcontainers（开发服务）
 
-在开发模式下，运行 `./gradlew server-admin:bootRun` 时，Testcontainers 会自动启动 PostgreSQL、Redis 和 RustFS 的 Docker 容器。无需手动配置。
+在开发模式下，运行 `./gradlew :archforge-server-admin:bootRun` 时，Testcontainers 会自动启动 PostgreSQL、Redis 和 RustFS 的 Docker 容器。也可以只用 `./archforge infra up` 启动基础设施。
 
 ::: tip
 启动后端之前，请确保 Docker Desktop（或 Docker Engine）正在运行。Testcontainers 会在首次启动时拉取所需的镜像。

@@ -14,16 +14,16 @@ ArchForge 使用 Spring Boot 基于 Profile 的配置系统，自定义属性前
 
 ```bash
 # Environment variable
-SPRING_PROFILES_ACTIVE=prod ./gradlew server-admin:bootRun
+SPRING_PROFILES_ACTIVE=prod ./gradlew :archforge-server-admin:bootRun
 
 # JVM argument
-java -Dspring.profiles.active=prod -jar server-admin.jar
+java -Dspring.profiles.active=prod -jar archforge-server-admin.jar
 ```
 
 ## 配置文件
 
 ```
-server-admin/src/main/resources/
+archforge-server-admin/src/main/resources/
 ├── application.yaml              # 共享基础配置（所有 Profile）
 ├── application-dev.yaml          # 开发环境覆盖配置
 ├── application-test.yaml.example # 测试环境模板（复制后编辑）
@@ -48,17 +48,21 @@ arch-forge:
   rsa-private-key: "MIICeAIB..."     # RSA key for frontend encryption
 ```
 
-### JWT 配置
+### Sa-Token 配置
+
+认证使用 **Sa-Token**，不是 JWT / Spring Security。管理端用 `StpAdminUtil`，C 端用 `StpWebUtil`。
 
 ```yaml
-arch-forge:
-  jwt:
-    secret: "your-base64-secret-key"  # HMAC-SHA512 signing key
-    expire-seconds: 604800            # Token TTL (default: 7 days)
+sa-token:
+  token-name: Authorization
+  token-prefix: Bearer
+  timeout: 604800                     # 7 days
+  token-style: uuid
+  is-read-cookie: false
 ```
 
 ::: danger
-生产环境务必更改 `jwt.secret`！默认密钥仅用于开发环境。
+生产环境密钥 **没有默认值**。必须显式配置 `DB_PASSWORD`、Redis、RSA 等环境变量。
 :::
 
 ### Token 配置

@@ -60,26 +60,15 @@ Button-level permissions are represented as menu entries with `isButton = true`,
 | PUT | `/admin-api/menu/update` | Update menu |
 | POST | `/admin-api/menu/delete` | Delete menu |
 
-### RESTful API
+### Current admin API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/system/menu` | List all menus |
-| GET | `/system/menu/{id}` | Get menu by ID |
-| GET | `/system/menu/parent/{parentId}` | Get children of a parent |
-| GET | `/system/menu/role/{roleId}` | Get menus for a role |
-| GET | `/system/menu/tree` | Full menu tree |
-| GET | `/system/menu/role/{roleId}/tree` | Menu tree for a specific role |
-| GET | `/system/menu/permission/{permission}` | Find menu by permission string |
-| POST | `/system/menu` | Create menu |
-| PUT | `/system/menu/{id}` | Update menu |
-| DELETE | `/system/menu/{id}` | Delete menu |
+`/system/menu/*` was deleted. Use `/admin/menu/*` with `system:menu:*` permissions.
 
 ## Async Route Loading
 
 The frontend loads routes dynamically after login:
 
-1. User logs in and receives a JWT token
+1. User logs in and receives a sa-token `token`
 2. Frontend calls `GET /get-async-routes` with the token
 3. Backend returns the menu tree filtered by the user's role permissions
 4. Frontend converts the menu tree into Vue Router route objects

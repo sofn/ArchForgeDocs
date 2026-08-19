@@ -51,21 +51,9 @@
 | POST | `/admin-api/role-menu` | 查询角色-菜单数据 |
 | POST | `/admin-api/role-menu-ids` | 获取角色的菜单 ID 列表 |
 
-### RESTful API
+### 当前管理端 API
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| GET | `/system/role` | 查询所有角色 |
-| GET | `/system/role/{id}` | 根据 ID 查询角色 |
-| GET | `/system/role/key/{roleKey}` | 根据标识查询角色 |
-| GET | `/system/role/all` | 查询所有角色（不分页） |
-| GET | `/system/role/active` | 查询启用的角色 |
-| POST | `/system/role` | 创建角色 |
-| PUT | `/system/role/{id}` | 更新角色 |
-| DELETE | `/system/role/{id}` | 删除角色 |
-| POST | `/system/role/data-scope` | 更新角色数据范围 |
-| GET | `/system/role/exists/key` | 检查角色标识是否存在 |
-| GET | `/system/role/exists/name` | 检查角色名称是否存在 |
+`/system/role/*` 已删除，使用 `/admin/role/*`（`system:role:query|add|edit|remove`）。
 
 ## 权限模型
 

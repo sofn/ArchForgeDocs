@@ -60,26 +60,15 @@
 | PUT | `/admin-api/menu/update` | 更新菜单 |
 | POST | `/admin-api/menu/delete` | 删除菜单 |
 
-### RESTful API
+### 当前管理端 API
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| GET | `/system/menu` | 查询所有菜单 |
-| GET | `/system/menu/{id}` | 根据 ID 查询菜单 |
-| GET | `/system/menu/parent/{parentId}` | 查询父菜单的子菜单 |
-| GET | `/system/menu/role/{roleId}` | 查询角色的菜单 |
-| GET | `/system/menu/tree` | 完整菜单树 |
-| GET | `/system/menu/role/{roleId}/tree` | 指定角色的菜单树 |
-| GET | `/system/menu/permission/{permission}` | 根据权限字符串查询菜单 |
-| POST | `/system/menu` | 创建菜单 |
-| PUT | `/system/menu/{id}` | 更新菜单 |
-| DELETE | `/system/menu/{id}` | 删除菜单 |
+`/system/menu/*` 已删除，使用 `/admin/menu/*` 与 `system:menu:*` 权限。
 
 ## 异步路由加载
 
 前端在登录后动态加载路由：
 
-1. 用户登录并获得 JWT 令牌
+1. 用户登录并获得 sa-token `token`
 2. 前端携带令牌调用 `GET /get-async-routes`
 3. 后端根据用户的角色权限过滤后返回菜单树
 4. 前端将菜单树转换为 Vue Router 路由对象

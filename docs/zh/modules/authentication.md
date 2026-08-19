@@ -1,26 +1,30 @@
-# 认证鉴权（JWT）
+# 认证鉴权（Sa-Token）
 
-ArchForge 使用 JWT（JSON Web Token）实现无状态认证，并集成 Spring Security 进行请求过滤和授权。
+ArchForge 使用 **Sa-Token 1.45.0** 做认证，**不是 JWT，也不是 Spring Security**。
 
-## 登录流程
+两套相互独立的登录类型，会话保存在 Redis：
+
+| 应用 | 工具类 | Sa-Token type | 端口 |
+|-----|------|---------------|------|
+| 管理端 | `StpAdminUtil` | `"admin"` | `:8080` |
+| C 端 | `StpWebUtil` | `"web"` | `:8081` |
+
+## 登录流程（管理端）
 
 ```
 ┌──────────┐                  ┌──────────────┐                ┌──────────┐
-│ Frontend  │                  │ LoginController│               │ AuthService│
+│ Frontend  │                  │ LoginController│               │ TokenService│
 └────┬─────┘                  └──────┬───────┘                └────┬─────┘
-     │  POST /login                  │                              │
+     │  POST /auth/login             │                              │
      │  {username, password, code}   │                              │
      ├──────────────────────────────►│                              │
      │                               │  Verify captcha              │
      │                               │  Decrypt RSA password        │
-     │                               │  authenticate()              │
-     │                               ├─────────────────────────────►│
-     │                               │                              │ BCrypt verify
-     │                               │                              │ Load user + roles
-     │                               │  Return tokens               │
-     │                               │◄─────────────────────────────┤
+     │                               │  BCrypt verify               │
+     │                               │  StpAdminUtil.login(userId)  │
+     │                               │                              │
      │  {accessToken, refreshToken,  │                              │
-     │   expires}                    │                              │
+     │   expires, roles, perms}      │                              │
      │◄──────────────────────────────┤                              │
      │                               │                              │
      │  Subsequent requests:         │                              │
@@ -28,108 +32,98 @@ ArchForge 使用 JWT（JSON Web Token）实现无状态认证，并集成 Spring
      └──────────────────────────────►│                              │
 ```
 
+登录有限流：`@RateLimit(key = "login", time = 60, maxCount = 5, limitType = IP)` —— **每个 IP 每分钟最多 5 次**。
+
 ## 令牌管理
 
-### 访问令牌（Access Token）
+Sa-Token 签发的是 **UUID** 访问令牌（`token-style: uuid`），**不是**签名后的 JWT。
 
-- 登录成功后生成
-- 使用配置的密钥通过 HMAC-SHA512 签名
-- 包含：用户 ID、用户名、角色、签发时间、过期时间
-- 默认有效期：7 天（604800 秒），可通过 `arch-forge.jwt.expire-seconds` 配置
+### 访问令牌
 
-### 令牌刷新
+- 由 `StpAdminUtil.login(userId)` / `StpWebUtil.login(userId)` 创建
+- 存放在 Sa-Token 会话（Redis）
+- 请求头：`Authorization: Bearer <token>`
+- 默认有效期：7 天（`sa-token.timeout: 604800`）
 
-- 接口：`POST /refresh-token`
-- 接受当前的访问令牌
-- 返回带有新过期时间的新访问令牌
-- `auto-refresh-time` 配置（默认：20 分钟）决定前端何时主动刷新
+### 刷新令牌（管理端）
+
+- 接口：`POST /auth/refresh-token`
+- 随机 UUID 存在 Redis，映射到用户 ID
+- 返回新的 Sa-Token 访问令牌以及新的刷新令牌
 
 ### 配置
 
 ```yaml
-arch-forge:
-  jwt:
-    secret: "your-base64-encoded-hmac-sha512-key"
-    expire-seconds: 604800          # 7 days
-  token:
-    header: Authorization           # HTTP header name
-    auto-refresh-time: 20           # Auto-refresh threshold (minutes)
+sa-token:
+  token-name: Authorization
+  token-prefix: Bearer
+  timeout: 604800
+  active-timeout: -1
+  is-concurrent: true
+  is-share: false
+  is-read-cookie: false
+  token-style: uuid
+  is-log: false
+  is-print: false
+```
+
+生产环境密钥 **没有默认值**。Redis、数据源密码、RSA 密钥等都需要自行配置，不要把空的生产凭据提交进仓库。
+
+## 授权
+
+控制器使用带 type 的 Sa-Token 注解：
+
+```java
+@SaCheckLogin(type = StpAdminUtil.TYPE)
+@SaCheckPermission(value = "system:user:add", type = StpAdminUtil.TYPE)
+@PostMapping
+public void addUser(...) { }
+```
+
+权限字符串来自 `sys_menu.permission`，例如 `system:user:add`、`system:role:query`、`monitor:job:list`。
+
+获取当前管理端用户：
+
+```java
+SystemLoginUser loginUser = LoginContext.getAdminUser();
 ```
 
 ## 密码加密
 
-ArchForge 采用双层加密方案：
+仍然是双层：
 
-### 第一层：RSA 传输加密
+1. **RSA** —— 前端用公钥加密密码，后端用 `arch-forge.rsa-private-key` 解密
+2. **BCrypt** —— 数据库中存储哈希
 
-前端使用服务器的 **RSA 公钥**加密明文密码后再通过网络传输。后端使用在 `arch-forge.rsa-private-key` 中配置的私钥进行解密。
+## 公开接口（管理端）
 
-### 第二层：BCrypt 存储哈希
+通常无需登录：
 
-RSA 解密后，明文密码使用 **BCrypt** 进行哈希后存入数据库。BCrypt 包含随机盐值，因此相同的密码会产生不同的哈希值。
-
-```
-Frontend                          Backend
-   │                                │
-   │  RSA_encrypt(password) ───────►│  RSA_decrypt(encrypted)
-   │                                │  BCrypt.hash(plaintext)
-   │                                │  Store hash in DB
-```
-
-## Spring Security 集成
-
-### 过滤器链
-
-`AuthResourceFilter` 继承 `RequestMappingHandlerAdapter` 并拦截请求：
-
-1. 从 `Authorization` 请求头中提取 JWT
-2. 验证令牌签名和过期时间
-3. 从令牌声明中加载 `SystemLoginUser`（继承 `UserDetails`）
-4. 通过 `SecurityContextHolder` 设置安全上下文
-5. 检查 `@BaseInfo` 注解以判断是否需要登录
-
-### 公开接口
-
-以下接口无需认证即可访问：
-
-- `POST /login` — 用户登录
-- `GET /captchaImage` — 验证码生成
-- `GET /actuator/**` — 健康检查和指标
-- `GET /swagger-ui/**` — API 文档
-- `GET /v3/api-docs/**` — OpenAPI 规范
-
-### 获取当前用户
-
-在任意控制器或服务中获取已认证的用户：
-
-```java
-// In a controller
-SystemLoginUser loginUser = AuthenticationUtils.getLoginUser();
-String username = loginUser.getUsername();
-List<String> roles = loginUser.getRoles();
-```
+- `POST /auth/login`
+- `GET /auth/captchaImage`
+- `GET /auth/getConfig`
+- `GET /actuator/**`（随 Profile 变化）
+- `GET /swagger-ui/**` 与 `GET /v3/api-docs/**`（生产环境关闭）
 
 ## 验证码
-
-登录验证码是可选的，可通过配置启用：
 
 ```yaml
 arch-forge:
   captcha:
-    enabled: true        # Enable captcha on login
-  captcha-type: math     # "math" (arithmetic) or "text" (random characters)
+    enabled: true
+  captcha-type: math     # "math" 或 "text"
 ```
 
-- **数学验证码**：显示算术表达式（如 `3 + 7 = ?`）
-- **文字验证码**：显示需要输入的随机字符
-- 验证码图片由服务端使用 **Kaptcha** 生成，并临时存储在 Redis 中
+图片由 **Kaptcha** 生成，临时存放在 Redis。
 
-## 登录响应
+## 登录响应（管理端）
+
+管理端 JSON 包装为 `{code, message, data}`。`data` 大致如下：
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzUxMiJ9...",
-  "refreshToken": "eyJhbGciOiJIUzUxMiJ9...",
+  "accessToken": "xxxxxxxx-uuid-style-token",
+  "refreshToken": "hex-without-dashes",
   "expires": "2025/01/14 00:00:00",
   "username": "admin",
   "roles": ["admin"],
@@ -137,9 +131,15 @@ arch-forge:
 }
 ```
 
+C 端（`archforge-server-web`）错误使用 RFC 9457 `ProblemDetail`，而不是上述信封。
+
+## XSS 过滤
+
+`XssFilter` 会清理 **查询参数和请求头**。跳过 `multipart/*`、`application/octet-stream`、`application/pdf` 与 `image/*`。JSON 请求体仍需控制器级校验。
+
 ## API 请求签名
 
-对于敏感接口或第三方接入，使用 `@ApiSign` 注解。拦截器会校验以下请求头：
+敏感接口或第三方接入可使用 `@ApiSign`。拦截器校验：
 
 | Header | 说明 |
 |--------|------|
@@ -148,13 +148,9 @@ arch-forge:
 | `X-Nonce` | 一次性随机串（防重放） |
 | `X-Sign` | 小写十六进制 HMAC-SHA256 签名 |
 
-签名算法：
-
 ```
 HMAC-SHA256(appSecret, appKey + timestamp + nonce + body)
 ```
-
-在 `application.yaml` 中配置接入应用：
 
 ```yaml
 arch-forge:
@@ -167,47 +163,18 @@ arch-forge:
         test-app: test-secret
 ```
 
-用法：
-
-```java
-@PostMapping("/external/order")
-@ApiSign
-public ResponseResult<Void> createOrder(@RequestBody OrderRequest request) {
-    // ...
-}
-```
-
 ## 幂等 Token
 
-`@Idempotent` 注解用于防止重复提交，支持三种模式：
+`@Idempotent` 防止重复提交：
 
-- **PARAM**：基于方法签名 + 参数哈希生成 Redis SETNX 锁，支持通过 `key` 指定 SpEL 表达式。
-- **TOKEN**：客户端先调用 `GET /idempotent/token` 获取一次性 Token，再通过 `X-Idempotent-Token` 头部提交。
-- **HEADER**：基于指定请求头值进行幂等控制。
-
-配置：
-
-```yaml
-arch-forge:
-  idempotent:
-    enabled: true
-    tokenExpireSeconds: 600
-    headerName: X-Idempotent-Token
-```
-
-用法：
-
-```java
-@PostMapping("/order")
-@Idempotent(type = IdempotentType.PARAM, expireSeconds = 10)
-public ResponseResult<Long> createOrder(@RequestBody OrderRequest request) {
-    // ...
-}
-```
+- **PARAM**：方法签名 + 参数哈希生成 Redis SETNX 锁
+- **TOKEN**：客户端调用 `GET /idempotent/token`，再通过 `X-Idempotent-Token` 提交
+- **HEADER**：基于指定请求头值加锁
 
 ## 相关页面
 
 - [用户管理](./user-management.md) — 用户账户管理
 - [角色与权限](./role-permission.md) — 角色、权限与数据范围
-- [配置说明](/zh/guide/configuration.md) — JWT、验证码、API 签名与幂等配置
+- [配置说明](/zh/guide/configuration.md) — Sa-Token、验证码、签名与幂等配置
 - [菜单管理](./menu-management.md) — 登录后的异步路由加载
+- [C 端 Web](/zh/guide/c-end-web.md) — `:8081` 上的 `StpWebUtil`

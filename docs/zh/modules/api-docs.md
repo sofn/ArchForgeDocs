@@ -68,7 +68,7 @@ location /v3/api-docs {
 | 方法 | 接口路径 | 描述 |
 |--------|----------|-------------|
 | POST | `/login` | 用户登录 |
-| POST | `/refresh-token` | 刷新 JWT 令牌 |
+| POST | `/auth/refresh` | 刷新 sa-token |
 | GET | `/getLoginUserInfo` | 获取当前用户信息 |
 | GET | `/getRouters` | 获取菜单路由（旧版） |
 | GET | `/get-async-routes` | 获取前端异步路由 |

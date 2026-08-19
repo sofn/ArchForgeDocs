@@ -22,21 +22,33 @@ java -version
 
 ## Option 1: Manual Setup
 
-### 1. Clone the Repositories
+### 1. Clone the sibling repositories
+
+Clone them **side by side**. There are five repos: ArchForge, ArchForgeAdmin, ArchForgeWeb, ArchForgeDocs, ArchForgeSpec.
 
 ```bash
 # Backend
 git clone https://github.com/sofn/ArchForge.git
 
-# Frontend
+# Admin UI
 git clone https://github.com/sofn/ArchForgeAdmin.git
+```
+
+Or from the backend root after clone:
+
+```bash
+cd ArchForge
+./archforge init --write
+./archforge up
 ```
 
 ### 2. Start the Backend
 
 ```bash
 cd ArchForge
-./gradlew server-admin:bootRun
+./gradlew :archforge-server-admin:bootRun
+# optional C-end API:
+# ./gradlew :archforge-server-web:bootRun
 ```
 
 The dev profile activates automatically, using:

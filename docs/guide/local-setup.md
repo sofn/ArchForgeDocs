@@ -51,10 +51,10 @@ Ensure `JAVA_HOME` is set correctly. Gradle will fail with a clear error if it d
 ./gradlew build -x test
 
 # Run only backend
-./gradlew server-admin:bootRun
+./gradlew :archforge-server-admin:bootRun
 
 # Run specific test class
-./gradlew :server-admin:test --tests "com.lesofn.archforge.*"
+./gradlew :archforge-server-admin:test --tests "com.lesofn.archforge.*"
 
 # Check code formatting
 ./gradlew spotlessCheck
@@ -67,7 +67,7 @@ Ensure `JAVA_HOME` is set correctly. Gradle will fail with a clear error if it d
 ```
 
 ::: tip
-Gradle 9.4.1 supports configuration cache. After the first build, subsequent builds are significantly faster.
+Gradle 9.5.1 supports configuration cache. After the first build, subsequent builds are significantly faster.
 :::
 
 ## Dev Profile Features
@@ -101,7 +101,7 @@ Excluded from restart:
 
 ## Testcontainers (Dev Services)
 
-In dev mode, Docker containers for PostgreSQL, Redis, and RustFS are automatically started by Testcontainers when you run `./gradlew server-admin:bootRun`. No manual setup is required.
+In dev mode, Docker containers for PostgreSQL, Redis, and RustFS are automatically started by Testcontainers when you run `./gradlew :archforge-server-admin:bootRun`. You can also start infra only with `./archforge infra up`.
 
 ::: tip
 Make sure Docker Desktop (or Docker Engine) is running before starting the backend. Testcontainers will pull the required images on first launch.

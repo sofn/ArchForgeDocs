@@ -7,25 +7,25 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 | Technology | Version | Why |
 |-----------|---------|-----|
 | JDK | 25 (Azul Zulu) | ScopedValue, Structured Concurrency, Pattern Matching, Stream Gatherers, Virtual Threads |
-| Spring Boot | 4.0.5 | Spring Framework 7, Jakarta EE, Observation API, ProblemDetail (RFC 9457) |
-| Gradle | 9.4.1 | Configuration cache, Kotlin DSL, java-platform for BOM |
+| Spring Boot | 4.1.0 | Spring Framework 7, Jakarta EE, Observation API, ProblemDetail (RFC 9457) |
+| Gradle | 9.5.1 | Configuration cache, Kotlin DSL, java-platform for BOM |
 
 ## Database & Storage
 
 | Technology | Version | Why |
 |-----------|---------|-----|
 | PostgreSQL | 17 | GENERATED ALWAYS AS IDENTITY, advanced JSON, row-level security |
-| Flyway | 11.14 | Version-controlled schema migration, repeatable and undo support |
+| Flyway | 12.4.0 | Version-controlled schema migration, PostgreSQL dialect module |
 | Redis | 7 | Session cache, rate limiting, distributed locks |
 | Dynamic Datasource | 4.5.0 | Master/slave routing, @DS annotation, group proxy for JPA |
-| AWS S3 SDK | 2.31 | File storage abstraction (works with RustFS in dev) |
+| AWS S3 SDK | 2.x | File storage abstraction (works with RustFS in dev) |
 
 ## ORM & Query
 
 | Technology | Version | Why |
 |-----------|---------|-----|
 | Spring Data JPA | 4.x | Repository abstraction, Specification for dynamic queries |
-| Hibernate Static Metamodel | 7.2.x | Compile-time type-safe field references (`Entity_` classes), replaces QueryDSL Q-classes |
+| Hibernate Static Metamodel | 7.x | Compile-time type-safe field references (`Entity_` classes) |
 | SafeExpr / AliasExpr | -- | Type-safe JPQL expression builder using `SingularAttribute` |
 | JPA Criteria API | 3.2 | Type-safe query construction with metamodel, no raw JPQL strings |
 | QueryHelp | -- | Annotation-driven dynamic predicate builder for list/search endpoints |
@@ -34,19 +34,19 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 
 | Technology | Version | Why |
 |-----------|---------|-----|
-| Spring Security | 7.x | SecurityFilterChain, JWT authentication, RBAC |
-| SpringDoc OpenAPI | 2.8 | Auto-generated Swagger UI, schema validation |
-| Jackson | 2.21 | JSON serialization, custom converters, sensitive data masking |
+| Sa-Token | 1.45.0 | Dual STP types: `StpAdminUtil` (admin) and `StpWebUtil` (web). Not JWT / Spring Security |
+| SpringDoc OpenAPI | 3.0.x | Auto-generated Swagger UI, schema validation |
+| Jackson | (Boot managed) | JSON serialization, custom converters, sensitive data masking |
 | MapStruct | 1.6 | Compile-time type-safe DTO mapping, zero reflection |
 
 ## Observability
 
 | Technology | Version | Why |
 |-----------|---------|-----|
-| Micrometer | 1.16 | Unified metrics API, Observation for metrics+tracing+logging |
-| OpenTelemetry | 1.55 | Distributed tracing, OTLP export |
+| Micrometer | (Boot managed) | Unified metrics API, Observation for metrics+tracing+logging |
+| OpenTelemetry | 1.62.0 | Distributed tracing, OTLP export |
 | Log4j2 | (Boot managed) | Async logging, structured output, Spring profile support |
-| Spring Actuator | 4.0 | Health checks, Prometheus metrics endpoint |
+| Spring Actuator | 4.1 | Health checks, Prometheus metrics endpoint |
 
 ## Code Quality
 
@@ -55,7 +55,7 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 | Spotless | 8.4 | Google Java Style (AOSP) enforcement on build |
 | google-java-format | 1.35 | Consistent formatting across team |
 | JSpecify | 1.0 | Standard null safety annotations (@NullMarked, @Nullable) |
-| Lombok | 1.18 | Reduce boilerplate (@Data, @Builder, @RequiredArgsConstructor) |
+| Lombok | 1.18.46 | Reduce boilerplate (@Data, @Builder, @RequiredArgsConstructor) |
 
 ## Testing
 
@@ -80,22 +80,24 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 | HTTP | Axios | -- | HTTP client with interceptors |
 | i18n | vue-i18n | -- | Internationalization |
 | Base Template | vue-pure-admin | -- | Enterprise admin template |
+| Dev port | 8848 | -- | Proxies to admin API `:8080` |
 
 ## Frontend (C-end)
 
 | Category | Technology | Version | Purpose |
 |----------|-----------|---------|---------|
-| Framework | Next.js | 16.2.12 | React framework with App Router |
-| UI | React | 19.2.8 | Component library |
-| Language | TypeScript | 7.0.2 | Type-safe JavaScript |
-| Styling | Tailwind CSS | 4.3.3 | Utility-first CSS |
+| Framework | Next.js | 16.x | React framework with App Router |
+| UI | React | 19.x | Component library |
+| Language | TypeScript | 7.x | Type-safe JavaScript |
+| Styling | Tailwind CSS | 4.x | Utility-first CSS |
 | Components | shadcn/ui + lucide-react | -- | Headless UI primitives and icons |
-| i18n | next-intl | 4.13.4 | English / Chinese localization |
-| Auth | Sa-Token (server-web) | -- | C-end token-based authentication |
+| i18n | next-intl | -- | English / Chinese localization |
+| Auth | Sa-Token (`StpWebUtil`) | 1.45.0 | C-end token-based authentication |
 | Markdown | react-markdown + remark-gfm + rehype-highlight | -- | Article content rendering |
-| E2E Tests | Playwright | 1.61.1 | End-to-end testing |
-| Component Docs | Storybook | 8.6.18 | Visual component documentation |
+| E2E Tests | Playwright | -- | End-to-end testing |
+| Component Docs | Storybook | -- | Visual component documentation |
 | Build | Turborepo + pnpm workspaces | -- | Monorepo orchestration |
+| Dev port | 3000 | -- | Talks to web API `:8081` |
 
 ## Deployment
 
@@ -105,6 +107,7 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 | Project Leyden CDS | AOT cache for faster startup |
 | Liberica NIK 25 | Native Image option for instant startup |
 | Nginx | Reverse proxy, static file serving, SSL termination |
+| `./archforge` | Developer CLI for init / infra / db / up |
 
 ## JDK 25 Features Used
 
@@ -121,6 +124,7 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 
 - [ORM Query Strategy](./orm-query.md) -- type-safe query patterns with Metamodel + SafeExpr
 - [Project Structure](./project-structure.md) -- how the modules are organized
+- [CLI](./cli.md) -- `./archforge` developer commands
 - [Dependency Management](./dependency-management.md) -- centralized version control with Gradle BOMs
 - [Configuration](./configuration.md) -- runtime configuration for each technology
 - [Local Development Setup](./local-setup.md) -- getting your IDE ready

@@ -1,22 +1,30 @@
-# ArchForge Documentation
+# ArchForgeDocs
 
-Documentation site for [ArchForge](https://github.com/sofn/ArchForge), powered by [VitePress](https://vitepress.dev/).
+VitePress documentation for the **ArchForge five-repo platform**.
 
-## Development
+Sibling repositories (clone side by side, no submodules):
+
+| Repo | Role |
+|------|------|
+| [ArchForge](https://github.com/sofn/ArchForge) | Backend — `archforge-server-admin` `:8080`, `archforge-server-web` `:8081` |
+| [ArchForgeAdmin](https://github.com/sofn/ArchForgeAdmin) | Admin UI (vue-pure-admin) `:8848` → `:8080` |
+| ArchForgeWeb | C-end (Next.js) `:3000` → `:8081` |
+| **ArchForgeDocs** | This site |
+| ArchForgeSpec | Contracts / architecture / AI context |
+
+Backend developer CLI: `./archforge` from the ArchForge repo root.
+
+## Commands
 
 ```bash
-# Install dependencies
 npm install
 
-# Start dev server
-npm run docs:dev
-
-# Build for production
-npm run docs:build
-
-# Preview production build
-npm run docs:preview
+npm run docs:dev      # VitePress dev server
+npm run docs:build    # Production static site
+npm run docs:preview  # Preview the production build
 ```
+
+Content lives under `docs/` (English) and `docs/zh/` (Chinese). Site config is `docs/.vitepress/config.mts`.
 
 ## Deployment
 

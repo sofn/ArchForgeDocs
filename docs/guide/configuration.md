@@ -14,16 +14,16 @@ Switch profiles via environment variable or JVM argument:
 
 ```bash
 # Environment variable
-SPRING_PROFILES_ACTIVE=prod ./gradlew server-admin:bootRun
+SPRING_PROFILES_ACTIVE=prod ./gradlew :archforge-server-admin:bootRun
 
 # JVM argument
-java -Dspring.profiles.active=prod -jar server-admin.jar
+java -Dspring.profiles.active=prod -jar archforge-server-admin.jar
 ```
 
 ## Configuration Files
 
 ```
-server-admin/src/main/resources/
+archforge-server-admin/src/main/resources/
 ├── application.yaml              # Shared base config (all profiles)
 ├── application-dev.yaml          # Dev overrides
 ├── application-test.yaml.example # Template for test (copy and edit)
@@ -48,17 +48,21 @@ arch-forge:
   rsa-private-key: "MIICeAIB..."     # RSA key for frontend encryption
 ```
 
-### JWT Configuration
+### Sa-Token Configuration
+
+Auth is **Sa-Token**, not JWT / Spring Security. Admin uses `StpAdminUtil`; web uses `StpWebUtil`.
 
 ```yaml
-arch-forge:
-  jwt:
-    secret: "your-base64-secret-key"  # HMAC-SHA512 signing key
-    expire-seconds: 604800            # Token TTL (default: 7 days)
+sa-token:
+  token-name: Authorization
+  token-prefix: Bearer
+  timeout: 604800                     # 7 days
+  token-style: uuid
+  is-read-cookie: false
 ```
 
 ::: danger
-Always change `jwt.secret` in production! The default key is for development only.
+Production secrets have **no defaults**. Set `DB_PASSWORD`, Redis credentials, RSA keys, and related env vars explicitly.
 :::
 
 ### Token Configuration

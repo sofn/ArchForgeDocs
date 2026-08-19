@@ -211,7 +211,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Notes
 
-- The C-end authentication is separate from the admin JWT flow: `server-web` uses Sa-Token, while `server-admin` uses JWT.
+- C-end and admin are **two sa-token login types** (`StpWebUtil` vs `StpAdminUtil`), not JWT vs sa-token.
 - Article detail pages are server-rendered with `next-intl` and `react-markdown`.
 - `next.config.ts` enables `experimental.useTypeScriptCli` for TypeScript 7 compatibility.
 
@@ -219,5 +219,5 @@ Open [http://localhost:3000](http://localhost:3000).
 
 - [Tech Stack](./tech-stack.md) — full technology choices
 - [Project Structure](./project-structure.md) — how the monorepo is organized
-- [Authentication](../modules/authentication.md) — admin JWT authentication details
+- [Authentication](../modules/authentication.md) — admin sa-token authentication details
 - [Local Setup](./local-setup.md) — IDE and environment setup

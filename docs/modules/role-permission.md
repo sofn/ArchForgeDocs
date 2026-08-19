@@ -51,21 +51,17 @@ This is a many-to-many join table linking roles to their permitted menus.
 | POST | `/admin-api/role-menu` | List role-menu data |
 | POST | `/admin-api/role-menu-ids` | Get menu IDs for a role |
 
-### RESTful API
+### Current admin API (`RoleController`)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/system/role` | List all roles |
-| GET | `/system/role/{id}` | Get role by ID |
-| GET | `/system/role/key/{roleKey}` | Get role by key |
-| GET | `/system/role/all` | List all roles (no pagination) |
-| GET | `/system/role/active` | List active roles |
-| POST | `/system/role` | Create role |
-| PUT | `/system/role/{id}` | Update role |
-| DELETE | `/system/role/{id}` | Delete role |
-| POST | `/system/role/data-scope` | Update role data scope |
-| GET | `/system/role/exists/key` | Check if role key exists |
-| GET | `/system/role/exists/name` | Check if role name exists |
+`/system/role/*` was deleted. Use:
+
+| Method | Endpoint | Permission |
+|--------|----------|------------|
+| POST | `/admin/role` | `system:role:query` |
+| POST | `/admin/role/create` | `system:role:add` |
+| POST | `/admin/role/update` | `system:role:edit` |
+| POST | `/admin/role/delete` | `system:role:remove` |
+| POST | `/admin/role/menu-ids` | `system:role:query` |
 
 ## Permission Model
 

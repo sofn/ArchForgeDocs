@@ -18,7 +18,7 @@ The root `build.gradle.kts` imports the Spring Boot BOM so that all Spring-manag
 ```kotlin
 dependencies {
     // Spring Boot BOM for dependency version management
-    add("implementation", platform("org.springframework.boot:spring-boot-dependencies:4.0.5"))
+    add("implementation", platform("org.springframework.boot:spring-boot-dependencies:4.1.0"))
 
     // JUnit BOM
     add("testImplementation", platform("org.junit:junit-bom:6.0.3"))
@@ -37,10 +37,9 @@ plugins {
 dependencies {
     constraints {
         api("com.baomidou:dynamic-datasource-spring-boot4-starter:4.5.0")
-        api("io.jsonwebtoken:jjwt-api:0.12.6")
-        api("com.querydsl:querydsl-jpa:5.1.0")
-        api("org.flywaydb:flyway-core:11.14.1")
-        api("com.google.guava:guava:33.4.8-jre")
+        api("cn.dev33:sa-token-spring-boot3-starter:1.45.0")
+        api("org.flywaydb:flyway-core:12.4.0")
+        api("com.google.guava:guava:33.6.0-jre")
         api("commons-io:commons-io:2.19.0")
         api("org.apache.commons:commons-lang3:3.20.0")
         api("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.11")
@@ -62,7 +61,7 @@ subprojects {
 
         dependencies {
             // Spring Boot BOM
-            add("implementation", platform("org.springframework.boot:spring-boot-dependencies:4.0.5"))
+            add("implementation", platform("org.springframework.boot:spring-boot-dependencies:4.1.0"))
 
             // Custom BOM
             add("implementation", platform(project(":dependencies")))
@@ -76,7 +75,7 @@ subprojects {
 With both BOMs applied, submodules declare dependencies without version numbers:
 
 ```kotlin
-// domain/admin-user/build.gradle.kts
+// archforge-domain/archforge-admin-user/build.gradle.kts
 dependencies {
     // Spring Boot starters (version from Spring Boot BOM)
     implementation("org.springframework.boot:spring-boot-starter-web")
