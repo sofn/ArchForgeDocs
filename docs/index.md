@@ -52,7 +52,7 @@ features:
   - title: Meta Table
     details: Low-code dynamic table design with schema evolution, CRUD, import/export, and full-stack code generation from the admin panel.
   - title: C-end Web
-    details: Next.js consumer-facing app (:3000 → web API :8081) with i18n, Sa-Token via StpWebUtil, articles dashboard, Playwright E2E tests, and Storybook.
+    details: Next.js consumer-facing app (:3000 → web API :8081) with i18n, Sa-Token via StpWebUtil, articles dashboard, and Playwright E2E tests.
 ---
 
 ## Five sibling repositories

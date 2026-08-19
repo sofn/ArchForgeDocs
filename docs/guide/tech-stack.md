@@ -88,14 +88,13 @@ ArchForge adopts modern technologies with clear rationale for each choice.
 |----------|-----------|---------|---------|
 | Framework | Next.js | 16.x | React framework with App Router |
 | UI | React | 19.x | Component library |
-| Language | TypeScript | 7.x | Type-safe JavaScript |
+| Language | TypeScript | 5.8.x | Type-safe JavaScript |
 | Styling | Tailwind CSS | 4.x | Utility-first CSS |
 | Components | shadcn/ui + lucide-react | -- | Headless UI primitives and icons |
 | i18n | next-intl | -- | English / Chinese localization |
 | Auth | Sa-Token (`StpWebUtil`) | 1.45.0 | C-end token-based authentication |
 | Markdown | react-markdown + remark-gfm + rehype-highlight | -- | Article content rendering |
 | E2E Tests | Playwright | -- | End-to-end testing |
-| Component Docs | Storybook | -- | Visual component documentation |
 | Build | Turborepo + pnpm workspaces | -- | Monorepo orchestration |
 | Dev port | 3000 | -- | Talks to web API `:8081` |
 

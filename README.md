@@ -14,6 +14,8 @@ Sibling repositories (clone side by side, no submodules):
 
 Backend developer CLI: `./archforge` from the ArchForge repo root.
 
+Auth is **sa-token** (not JWT). Admin success envelope is `{code,message,data}`; C-end errors are RFC 9457 ProblemDetail. Contracts live in ArchForgeSpec.
+
 ## Commands
 
 ```bash

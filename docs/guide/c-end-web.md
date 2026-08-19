@@ -1,6 +1,6 @@
 # C-end Web (ArchForgeWeb)
 
-ArchForgeWeb is the consumer-facing demo frontend for the ArchForge backend. It demonstrates how a modern Next.js application can integrate with the `server-web` APIs, including i18n, Sa-Token authentication, articles, dashboards, and developer tooling such as Playwright and Storybook.
+ArchForgeWeb is the consumer-facing Next.js client for ArchForge. It talks only to `server-web` (`:8081`) and covers i18n, Sa-Token authentication, articles, dashboards, and Playwright E2E tests.
 
 ## Tech Stack
 
@@ -8,14 +8,13 @@ ArchForgeWeb is the consumer-facing demo frontend for the ArchForge backend. It 
 |----------|------------|---------|---------|
 | Framework | Next.js | 16.2.12 | React framework with App Router |
 | UI | React | 19.2.8 | Component library |
-| Language | TypeScript | 7.0.2 | Type-safe JavaScript |
+| Language | TypeScript | 5.8.3 | Type-safe JavaScript |
 | Styling | Tailwind CSS | 4.3.3 | Utility-first CSS |
 | Components | shadcn/ui + lucide-react | — | Headless UI primitives and icons |
 | i18n | next-intl | 4.13.4 | English / Chinese localization |
 | Auth | Sa-Token (server-web) | — | Token-based C-end authentication |
 | Markdown | react-markdown + remark-gfm + rehype-highlight | — | Article content rendering |
 | E2E Tests | Playwright | 1.61.1 | End-to-end testing |
-| Component Docs | Storybook | 8.6.18 | Visual component documentation |
 | Build | Turborepo + pnpm workspaces | — | Monorepo orchestration |
 
 ## Project Structure
@@ -52,7 +51,6 @@ apps/web/
 │   └── routing.ts              # next-intl routing config
 ├── middleware.ts               # next-intl middleware
 ├── e2e/                        # Playwright E2E tests
-├── .storybook/                 # Storybook configuration
 ├── next.config.ts
 └── package.json
 ```
@@ -142,8 +140,6 @@ pnpm lint             # Next.js lint
 pnpm test:e2e         # Run Playwright E2E tests
 pnpm test:e2e:ui      # Run Playwright in UI mode
 pnpm test:e2e:debug   # Run Playwright in debug mode
-pnpm storybook        # Start Storybook dev server (port 6006)
-pnpm build-storybook  # Build static Storybook
 ```
 
 ## Testing
@@ -158,18 +154,6 @@ The `e2e/` directory covers the core user paths:
 - `auth.spec.ts` — login, access protected page, logout.
 
 Playwright config starts `pnpm dev` automatically via `webServer` and targets Chromium.
-
-### Storybook
-
-Stories are provided for base shadcn/ui components:
-
-- `Button` (default, outline, ghost, sizes, disabled)
-- `Card`
-- `Input`
-- `Label`
-- `Textarea`
-
-Storybook is configured with `@storybook/react-vite` and imports the global `globals.css`.
 
 ## Quick Start
 
@@ -205,7 +189,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 - C-end and admin are **two sa-token login types** (`StpWebUtil` vs `StpAdminUtil`), not JWT vs sa-token.
 - Article detail pages are server-rendered with `next-intl` and `react-markdown`.
-- `next.config.ts` enables `experimental.useTypeScriptCli` for TypeScript 7 compatibility.
+- Auth cookies (`token`, `tokenName`, `refreshToken`) are mirrored in `localStorage`. Errors from `server-web` are RFC 9457 ProblemDetail.
 
 ## Related Pages
 

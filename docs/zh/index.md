@@ -52,7 +52,7 @@ features:
   - title: 元表格
     details: 低代码动态表设计，支持 Schema 演进、数据 CRUD、导入导出，并可一键生成前后端完整模块脚手架。
   - title: C 端 Web
-    details: Next.js C 端应用（:3000 → Web API :8081），支持国际化、Sa-Token（StpWebUtil）、文章仪表盘、Playwright E2E 测试与 Storybook。
+    details: Next.js C 端应用（:3000 → Web API :8081），支持国际化、Sa-Token（StpWebUtil）、文章仪表盘与 Playwright E2E 测试。
 ---
 
 ## 五个并列仓库

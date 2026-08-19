@@ -88,14 +88,13 @@ ArchForge 采用现代技术，每项选择都有清晰的考量。
 |------|------|------|------|
 | 框架 | Next.js | 16.x | React 框架，App Router |
 | UI | React | 19.x | 组件库 |
-| 语言 | TypeScript | 7.x | 类型安全的 JavaScript |
+| 语言 | TypeScript | 5.8.x | 类型安全的 JavaScript |
 | 样式 | Tailwind CSS | 4.x | 原子化 CSS |
 | 组件 | shadcn/ui + lucide-react | -- | 无头 UI 原语与图标 |
 | 国际化 | next-intl | -- | 英文 / 中文多语言 |
 | 认证 | Sa-Token（`StpWebUtil`） | 1.45.0 | C 端 Token 认证 |
 | Markdown | react-markdown + remark-gfm + rehype-highlight | -- | 文章内容渲染 |
 | E2E 测试 | Playwright | -- | 端到端测试 |
-| 组件文档 | Storybook | -- | 可视化组件文档 |
 | 构建 | Turborepo + pnpm workspaces | -- | Monorepo 编排 |
 | 开发端口 | 3000 | -- | 请求 Web API `:8081` |
 

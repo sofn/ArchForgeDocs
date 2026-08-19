@@ -1,6 +1,6 @@
 # C 端 Web（ArchForgeWeb）
 
-ArchForgeWeb 是 ArchForge 后端的 C 端（面向终端用户）示例前端，基于 Next.js 构建，展示如何集成 `server-web` 接口，包括国际化、Sa-Token 认证、文章、仪表盘，以及 Playwright E2E 测试与 Storybook 组件文档等开发工具。
+ArchForgeWeb 是 ArchForge 的 C 端 Next.js 客户端。只对接 `server-web`（`:8081`），覆盖国际化、Sa-Token 认证、文章、仪表盘与 Playwright E2E 测试。
 
 ## 技术栈
 
@@ -8,15 +8,14 @@ ArchForgeWeb 是 ArchForge 后端的 C 端（面向终端用户）示例前端�
 |------|------|------|------|
 | 框架 | Next.js | 16.2.12 | React 框架，App Router |
 | UI | React | 19.2.8 | 组件库 |
-| 语言 | TypeScript | 7.0.2 | 类型安全的 JavaScript |
+| 语言 | TypeScript | 5.8.3 | 类型安全的 JavaScript |
 | 样式 | Tailwind CSS | 4.3.3 | 原子化 CSS |
 | 组件 | shadcn/ui + lucide-react | — | 无头 UI 原语与图标 |
 | 国际化 | next-intl | 4.13.4 | 英文 / 中文多语言 |
 | 认证 | Sa-Token（server-web） | — | C 端 Token 认证 |
 | Markdown | react-markdown + remark-gfm + rehype-highlight | — | 文章内容渲染 |
 | E2E 测试 | Playwright | 1.61.1 | 端到端测试 |
-| 组件文档 | Storybook | 8.6.18 | 可视化组件文档 |
-| 构建 | Turborepo + pnpm workspaces | — |  monorepo 编排 |
+| 构建 | Turborepo + pnpm workspaces | — | monorepo 编排 |
 
 ## 项目结构
 
@@ -52,7 +51,6 @@ apps/web/
 │   └── routing.ts              # next-intl 路由配置
 ├── middleware.ts               # next-intl 中间件
 ├── e2e/                        # Playwright E2E 测试
-├── .storybook/                 # Storybook 配置
 ├── next.config.ts
 └── package.json
 ```
@@ -142,8 +140,6 @@ pnpm lint             # Next.js 代码检查
 pnpm test:e2e         # 运行 Playwright E2E 测试
 pnpm test:e2e:ui      # Playwright UI 模式
 pnpm test:e2e:debug   # Playwright 调试模式
-pnpm storybook        # 启动 Storybook（端口 6006）
-pnpm build-storybook  # 构建静态 Storybook
 ```
 
 ## 测试
@@ -157,19 +153,7 @@ pnpm build-storybook  # 构建静态 Storybook
 - `articles.spec.ts` — 文章列表与详情页。
 - `auth.spec.ts` — 登录、访问受保护页面、登出。
 
-Playwright 配置通过 `webServer` 自动启动 `pnpm dev`，并 targeting Chromium。
-
-### Storybook
-
-为基础 shadcn/ui 组件提供示例：
-
-- `Button`（默认、outline、ghost、尺寸、禁用态）
-- `Card`
-- `Input`
-- `Label`
-- `Textarea`
-
-Storybook 使用 `@storybook/react-vite` 框架，并导入全局 `globals.css`。
+Playwright 配置通过 `webServer` 自动启动 `pnpm dev`，目标浏览器为 Chromium。
 
 ## 快速开始
 
@@ -205,7 +189,7 @@ pnpm dev
 
 - C 端与管理端是两套 sa-token 登录类型（`StpWebUtil` / `StpAdminUtil`），不是 JWT vs sa-token。
 - 文章详情页结合 `next-intl` 与 `react-markdown` 做服务端渲染。
-- `next.config.ts` 启用 `experimental.useTypeScriptCli` 以保证与 TypeScript 7 兼容。
+- 认证 Cookie（`token`、`tokenName`、`refreshToken`）会镜像到 `localStorage`。`server-web` 错误为 RFC 9457 ProblemDetail。
 
 ## 相关页面
 
