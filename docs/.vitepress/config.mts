@@ -38,6 +38,8 @@ const modulesSidebarEN = [
       { text: 'File Management', link: '/modules/file-management' },
       { text: 'Quartz Scheduling', link: '/modules/quartz' },
       { text: 'Meta Table', link: '/modules/meta-table' },
+      { text: 'Dashboard', link: '/modules/dashboard' },
+      { text: 'ChatAI', link: '/modules/chatai' },
     ]
   },
   {
@@ -98,6 +100,8 @@ const modulesSidebarZH = [
       { text: '文件管理', link: '/zh/modules/file-management' },
       { text: '定时任务', link: '/zh/modules/quartz' },
       { text: '元表格', link: '/zh/modules/meta-table' },
+      { text: '仪表盘', link: '/zh/modules/dashboard' },
+      { text: 'ChatAI', link: '/zh/modules/chatai' },
     ]
   },
   {
