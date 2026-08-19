@@ -79,7 +79,7 @@ docker compose -f docker-compose.native.yml up -d --build
 ```bash
 # 1. 构建 bootJar
 export JAVA_HOME=/path/to/jdk-25
-./gradlew :server-admin:bootJar -x test
+./gradlew :archforge-server-admin:bootJar -x test
 
 # 2. 构建 Docker 镜像
 docker build -f docker/fulljre/Dockerfile -t archforge:fulljre .
@@ -95,7 +95,7 @@ docker/fulljre/build.sh
 ```bash
 # 1. 构建 bootJar
 export JAVA_HOME=/path/to/jdk-25
-./gradlew :server-admin:bootJar -x test
+./gradlew :archforge-server-admin:bootJar -x test
 
 # 2. 构建 Docker 镜像（包含 CDS 训练 + jlink）
 docker build -f docker/jlink/Dockerfile -t archforge:jlink .
@@ -131,8 +131,7 @@ cp .env.example .env
 | 变量 | 默认值 | 说明 |
 |------|-------|------|
 | `DB_USERNAME` | `archforge` | PostgreSQL 用户名 |
-| `DB_PASSWORD` | `archforge` | PostgreSQL 密码 |
-| `JWT_SECRET` | （内置开发密钥） | JWT 签名密钥 |
+| `DB_PASSWORD` | compose 示例为 `archforge`；**生产 YAML 无默认值** | PostgreSQL 密码 |
 
 ## 服务端口
 

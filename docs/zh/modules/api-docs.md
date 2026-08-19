@@ -67,13 +67,13 @@ location /v3/api-docs {
 
 | 方法 | 接口路径 | 描述 |
 |--------|----------|-------------|
-| POST | `/login` | 用户登录 |
-| POST | `/auth/refresh` | 刷新 sa-token |
-| GET | `/getLoginUserInfo` | 获取当前用户信息 |
-| GET | `/getRouters` | 获取菜单路由（旧版） |
-| GET | `/get-async-routes` | 获取前端异步路由 |
-| GET | `/captchaImage` | 生成验证码图片 |
-| GET | `/getConfig` | 获取应用配置 |
+| POST | `/auth/login` | 用户登录 |
+| POST | `/auth/refresh-token` | 通过刷新令牌换发 Sa-Token |
+| GET | `/auth/getLoginUserInfo` | 获取当前用户信息 |
+| GET | `/auth/getRouters` | 获取菜单路由（旧版） |
+| GET | `/auth/get-async-routes` | 获取前端异步路由 |
+| GET | `/auth/captchaImage` | 生成验证码图片 |
+| GET | `/auth/getConfig` | 获取应用配置 |
 
 ### 管理端增删改查 API（`/admin-api/`）
 

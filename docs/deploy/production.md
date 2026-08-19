@@ -6,7 +6,7 @@ A checklist and guide for deploying ArchForge to a production environment.
 
 | # | Task | Priority | Notes |
 |---|------|----------|-------|
-| 1 | Change JWT secret | **Critical** | Generate a new HMAC-SHA512 key |
+| 1 | Set production secrets | **Critical** | No defaults — `DB_PASSWORD`, Redis, RSA, Sa-Token Redis, etc. |
 | 2 | Change RSA private key | **Critical** | Generate a new RSA key pair |
 | 3 | Change PostgreSQL password | **Critical** | Use a strong password |
 | 4 | Enable captcha | High | Set `arch-forge.captcha.enabled: true` |
@@ -22,27 +22,17 @@ A checklist and guide for deploying ArchForge to a production environment.
 
 ## Generate Secrets
 
-### JWT Secret
+### Production secrets
 
-Generate a secure Base64-encoded key:
-
-```bash
-openssl rand -base64 64
-```
-
-Set it in your `application-prod.yaml` or as an environment variable:
-
-```yaml
-arch-forge:
-  jwt:
-    secret: "YOUR_GENERATED_BASE64_KEY"
-```
-
-Or via Docker:
+Auth is Sa-Token (UUID tokens in Redis), not a signed JWT. Production YAML has **no default passwords or RSA keys**.
 
 ```bash
-JWT_SECRET="YOUR_GENERATED_BASE64_KEY" docker compose up -d
+# Example: generate an RSA transport key and a Redis/DB password
+openssl rand -base64 32
+./archforge init --write --profile prod
 ```
+
+Copy values into `.env` / your secret manager. Do not commit `application-prod.yaml` secrets.
 
 ### RSA Key Pair
 
@@ -58,7 +48,7 @@ Set the Base64-encoded private key in `arch-forge.rsa-private-key`. Share the co
 
 ## Production Configuration
 
-Create `server-admin/src/main/resources/application-prod.yaml` from the example:
+Create `archforge-server-admin/src/main/resources/application-prod.yaml` from the example:
 
 ```bash
 cp application-prod.yaml.example application-prod.yaml
@@ -93,10 +83,9 @@ spring:
       host: ${REDIS_HOST:redis}
       port: 6379
 
+sa-token:
+  timeout: 86400                 # 24 hours for production
 arch-forge:
-  jwt:
-    secret: ${JWT_SECRET}
-    expire-seconds: 86400        # 24 hours for production
   captcha:
     enabled: true
   flyway:
@@ -156,7 +145,7 @@ On first startup, Flyway creates all tables and seeds initial data automatically
 
 ```bash
 # Start application — Flyway runs V1 (schema), V2 (data), V3 (menus)
-SPRING_PROFILES_ACTIVE=prod java -jar server-admin.jar
+SPRING_PROFILES_ACTIVE=prod java -jar archforge-server-admin.jar
 ```
 
 ### Subsequent Deployments

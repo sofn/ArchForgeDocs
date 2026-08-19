@@ -79,7 +79,7 @@ Uses the complete Azul Zulu JRE — largest image but zero build complexity.
 ```bash
 # 1. Build the bootJar
 export JAVA_HOME=/path/to/jdk-25
-./gradlew :server-admin:bootJar -x test
+./gradlew :archforge-server-admin:bootJar -x test
 
 # 2. Build Docker image
 docker build -f docker/fulljre/Dockerfile -t archforge:fulljre .
@@ -95,7 +95,7 @@ Uses jlink to create a minimal JRE + Project Leyden CDS for faster startup.
 ```bash
 # 1. Build the bootJar
 export JAVA_HOME=/path/to/jdk-25
-./gradlew :server-admin:bootJar -x test
+./gradlew :archforge-server-admin:bootJar -x test
 
 # 2. Build Docker image (includes CDS training + jlink)
 docker build -f docker/jlink/Dockerfile -t archforge:jlink .
@@ -131,8 +131,7 @@ cp .env.example .env
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DB_USERNAME` | `archforge` | PostgreSQL username |
-| `DB_PASSWORD` | `archforge` | PostgreSQL password |
-| `JWT_SECRET` | (built-in dev key) | JWT signing secret |
+| `DB_PASSWORD` | `archforge` in compose samples; **none in prod YAML** | PostgreSQL password |
 
 ## Service Ports
 

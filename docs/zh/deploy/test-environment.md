@@ -29,7 +29,7 @@ docker exec -i archforge-pg psql -U archforge -c "CREATE DATABASE archforge_task
 
 ### Schema 创建（Flyway）
 
-ArchForge 使用 **Flyway** 进行自动化 Schema 管理。首次启动时，Flyway 会执行位于 `server-admin/src/main/resources/db/migration/` 目录下的迁移脚本：
+ArchForge 使用 **Flyway** 进行自动化 Schema 管理。首次启动时，Flyway 会执行位于 `archforge-server-admin/src/main/resources/db/migration/` 目录下的迁移脚本：
 
 - `V1__init_schema.sql` -- 创建所有表（sys_user、sys_role、sys_menu、sys_dept 等）
 - `V2__init_data.sql` -- 插入初始管理员用户和系统配置
@@ -66,7 +66,7 @@ docker run -d --name archforge-redis \
 复制配置模板并填入实际值：
 
 ```bash
-cd server-admin/src/main/resources/
+cd archforge-server-admin/src/main/resources/
 cp application-test.yaml.example application-test.yaml
 ```
 
@@ -74,27 +74,27 @@ cp application-test.yaml.example application-test.yaml
 
 - 数据库连接 URL 和凭据
 - Redis 主机地址和密码
-- JWT 密钥（使用 `openssl rand -base64 64` 生成）
+- 类生产密钥（`DB_PASSWORD`、Redis、RSA）。没有 JWT 签名密钥。
 - `arch-forge.flyway.enabled: true`（启用数据库迁移）
 
 ## 启动应用
 
 ```bash
-SPRING_PROFILES_ACTIVE=test ./gradlew server-admin:bootRun
+SPRING_PROFILES_ACTIVE=test ./gradlew :archforge-server-admin:bootRun
 ```
 
 或使用构建好的 JAR 包：
 
 ```bash
-./gradlew :server-admin:bootJar -x test
-SPRING_PROFILES_ACTIVE=test java --enable-preview -jar server-admin/build/libs/server-admin.jar
+./gradlew :archforge-server-admin:bootJar -x test
+SPRING_PROFILES_ACTIVE=test java --enable-preview -jar archforge-server-admin/build/libs/archforge-server-admin.jar
 ```
 
 ## 验证
 
 - 健康检查：`curl http://localhost:8080/actuator/health`
 - Swagger：`http://localhost:8080/swagger-ui/index.html`
-- 登录：POST `/login`，请求体 `{"username": "admin", "password": "admin123"}`
+- 登录：POST `/auth/login`，请求体 `{"username": "admin", "password": "admin123"}`
 
 ## 导入测试数据
 

@@ -23,7 +23,7 @@ java -Dspring.profiles.active=prod -jar archforge-server-admin.jar
 ## 配置文件
 
 ```
-archforge-server-admin/src/main/resources/
+archforge-archforge-server-admin/src/main/resources/
 ├── application.yaml              # 共享基础配置（所有 Profile）
 ├── application-dev.yaml          # 开发环境覆盖配置
 ├── application-test.yaml.example # 测试环境模板（复制后编辑）

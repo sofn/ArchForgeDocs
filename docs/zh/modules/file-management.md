@@ -94,7 +94,7 @@ arch-forge:
 
 - 上传会校验扩展名与 MIME 类型。
 - 限制最大文件大小。
-- 下载与删除接口受 Spring Security 保护。
+- 下载与删除接口需要 `@SaCheckLogin` / `@SaCheckPermission`。
 
 ## 相关页面
 

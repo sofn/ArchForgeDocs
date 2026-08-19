@@ -5,7 +5,7 @@
 ArchForge uses two mechanisms to manage dependency versions, achieving functionality similar to Maven's `dependencyManagement`:
 
 1. **Spring Boot BOM** -- manages versions for all Spring Boot ecosystem dependencies
-2. **Custom BOM** (`dependencies` module) -- manages versions for third-party libraries
+2. **Custom BOM** (`archforge-dependencies` module) -- manages versions for third-party libraries
 
 With these two BOMs (Bill of Materials), submodules declare dependencies without specifying version numbers.
 
@@ -27,7 +27,7 @@ dependencies {
 
 ### Custom BOM (java-platform)
 
-The `dependencies/build.gradle.kts` module uses Gradle's `java-platform` plugin to define version constraints for every third-party library used in the project:
+The `archforge-dependencies/build.gradle.kts` module uses Gradle's `java-platform` plugin to define version constraints for every third-party library used in the project:
 
 ```kotlin
 plugins {
@@ -52,11 +52,11 @@ dependencies {
 
 ### Root Project Wiring
 
-The root `build.gradle.kts` applies both BOMs to every subproject (except the `dependencies` module itself):
+The root `build.gradle.kts` applies both BOMs to every subproject (except the `archforge-dependencies` module itself):
 
 ```kotlin
 subprojects {
-    if (name != "dependencies") {
+    if (name != "archforge-dependencies") {
         apply(plugin = "java-library")
 
         dependencies {
@@ -64,7 +64,7 @@ subprojects {
             add("implementation", platform("org.springframework.boot:spring-boot-dependencies:4.1.0"))
 
             // Custom BOM
-            add("implementation", platform(project(":dependencies")))
+            add("implementation", platform(project(":archforge-dependencies")))
         }
     }
 }
@@ -107,13 +107,13 @@ If the dependency is part of the Spring Boot ecosystem, simply add it without a 
 
 ```kotlin
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("cn.dev33:sa-token-spring-boot3-starter")
 }
 ```
 
 ### Third-Party Library
 
-For non-Spring-Boot dependencies, first add a version constraint to `dependencies/build.gradle.kts`:
+For non-Spring-Boot dependencies, first add a version constraint to `archforge-dependencies/build.gradle.kts`:
 
 ```kotlin
 dependencies {

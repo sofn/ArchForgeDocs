@@ -67,13 +67,13 @@ location /v3/api-docs {
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/login` | User login |
-| POST | `/refresh-token` | Refresh JWT token |
-| GET | `/getLoginUserInfo` | Get current user info |
-| GET | `/getRouters` | Get menu routes (legacy) |
-| GET | `/get-async-routes` | Get async routes for frontend |
-| GET | `/captchaImage` | Generate captcha image |
-| GET | `/getConfig` | Get app config |
+| POST | `/auth/login` | User login |
+| POST | `/auth/refresh-token` | Refresh Sa-Token via refresh token |
+| GET | `/auth/getLoginUserInfo` | Get current user info |
+| GET | `/auth/getRouters` | Get menu routes (legacy) |
+| GET | `/auth/get-async-routes` | Get async routes for frontend |
+| GET | `/auth/captchaImage` | Generate captcha image |
+| GET | `/auth/getConfig` | Get app config |
 
 ### Admin CRUD API (`/admin-api/`)
 

@@ -14,7 +14,7 @@ ArchForge 使用 [Flyway](https://flywaydb.org/) 管理数据库结构迁移，�
 
 ## 迁移脚本
 
-脚本位于 `server-admin/src/main/resources/db/migration/`：
+脚本位于 `archforge-server-admin/src/main/resources/db/migration/`：
 
 ```
 db/migration/
@@ -49,7 +49,7 @@ V{version}__{description}.sql
 
 ### 步骤一：编写迁移脚本
 
-在 `server-admin/src/main/resources/db/migration/` 中创建新文件：
+在 `archforge-server-admin/src/main/resources/db/migration/` 中创建新文件：
 
 ```sql
 -- V4__add_audit_log_table.sql
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS sys_audit_log (
 ### 步骤三：在测试环境测试
 
 ```bash
-SPRING_PROFILES_ACTIVE=test ./gradlew server-admin:bootRun
+SPRING_PROFILES_ACTIVE=test ./gradlew :archforge-server-admin:bootRun
 ```
 
 Flyway 会在应用启动时自动检测并执行新脚本。
@@ -77,7 +77,7 @@ Flyway 会在应用启动时自动检测并执行新脚本。
 ### 步骤四：部署到生产环境
 
 ```bash
-SPRING_PROFILES_ACTIVE=prod java -jar server-admin.jar
+SPRING_PROFILES_ACTIVE=prod java -jar archforge-server-admin.jar
 ```
 
 Flyway 仅执行新增的增量迁移。
@@ -91,12 +91,12 @@ Flyway 仅执行新增的增量迁移。
 psql -U postgres -c "CREATE DATABASE archforge_test;"
 
 # 2. Configure the profile
-cd server-admin/src/main/resources
+cd archforge-server-admin/src/main/resources
 cp application-test.yaml.example application-test.yaml
 # Edit application-test.yaml with your database credentials
 
 # 3. Start the application (Flyway runs automatically)
-SPRING_PROFILES_ACTIVE=test ./gradlew server-admin:bootRun
+SPRING_PROFILES_ACTIVE=test ./gradlew :archforge-server-admin:bootRun
 ```
 
 ### 查看迁移状态
@@ -114,19 +114,19 @@ SELECT * FROM flyway_schema_history ORDER BY installed_rank;
 psql -h <master-host> -U postgres -c "CREATE DATABASE archforge;"
 
 # 2. Configure the profile
-cd server-admin/src/main/resources
+cd archforge-server-admin/src/main/resources
 cp application-prod.yaml.example application-prod.yaml
-# Edit: database connections (master/slave), Redis, JWT secret
+# Edit: database connections (master/slave), Redis, and other secrets (no JWT key)
 
 # 3. Start (Flyway auto-creates tables + seeds data)
-SPRING_PROFILES_ACTIVE=prod java -jar server-admin.jar
+SPRING_PROFILES_ACTIVE=prod java -jar archforge-server-admin.jar
 ```
 
 ### 数据库变更流程
 
 ```
 1. 开发人员编写迁移脚本
-   └─ server-admin/src/main/resources/db/migration/V{N}__description.sql
+   └─ archforge-server-admin/src/main/resources/db/migration/V{N}__description.sql
 
 2. 开发环境验证
    └─ Testcontainers PostgreSQL + Hibernate DDL auto — 验证实体兼容性

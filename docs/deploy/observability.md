@@ -46,12 +46,12 @@ docker compose up -d
 
 #### Local `bootRun`
 
-For local development with `./gradlew server-admin:bootRun`, point the OTLP exporter to the Jaeger container on the host:
+For local development with `./gradlew :archforge-server-admin:bootRun`, point the OTLP exporter to the Jaeger container on the host:
 
 ```bash
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces
 export SAMPLING_PROBABILITY=1.0
-./gradlew server-admin:bootRun
+./gradlew :archforge-server-admin:bootRun
 ```
 
 Prometheus is configured with a `host.docker.internal:8080` target so it can scrape the local backend from the container.

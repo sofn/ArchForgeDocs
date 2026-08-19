@@ -111,15 +111,7 @@ The frontend talks to `server-web` (default `http://localhost:8081`).
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8081
 ```
 
-All API responses follow the standard format:
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": { ... }
-}
-```
+Admin (`:8080`) wraps success as `{code, message, data}`. C-end (`:8081`) errors use RFC 9457 `ProblemDetail`.
 
 ## Main API Endpoints
 
@@ -198,7 +190,7 @@ pnpm install
 
 ```bash
 # In the ArchForge repo
-./gradlew :server-web:bootRun
+./gradlew :archforge-server-web:bootRun
 ```
 
 4. Start the dev server:

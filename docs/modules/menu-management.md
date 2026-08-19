@@ -69,7 +69,7 @@ Button-level permissions are represented as menu entries with `isButton = true`,
 The frontend loads routes dynamically after login:
 
 1. User logs in and receives a sa-token `token`
-2. Frontend calls `GET /get-async-routes` with the token
+2. Frontend calls `GET /auth/get-async-routes` with the token
 3. Backend returns the menu tree filtered by the user's role permissions
 4. Frontend converts the menu tree into Vue Router route objects
 5. Routes are dynamically added to the router via `router.addRoute()`

@@ -5,7 +5,7 @@
 ArchForge 使用两种机制管理依赖版本，实现了类似 Maven `dependencyManagement` 的功能：
 
 1. **Spring Boot BOM** -- 管理所有 Spring Boot 生态系统依赖的版本
-2. **自定义 BOM**（`dependencies` 模块）-- 管理第三方库的版本
+2. **自定义 BOM**（`archforge-dependencies` 模块）-- 管理第三方库的版本
 
 通过这两个 BOM（Bill of Materials），子模块声明依赖时无需指定版本号。
 
@@ -27,7 +27,7 @@ dependencies {
 
 ### 自定义 BOM（java-platform）
 
-`dependencies/build.gradle.kts` 模块使用 Gradle 的 `java-platform` 插件，为项目中使用的每个第三方库定义版本约束：
+`archforge-dependencies/build.gradle.kts` 模块使用 Gradle 的 `java-platform` 插件，为项目中使用的每个第三方库定义版本约束：
 
 ```kotlin
 plugins {
@@ -52,11 +52,11 @@ dependencies {
 
 ### 根项目关联
 
-根目录的 `build.gradle.kts` 将两个 BOM 应用于每个子项目（`dependencies` 模块自身除外）：
+根目录的 `build.gradle.kts` 将两个 BOM 应用于每个子项目（`archforge-dependencies` 模块自身除外）：
 
 ```kotlin
 subprojects {
-    if (name != "dependencies") {
+    if (name != "archforge-dependencies") {
         apply(plugin = "java-library")
 
         dependencies {
@@ -64,7 +64,7 @@ subprojects {
             add("implementation", platform("org.springframework.boot:spring-boot-dependencies:4.1.0"))
 
             // Custom BOM
-            add("implementation", platform(project(":dependencies")))
+            add("implementation", platform(project(":archforge-dependencies")))
         }
     }
 }
@@ -107,13 +107,13 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("cn.dev33:sa-token-spring-boot3-starter")
 }
 ```
 
 ### 第三方库
 
-对于非 Spring Boot 依赖，首先在 `dependencies/build.gradle.kts` 中添加版本约束：
+对于非 Spring Boot 依赖，首先在 `archforge-dependencies/build.gradle.kts` 中添加版本约束：
 
 ```kotlin
 dependencies {

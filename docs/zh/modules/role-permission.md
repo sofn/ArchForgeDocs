@@ -63,7 +63,7 @@
 
 ### 按钮级权限
 
-菜单项可以设置 `isButton = true` 并带有一个 `permission` 字符串（如 `system:user:create`）。这些权限会在路由数据的 `meta.auths` 数组中返回。
+菜单项可以设置 `isButton = true` 并带有一个 `permission` 字符串（如 `system:user:add`）。控制器用 `@SaCheckPermission(value = "system:user:add", type = StpAdminUtil.TYPE)` 强制校验同一字符串。这些权限也会出现在路由数据的 `meta.auths` 数组中。
 
 在前端，使用 `hasPerms()` 工具函数来条件渲染按钮：
 

@@ -23,7 +23,7 @@ java -Dspring.profiles.active=prod -jar archforge-server-admin.jar
 ## Configuration Files
 
 ```
-archforge-server-admin/src/main/resources/
+archforge-archforge-server-admin/src/main/resources/
 ├── application.yaml              # Shared base config (all profiles)
 ├── application-dev.yaml          # Dev overrides
 ├── application-test.yaml.example # Template for test (copy and edit)

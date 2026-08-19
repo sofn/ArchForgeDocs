@@ -94,7 +94,7 @@ The `AdaptiveFileStorageServiceFactory` picks the right implementation based on 
 
 - Uploads are checked against extension and MIME type lists.
 - Maximum file size is enforced.
-- Download and delete endpoints are protected by Spring Security.
+- Download and delete endpoints require `@SaCheckLogin` / `@SaCheckPermission`.
 
 ## Related Pages
 

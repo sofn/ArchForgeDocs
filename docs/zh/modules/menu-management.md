@@ -69,7 +69,7 @@
 前端在登录后动态加载路由：
 
 1. 用户登录并获得 sa-token `token`
-2. 前端携带令牌调用 `GET /get-async-routes`
+2. 前端携带令牌调用 `GET /auth/get-async-routes`
 3. 后端根据用户的角色权限过滤后返回菜单树
 4. 前端将菜单树转换为 Vue Router 路由对象
 5. 通过 `router.addRoute()` 动态添加路由

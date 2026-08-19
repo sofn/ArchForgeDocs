@@ -14,7 +14,7 @@ In development, Hibernate automatically creates and updates tables against the T
 
 ## Migration Scripts
 
-Scripts are located in `server-admin/src/main/resources/db/migration/`:
+Scripts are located in `archforge-server-admin/src/main/resources/db/migration/`:
 
 ```
 db/migration/
@@ -49,7 +49,7 @@ V{version}__{description}.sql
 
 ### Step 1: Write the Migration Script
 
-Create a new file in `server-admin/src/main/resources/db/migration/`:
+Create a new file in `archforge-server-admin/src/main/resources/db/migration/`:
 
 ```sql
 -- V4__add_audit_log_table.sql
@@ -69,7 +69,7 @@ In dev mode (Testcontainers PostgreSQL + Hibernate DDL auto), add the correspond
 ### Step 3: Test in Test Environment
 
 ```bash
-SPRING_PROFILES_ACTIVE=test ./gradlew server-admin:bootRun
+SPRING_PROFILES_ACTIVE=test ./gradlew :archforge-server-admin:bootRun
 ```
 
 Flyway auto-detects and executes new scripts on application startup.
@@ -77,7 +77,7 @@ Flyway auto-detects and executes new scripts on application startup.
 ### Step 4: Deploy to Production
 
 ```bash
-SPRING_PROFILES_ACTIVE=prod java -jar server-admin.jar
+SPRING_PROFILES_ACTIVE=prod java -jar archforge-server-admin.jar
 ```
 
 Flyway executes only the new incremental migrations.
@@ -91,12 +91,12 @@ Flyway executes only the new incremental migrations.
 psql -U postgres -c "CREATE DATABASE archforge_test;"
 
 # 2. Configure the profile
-cd server-admin/src/main/resources
+cd archforge-server-admin/src/main/resources
 cp application-test.yaml.example application-test.yaml
 # Edit application-test.yaml with your database credentials
 
 # 3. Start the application (Flyway runs automatically)
-SPRING_PROFILES_ACTIVE=test ./gradlew server-admin:bootRun
+SPRING_PROFILES_ACTIVE=test ./gradlew :archforge-server-admin:bootRun
 ```
 
 ### Check Migration Status
@@ -114,19 +114,19 @@ SELECT * FROM flyway_schema_history ORDER BY installed_rank;
 psql -h <master-host> -U postgres -c "CREATE DATABASE archforge;"
 
 # 2. Configure the profile
-cd server-admin/src/main/resources
+cd archforge-server-admin/src/main/resources
 cp application-prod.yaml.example application-prod.yaml
-# Edit: database connections (master/slave), Redis, JWT secret
+# Edit: database connections (master/slave), Redis, and other secrets (no JWT key)
 
 # 3. Start (Flyway auto-creates tables + seeds data)
-SPRING_PROFILES_ACTIVE=prod java -jar server-admin.jar
+SPRING_PROFILES_ACTIVE=prod java -jar archforge-server-admin.jar
 ```
 
 ### Database Change Workflow
 
 ```
 1. Developer writes migration script
-   └─ server-admin/src/main/resources/db/migration/V{N}__description.sql
+   └─ archforge-server-admin/src/main/resources/db/migration/V{N}__description.sql
 
 2. Dev environment validation
    └─ Testcontainers PostgreSQL + Hibernate DDL auto — verify entity compatibility

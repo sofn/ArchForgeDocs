@@ -6,7 +6,7 @@ ArchForge 生产环境部署的检查清单与指南。
 
 | # | 任务 | 优先级 | 备注 |
 |---|------|--------|------|
-| 1 | 更换 JWT 密钥 | **关键** | 生成新的 HMAC-SHA512 密钥 |
+| 1 | 配置生产密钥 | **关键** | 无默认值 — `DB_PASSWORD`、Redis、RSA、Sa-Token Redis 等 |
 | 2 | 更换 RSA 私钥 | **关键** | 生成新的 RSA 密钥对 |
 | 3 | 更换 PostgreSQL 密码 | **关键** | 使用强密码 |
 | 4 | 启用验证码 | 高 | 设置 `arch-forge.captcha.enabled: true` |
@@ -22,27 +22,17 @@ ArchForge 生产环境部署的检查清单与指南。
 
 ## 生成密钥
 
-### JWT 密钥
+### 生产密钥
 
-生成安全的 Base64 编码密钥：
-
-```bash
-openssl rand -base64 64
-```
-
-在 `application-prod.yaml` 中设置，或作为环境变量传入：
-
-```yaml
-arch-forge:
-  jwt:
-    secret: "YOUR_GENERATED_BASE64_KEY"
-```
-
-或通过 Docker 传入：
+认证是 Sa-Token（Redis 中的 UUID 令牌），不是签名 JWT。生产 YAML **没有默认密码或 RSA 密钥**。
 
 ```bash
-JWT_SECRET="YOUR_GENERATED_BASE64_KEY" docker compose up -d
+# 示例：生成传输用 RSA 与 Redis/DB 密码
+openssl rand -base64 32
+./archforge init --write --profile prod
 ```
+
+把值写入 `.env` 或密钥管理系统。不要提交 `application-prod.yaml` 中的密钥。
 
 ### RSA 密钥对
 
@@ -58,7 +48,7 @@ base64 private.der
 
 ## 生产环境配置
 
-从示例文件创建 `server-admin/src/main/resources/application-prod.yaml`：
+从示例文件创建 `archforge-server-admin/src/main/resources/application-prod.yaml`：
 
 ```bash
 cp application-prod.yaml.example application-prod.yaml
@@ -93,10 +83,9 @@ spring:
       host: ${REDIS_HOST:redis}
       port: 6379
 
+sa-token:
+  timeout: 86400                 # 生产环境 24 小时
 arch-forge:
-  jwt:
-    secret: ${JWT_SECRET}
-    expire-seconds: 86400        # 24 hours for production
   captcha:
     enabled: true
   flyway:
@@ -156,7 +145,7 @@ psql -h <master-host> -U archforge -c \
 
 ```bash
 # Start application — Flyway runs V1 (schema), V2 (data), V3 (menus)
-SPRING_PROFILES_ACTIVE=prod java -jar server-admin.jar
+SPRING_PROFILES_ACTIVE=prod java -jar archforge-server-admin.jar
 ```
 
 ### 后续部署

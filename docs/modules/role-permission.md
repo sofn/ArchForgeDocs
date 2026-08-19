@@ -71,7 +71,7 @@ Each role is assigned a set of menus. When a user logs in, the system loads all 
 
 ### Button-Level Permissions
 
-Menu items can have `isButton = true` with a `permission` string (e.g., `system:user:create`). These permissions are returned in the `meta.auths` array of the route data.
+Menu items can have `isButton = true` with a `permission` string (e.g., `system:user:add`). Controllers enforce the same strings with `@SaCheckPermission(value = "system:user:add", type = StpAdminUtil.TYPE)`. These permissions are also returned in the `meta.auths` array of the route data.
 
 On the frontend, use the `hasPerms()` utility to conditionally render buttons:
 

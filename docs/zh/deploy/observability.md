@@ -46,12 +46,12 @@ docker compose up -d
 
 #### 本地 `bootRun`
 
-本地开发使用 `./gradlew server-admin:bootRun` 时，将 OTLP 指向 Jaeger 暴露的宿主机端口：
+本地开发使用 `./gradlew :archforge-server-admin:bootRun` 时，将 OTLP 指向 Jaeger 暴露的宿主机端口：
 
 ```bash
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318/v1/traces
 export SAMPLING_PROBABILITY=1.0
-./gradlew server-admin:bootRun
+./gradlew :archforge-server-admin:bootRun
 ```
 
 Prometheus 已配置 `host.docker.internal:8080` 目标，可自动抓取本地启动的后端指标。

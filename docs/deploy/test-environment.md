@@ -29,7 +29,7 @@ Option B: Native install (apt/yum).
 
 ### Schema Creation (Flyway)
 
-ArchForge uses **Flyway** for automatic schema management. On first startup, Flyway executes migration scripts located in `server-admin/src/main/resources/db/migration/`:
+ArchForge uses **Flyway** for automatic schema management. On first startup, Flyway executes migration scripts located in `archforge-server-admin/src/main/resources/db/migration/`:
 
 - `V1__init_schema.sql` -- Creates all tables (sys_user, sys_role, sys_menu, sys_dept, etc.)
 - `V2__init_data.sql` -- Inserts initial admin user and system configuration
@@ -66,7 +66,7 @@ docker run -d --name archforge-redis \
 Copy the template and fill in real values:
 
 ```bash
-cd server-admin/src/main/resources/
+cd archforge-server-admin/src/main/resources/
 cp application-test.yaml.example application-test.yaml
 ```
 
@@ -74,27 +74,27 @@ Key settings to configure:
 
 - Database connection URLs and credentials
 - Redis host and password
-- JWT secret (generate with `openssl rand -base64 64`)
+- Production-style secrets (`DB_PASSWORD`, Redis, RSA). No JWT signing key.
 - `arch-forge.flyway.enabled: true` (to run migrations)
 
 ## Start the Application
 
 ```bash
-SPRING_PROFILES_ACTIVE=test ./gradlew server-admin:bootRun
+SPRING_PROFILES_ACTIVE=test ./gradlew :archforge-server-admin:bootRun
 ```
 
 Or with the built JAR:
 
 ```bash
-./gradlew :server-admin:bootJar -x test
-SPRING_PROFILES_ACTIVE=test java --enable-preview -jar server-admin/build/libs/server-admin.jar
+./gradlew :archforge-server-admin:bootJar -x test
+SPRING_PROFILES_ACTIVE=test java --enable-preview -jar archforge-server-admin/build/libs/archforge-server-admin.jar
 ```
 
 ## Verify
 
 - Health: `curl http://localhost:8080/actuator/health`
 - Swagger: `http://localhost:8080/swagger-ui/index.html`
-- Login: POST `/login` with `{"username": "admin", "password": "admin123"}`
+- Login: POST `/auth/login` with `{"username": "admin", "password": "admin123"}`
 
 ## Import Test Data
 

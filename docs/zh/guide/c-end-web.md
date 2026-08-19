@@ -111,15 +111,7 @@ apps/web/
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8081
 ```
 
-所有 API 响应遵循统一格式：
-
-```json
-{
-  "code": 0,
-  "message": "success",
-  "data": { ... }
-}
-```
+管理端（`:8080`）成功响应包装为 `{code, message, data}`。C 端（`:8081`）错误使用 RFC 9457 `ProblemDetail`。
 
 ## 主要 API 接口
 
@@ -198,7 +190,7 @@ pnpm install
 
 ```bash
 # 在 ArchForge 仓库中
-./gradlew :server-web:bootRun
+./gradlew :archforge-server-web:bootRun
 ```
 
 4. 启动开发服务器：
@@ -219,5 +211,5 @@ pnpm dev
 
 - [技术栈](/zh/guide/tech-stack.md) — 完整技术选型
 - [项目结构](/zh/guide/project-structure.md) — monorepo 组织方式
-- [认证鉴权](/zh/modules/authentication.md) — 管理端 JWT 认证详情
+- [认证鉴权](/zh/modules/authentication.md) — Sa-Token（`StpAdminUtil` / `StpWebUtil`）
 - [本地开发环境](/zh/guide/local-setup.md) — IDE 与环境配置

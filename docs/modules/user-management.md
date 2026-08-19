@@ -82,5 +82,5 @@ The `SysUserService` and `UserService` classes handle business logic:
 ## Related Pages
 
 - [Role & Permission](./role-permission.md) — role assignment details
-- [Authentication](./authentication.md) — login and JWT flow
+- [Authentication](./authentication.md) — login and Sa-Token flow
 - [Log Management](./log-management.md) — user operation logging
