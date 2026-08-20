@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: ArchForge
-  text: Five-repo enterprise platform
-  tagline: Spring Boot 4.1 + Java 25 backend, Vue 3 admin, Next.js C-end, VitePress docs, and contract specs — cloned side by side.
+  text: An enterprise platform built for the AI era
+  tagline: Contract-first five-repo architecture · Spring Boot 4.1 + Java 25 · Humans and AI agents share the same source of truth
   image:
     src: /logo.svg
     alt: ArchForge
@@ -13,58 +13,67 @@ hero:
       text: Get Started
       link: /guide/quick-start
     - theme: alt
-      text: View on GitHub
+      text: Contract-first
+      link: /guide/contract-first
+    - theme: alt
+      text: GitHub
       link: https://github.com/sofn/ArchForge
 
 features:
-  - icon: 🚀
-    title: Spring Boot 4.1 + Java 25
-    details: Built on Spring Boot 4.1.0 with Java 25 virtual threads, Liberica NIK Native Image support, and Sa-Token 1.45.0.
-  - icon: 🎨
-    title: Vue 3 Admin UI
-    details: Admin interface based on vue-pure-admin (:8848 → admin API :8080) with Element Plus, Tailwind CSS, and dynamic menu routing.
-  - icon: 🔐
-    title: Complete RBAC
-    details: Role-based access control with Sa-Token (StpAdminUtil / StpWebUtil), @SaCheckLogin, @SaCheckPermission, dynamic menus, and data scopes.
-  - icon: 🛡️
-    title: API Security
-    details: Login rate limit (5/min/IP), XSS sanitization for query/header (skips multipart), HMAC-SHA256 signing, and idempotent tokens.
-  - icon: 📊
-    title: Server Monitoring
-    details: Real-time CPU, memory, JVM, disk monitoring powered by Oshi with auto-refresh dashboards.
-  - icon: 🗄️
-    title: Multi-Datasource + Flyway
-    details: Dynamic datasource routing with read/write splitting. Flyway 12.4.0 for production schema management.
-  - icon: 🐳
-    title: Docker Native & JVM
-    details: Dual deployment modes — Liberica NIK 25 Native Image (~100ms startup) or JVM with Project Leyden CDS. One-command deployment.
-  - icon: 📈
-    title: Observability
-    details: Prometheus + Grafana + Jaeger + Alertmanager out of the box — dashboards, alerts, and OpenTelemetry 1.62.0 traces.
-  - title: File Management
-    details: Upload, list, download, and delete files from the admin UI. Pluggable local filesystem or S3 (RustFS) backends with extension/size/MIME allow-lists.
-  - title: Quartz Scheduling
-    details: Reflective cron jobs with pause, resume, run-once, and execution logs, managed from the admin panel.
-  - title: i18n
-    details: Backend and frontend locale sync with English and Simplified Chinese message bundles out of the box.
-  - title: Spring Modulith
-    details: Explicit module boundaries, dependency verification, and documentation tests for the domain and infrastructure layers.
-  - title: Meta Table
-    details: Low-code dynamic table design with schema evolution, CRUD, import/export, and full-stack code generation from the admin panel.
-  - title: C-end Web
-    details: Next.js consumer-facing app (:3000 → web API :8081) with i18n, Sa-Token via StpWebUtil, articles dashboard, and Playwright E2E tests.
+  - icon: ⚙️
+    title: Modern runtime
+    details: Spring Boot 4.1 + Java 25 virtual threads. Optional Native Image (~100ms start). OpenTelemetry out of the box.
+  - icon: 🧩
+    title: Contract-first five repos
+    details: Spec owns OpenAPI and enums. Backend, Admin, Web, and Docs consume it. Deleted paths stay deleted.
+  - icon: 🤖
+    title: AI-native workflow
+    details: Every repo has AGENTS.md. Spec skills are progressive disclosure. CLI can install them and speak MCP.
 ---
 
-## Five sibling repositories
+## Why five repositories?
 
-ArchForge is **five independent Git repositories**, cloned side by side. There are no git submodules.
+ArchForge is **five independent Git repositories**, cloned side by side. There are no git submodules. The Spec repo is the constitution an AI agent reads first.
+
+```mermaid
+flowchart LR
+  Spec["ArchForgeSpec<br/>OpenAPI · enums · skills"]
+  Backend["ArchForge<br/>admin :8080 · web :8081"]
+  Admin["ArchForgeAdmin<br/>Vue :8848"]
+  Web["ArchForgeWeb<br/>Next.js :3000"]
+  Docs["ArchForgeDocs<br/>this site"]
+  Spec -->|contract| Backend
+  Spec -->|contract| Admin
+  Spec -->|contract| Web
+  Spec -->|narrative| Docs
+  Admin -->|/api → 8080| Backend
+  Web -->|8081| Backend
+```
 
 | Repository | Role | Local port |
 |------------|------|------------|
-| **ArchForge** | Backend (Gradle). `archforge-server-admin` + `archforge-server-web` | `:8080` / `:8081` |
+| **ArchForge** | Backend. `archforge-server-admin` + `archforge-server-web` | `:8080` / `:8081` |
 | **ArchForgeAdmin** | Admin UI (vue-pure-admin) | `:8848` → `:8080` |
 | **ArchForgeWeb** | C-end (Next.js) | `:3000` → `:8081` |
-| **ArchForgeDocs** | This VitePress documentation site | `npm run docs:dev` |
+| **ArchForgeDocs** | This VitePress site | `npm run docs:dev` |
 | **ArchForgeSpec** | Contracts / architecture / AI context | — |
 
-Developer CLI lives in the backend repo: run `./archforge` from the ArchForge root. See [CLI](/guide/cli).
+Start with [contract-first](/guide/contract-first), then [AI workflow](/guide/ai-workflow). CLI lives in the backend repo: `./archforge`.
+
+## Run it locally
+
+```bash
+# siblings, no submodules
+git clone https://github.com/sofn/ArchForge.git
+git clone https://github.com/sofn/ArchForgeAdmin.git
+git clone https://github.com/sofn/ArchForgeWeb.git
+git clone https://github.com/sofn/ArchForgeDocs.git
+git clone https://github.com/sofn/ArchForgeSpec.git
+
+cd ArchForge
+./archforge init --write
+./archforge infra up
+FILE_STORAGE_TYPE=local ./gradlew :archforge-server-admin:bootRun
+```
+
+Admin default login is `admin / admin123` (captcha on in `dev`). There is no hosted public demo yet — run the stack locally or with Docker Compose.

@@ -9,6 +9,10 @@ const guideSidebarEN = [
       { text: 'Tech Stack', link: '/guide/tech-stack' },
       { text: 'Project Structure', link: '/guide/project-structure' },
       { text: 'CLI', link: '/guide/cli' },
+      { text: 'Contract-first', link: '/guide/contract-first' },
+      { text: 'AI workflow', link: '/guide/ai-workflow' },
+      { text: "What's New", link: '/guide/whats-new' },
+      { text: 'ADRs', link: '/reference/adr/' },
     ]
   },
   {
@@ -72,6 +76,10 @@ const guideSidebarZH = [
       { text: '技术选型', link: '/zh/guide/tech-stack' },
       { text: '项目结构', link: '/zh/guide/project-structure' },
       { text: '命令行工具', link: '/zh/guide/cli' },
+      { text: '契约先行', link: '/zh/guide/contract-first' },
+      { text: 'AI 协作', link: '/zh/guide/ai-workflow' },
+      { text: '更新说明', link: '/zh/guide/whats-new' },
+      { text: 'ADR', link: '/zh/reference/adr/' },
     ]
   },
   {
@@ -129,11 +137,13 @@ const repoLinks = [
   { text: 'Backend (ArchForge)', link: 'https://github.com/sofn/ArchForge' },
   { text: 'Admin (ArchForgeAdmin)', link: 'https://github.com/sofn/ArchForgeAdmin' },
   { text: 'Docs (ArchForgeDocs)', link: 'https://github.com/sofn/ArchForgeDocs' },
+  { text: 'Web (ArchForgeWeb)', link: 'https://github.com/sofn/ArchForgeWeb' },
+  { text: 'Spec (ArchForgeSpec)', link: 'https://github.com/sofn/ArchForgeSpec' },
 ]
 
 export default defineConfig({
   title: 'ArchForge',
-  description: 'Five-repo enterprise platform: Spring Boot 4.1 + Sa-Token + Vue 3 + Next.js',
+  description: 'Contract-first five-repo platform: Spring Boot 4.1 + sa-token + Vue 3 + Next.js',
   base: '/',
   lastUpdated: true,
   cleanUrls: true,
@@ -153,6 +163,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Guide', link: '/guide/introduction' },
+          { text: 'Contract-first', link: '/guide/contract-first' },
           { text: 'Modules', link: '/modules/user-management' },
           { text: 'Deploy', link: '/deploy/docker' },
           {
@@ -162,6 +173,7 @@ export default defineConfig({
         ],
         sidebar: {
           '/guide/': guideSidebarEN,
+          '/reference/': [{ text: 'ADRs', items: [{ text: 'Index', link: '/reference/adr/' }] }],
           '/modules/': modulesSidebarEN,
           '/deploy/': deploySidebarEN,
         },
@@ -177,6 +189,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: '指南', link: '/zh/guide/introduction' },
+          { text: '契约先行', link: '/zh/guide/contract-first' },
           { text: '模块', link: '/zh/modules/user-management' },
           { text: '部署', link: '/zh/deploy/docker' },
           {
@@ -186,6 +199,7 @@ export default defineConfig({
         ],
         sidebar: {
           '/zh/guide/': guideSidebarZH,
+          '/zh/reference/': [{ text: 'ADR', items: [{ text: '目录', link: '/zh/reference/adr/' }] }],
           '/zh/modules/': modulesSidebarZH,
           '/zh/deploy/': deploySidebarZH,
         },
@@ -213,7 +227,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024-present ArchForge'
+      copyright: 'Copyright © 2026-present ArchForge'
     },
 
     search: {

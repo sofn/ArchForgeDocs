@@ -1,79 +1,79 @@
 # What is ArchForge?
 
-ArchForge is a modern enterprise platform split across **five sibling Git repositories**: a Spring Boot 4.1 backend, a Vue 3 admin UI, a Next.js C-end, this VitePress documentation site, and a contracts repo.
+ArchForge is a **contract-first** enterprise platform split across **five sibling Git repositories**: a Spring Boot 4.1 backend, a Vue 3 admin UI, a Next.js C-end, this VitePress site, and a Spec repo that AI agents read first.
+
+It is not “another RuoYi with a newer JDK”. The product bet is **shared constitution + dual servers + AI-native docs**.
 
 ## Why ArchForge?
 
-Most open-source admin frameworks in the Java ecosystem are stuck on older stacks — Spring Boot 2.x, Java 8, and Webpack-based frontends. ArchForge takes a different approach: start fresh with the newest stable releases and apply clean architecture from day one.
+Java admin templates still win on feature count. ArchForge wins on **how work is specified**:
+
+- A Spec repo (`repos.yaml`, OpenAPI, enums, skills) that humans and agents share
+- Two Spring Boot apps with two auth realms and two error envelopes
+- DDD modules with Spring Modulith **2.1.0** boundary checks
+- Per-repo `AGENTS.md` and a CLI that can install skills / speak MCP
+
+Version numbers move. yudao (RuoYi-Vue-Pro) already ships Spring Boot 4.1 + JDK 25 on `master-jdk25` (their [2026-06 changelog](https://doc.iocoder.cn/changelog/2026-06/)). We do not pretend otherwise.
 
 ### Core Highlights
 
-- **Spring Boot 4.1.0 + Java 25** — virtual threads enabled by default for massive concurrency without reactive complexity
-- **Sa-Token 1.45.0** — dual login types: `StpAdminUtil` (admin `:8080`) and `StpWebUtil` (web `:8081`); not JWT / Spring Security
-- **BellSoft Liberica NIK 25 Native Image** — optional ahead-of-time compilation for ~100ms startup and ~50MB memory footprint
-- **Vue 3 + Vite 8** — admin UI at `:8848` proxying to `:8080`
-- **Next.js C-end** — consumer site at `:3000` talking to `:8081`
-- **Developer CLI** — `./archforge` from the backend repo root
-- **Clean Architecture** — domain-driven multi-module Gradle project with `archforge-` prefixes
-- **Flyway 12.4.0** — version-controlled schema management
-- **Real-time Server Monitoring** — CPU, memory, JVM, and disk metrics via Oshi
-- **Dual Docker Deployment** — Native Image or JVM + Leyden CDS
-- **File Management** — local filesystem and S3 (RustFS), extension/size/MIME allow-lists
-- **Quartz Scheduling** — reflective cron jobs with pause / resume / run-once
-- **i18n** — English and Simplified Chinese on backend and frontends
-- **Spring Modulith 2.0** — explicit module boundaries and dependency verification
+- **Spring Boot 4.1.0 + Java 25** — virtual threads; optional Liberica NIK Native Image (~100ms start)
+- **Sa-Token 1.45.0** — `StpAdminUtil` (`:8080`) and `StpWebUtil` (`:8081`); not Spring Security JWT
+- **Vue 3 + Vite 8** admin on `:8848` → `:8080`
+- **Next.js C-end** on `:3000` → `:8081`
+- **Developer CLI** — `./archforge` from the backend root
+- **Flyway 12.4.0**, dynamic datasource, OpenTelemetry **1.62.0**
+- **Spring Modulith 2.1.0** — module boundaries and documentation tests
 
 ## Five sibling repositories
 
-Clone the five repos **side by side**. There are no git submodules.
+Clone them **side by side**. No git submodules.
 
 ```
 workspace/
-├── ArchForge/          # backend: archforge-server-admin :8080 + archforge-server-web :8081
-├── ArchForgeAdmin/     # admin client (vue-pure-admin) — consumes :8080
-├── ArchForgeWeb/       # C-end web (Next.js) — consumes :8081
-├── ArchForgeDocs/      # this documentation site (VitePress)
+├── ArchForge/          # backend: admin :8080 + web :8081
+├── ArchForgeAdmin/     # admin client — consumes :8080
+├── ArchForgeWeb/       # C-end — consumes :8081
+├── ArchForgeDocs/      # this site
 └── ArchForgeSpec/      # contracts / architecture / AI context
 ```
 
 | Repository | Role | How you run it |
 |------------|------|----------------|
-| [ArchForge](https://github.com/sofn/ArchForge) | Gradle multi-module backend | `./gradlew :archforge-server-admin:bootRun` / `:archforge-server-web:bootRun`, or `./archforge up` |
+| [ArchForge](https://github.com/sofn/ArchForge) | Gradle backend | `./gradlew :archforge-server-admin:bootRun` or `./archforge up` |
 | [ArchForgeAdmin](https://github.com/sofn/ArchForgeAdmin) | Admin UI | `pnpm dev` → `http://localhost:8848` |
-| ArchForgeWeb | C-end UI | `pnpm dev` → `http://localhost:3000` |
+| [ArchForgeWeb](https://github.com/sofn/ArchForgeWeb) | C-end UI | `pnpm dev` → `http://localhost:3000/en` |
 | [ArchForgeDocs](https://github.com/sofn/ArchForgeDocs) | Docs | `npm run docs:dev` |
-| ArchForgeSpec | OpenAPI / architecture notes | Read-only reference for contracts |
+| [ArchForgeSpec](https://github.com/sofn/ArchForgeSpec) | Constitution | Read-only until a contract must change |
 
-API envelopes differ by app:
+API envelopes:
 
-- **Admin (`:8080`)** wraps JSON as `{code, message, data}`
-- **Web (`:8081`)** uses RFC 9457 `ProblemDetail` for errors
+- **Admin (`:8080`)** `{code, message, data}`
+- **Web (`:8081`)** RFC 9457 `ProblemDetail` on errors
 
-## Comparison with Similar Projects
+## Comparison (architecture, not version scoreboard)
 
-| Feature | ArchForge | RuoYi | JeecgBoot | AgileBoot |
-|---------|----------|-------|-----------|-----------|
-| Spring Boot | **4.1.0** | 2.x | 3.x | 3.x |
-| Java Version | **25 (Azul Zulu, virtual threads)** | 8 | 8/17 | 17 |
-| Build Tool | **Gradle 9.5.1** | Maven | Maven | Maven |
-| Auth | **Sa-Token 1.45.0** | Spring Security / JWT | Spring Security / JWT | Spring Security |
-| Frontend | **Vue 3 + Vite 8 + Next.js** | Vue 3 + Vite | Vue 3 + Vite | Vue 3 + Vite |
-| CSS Framework | **TailwindCSS 4** | Element Plus only | Ant Design Vue | Element Plus |
-| Architecture | **Five repos + DDD multi-module** | Monolithic packages | Code generation focused | Layered |
-| DB Migration | **Flyway 12.4.0** | Manual SQL | Liquibase (optional) | Manual SQL |
-| Native Image | **Yes (Liberica NIK 25)** | No | No | No |
-| ORM | **Spring Data JPA + Metamodel** | MyBatis | MyBatis-Plus | MyBatis-Plus |
-| Server Monitor | **Oshi (built-in)** | Oshi | Separate module | No |
-| Multi-datasource | **dynamic-datasource (master/slave)** | Druid only | Dynamic datasource | Single |
-| API Docs | **SpringDoc OpenAPI** | Swagger 2 | Swagger/Knife4j | SpringDoc |
+Comparison data dated **2026-04**. Competitor versions change; check their changelogs.
+
+| Dimension | ArchForge | Typical Java admin templates |
+|-----------|-----------|------------------------------|
+| Source of truth | Dedicated Spec repo + OpenAPI + enums.yaml | Wiki / scattered Swagger |
+| Layout | Five sibling Git repos, no submodules | One monorepo or backend+UI pair |
+| Auth | sa-token, two realms | Spring Security JWT, one realm |
+| Errors | Dual envelope (admin wrap vs ProblemDetail) | One `{code,msg,data}` everywhere |
+| Domain | DDD modules + Modulith 2.1.0 | Layered packages + MyBatis XML |
+| Agents | AGENTS.md, Spec skills, CLI MCP | Optional README |
+| Runtime | Spring Boot 4.1 + JDK 25 (same class as yudao `master-jdk25`) | Mix of Boot 2/3/4 depending on branch |
 
 ## Who is it for?
 
-- Teams starting new enterprise admin + C-end projects who want a modern stack
-- Developers tired of maintaining Spring Boot 2.x / Java 8 / JWT filter-chain codebases
-- Organizations that need fast container startup for cloud-native deployments
-- Anyone who prefers JPA + Hibernate Static Metamodel over MyBatis for type-safe queries
+- Teams who want Admin + C-end with **separate auth**
+- Groups that will use coding agents and need a constitution those agents cannot ignore
+- People who prefer JPA metamodel queries over MyBatis XML
 
-## Architecture Overview
+## Next
 
-See [Project Structure](./project-structure.md) for the Gradle module tree, [CLI](./cli.md) for `./archforge`, and [Authentication](../modules/authentication.md) for Sa-Token.
+- [Contract-first](./contract-first.md)
+- [AI workflow](./ai-workflow.md)
+- [ADRs](../reference/adr/)
+- [Project structure](./project-structure.md)

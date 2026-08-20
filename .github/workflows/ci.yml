@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run docs:build
+      - name: Check internal markdown links
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path("docs")
+          md_files = list(root.rglob("*.md"))
+          missing = []
+          for path in md_files:
+              text = path.read_text(encoding="utf-8")
+              for match in re.finditer(r"\]\(([^)]+)\)", text):
+                  target = match.group(1).split("#", 1)[0].split("?", 1)[0]
+                  if not target or target.startswith(("http://", "https://", "mailto:", "/")):
+                      continue
+                  resolved = (path.parent / target).resolve()
+                  if resolved.suffix == "":
+                      if not (resolved.with_suffix(".md").exists() or (resolved / "index.md").exists()):
+                          missing.append(f"{path}: {target}")
+                  elif not resolved.exists():
+                      missing.append(f"{path}: {target}")
+          if missing:
+              raise SystemExit("Broken relative links:\n" + "\n".join(missing))
+          print(f"checked {len(md_files)} markdown files")
+          PY
