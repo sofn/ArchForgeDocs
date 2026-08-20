@@ -12,6 +12,7 @@ const guideSidebarEN = [
       { text: 'Contract-first', link: '/guide/contract-first' },
       { text: 'AI workflow', link: '/guide/ai-workflow' },
       { text: "What's New", link: '/guide/whats-new' },
+      { text: 'Roadmap', link: '/guide/roadmap' },
       { text: 'ADRs', link: '/reference/adr/' },
     ]
   },
@@ -79,6 +80,7 @@ const guideSidebarZH = [
       { text: '契约先行', link: '/zh/guide/contract-first' },
       { text: 'AI 协作', link: '/zh/guide/ai-workflow' },
       { text: '更新说明', link: '/zh/guide/whats-new' },
+      { text: '路线图', link: '/zh/guide/roadmap' },
       { text: 'ADR', link: '/zh/reference/adr/' },
     ]
   },

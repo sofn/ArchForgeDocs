@@ -15,6 +15,19 @@ workspace/
 
 没有 git submodule。契约位于 ArchForgeSpec；本文档仓库只做说明。
 
+```mermaid
+flowchart LR
+  Spec[ArchForgeSpec]
+  Backend[ArchForge]
+  Admin[ArchForgeAdmin]
+  Web[ArchForgeWeb]
+  Spec --> Backend
+  Spec --> Admin
+  Spec --> Web
+  Admin -->|8848 to 8080| Backend
+  Web -->|3000 to 8081| Backend
+```
+
 ## 后端（ArchForge）
 
 ```

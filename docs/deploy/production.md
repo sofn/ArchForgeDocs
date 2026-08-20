@@ -24,7 +24,7 @@ A checklist and guide for deploying ArchForge to a production environment.
 
 ### Production secrets
 
-Auth is Sa-Token (UUID tokens in Redis), not a signed JWT. Production YAML has **no default passwords or RSA keys**.
+Auth is Sa-Token (UUID tokens in Redis), not a signed JWT. Production **must** inject secrets via environment variables; missing `ARCH_FORGE_RSA_PRIVATE_KEY` or `DB_PASSWORD` fails startup / compose. Do not rely on YAML defaults.
 
 ```bash
 # Example: generate an RSA transport key and a Redis/DB password

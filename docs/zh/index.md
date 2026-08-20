@@ -58,6 +58,10 @@ flowchart LR
 | **ArchForgeDocs** | 本 VitePress 站点 | `npm run docs:dev` |
 | **ArchForgeSpec** | 契约 / 架构 / AI 上下文 | — |
 
+<p>
+  <a href="https://github.com/sofn/ArchForge"><img src="https://img.shields.io/github/stars/sofn/ArchForge?style=social" alt="GitHub stars" /></a>
+</p>
+
 先读 [契约先行](/zh/guide/contract-first)，再读 [AI 协作](/zh/guide/ai-workflow)。开发者 CLI 在后端仓：`./archforge`。
 
 ## 本地跑起来

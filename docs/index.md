@@ -58,6 +58,10 @@ flowchart LR
 | **ArchForgeDocs** | This VitePress site | `npm run docs:dev` |
 | **ArchForgeSpec** | Contracts / architecture / AI context | — |
 
+<p>
+  <a href="https://github.com/sofn/ArchForge"><img src="https://img.shields.io/github/stars/sofn/ArchForge?style=social" alt="GitHub stars" /></a>
+</p>
+
 Start with [contract-first](/guide/contract-first), then [AI workflow](/guide/ai-workflow). CLI lives in the backend repo: `./archforge`.
 
 ## Run it locally

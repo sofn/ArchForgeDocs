@@ -15,6 +15,19 @@ workspace/
 
 There are no git submodules. Contracts live in ArchForgeSpec; this Docs repo only describes them.
 
+```mermaid
+flowchart LR
+  Spec[ArchForgeSpec]
+  Backend[ArchForge]
+  Admin[ArchForgeAdmin]
+  Web[ArchForgeWeb]
+  Spec --> Backend
+  Spec --> Admin
+  Spec --> Web
+  Admin -->|8848 to 8080| Backend
+  Web -->|3000 to 8081| Backend
+```
+
 ## Backend (ArchForge)
 
 ```

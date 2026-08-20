@@ -38,6 +38,19 @@ workspace/
 └── ArchForgeSpec/      # 契约 / 架构 / AI 上下文
 ```
 
+```mermaid
+flowchart LR
+  Spec[ArchForgeSpec]
+  Backend[ArchForge]
+  Admin[ArchForgeAdmin]
+  Web[ArchForgeWeb]
+  Spec --> Backend
+  Spec --> Admin
+  Spec --> Web
+  Admin -->|8848 to 8080| Backend
+  Web -->|3000 to 8081| Backend
+```
+
 | 仓库 | 职责 | 如何运行 |
 |------|------|----------|
 | [ArchForge](https://github.com/sofn/ArchForge) | Gradle 后端 | `./gradlew :archforge-server-admin:bootRun` 或 `./archforge up` |
