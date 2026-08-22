@@ -1,10 +1,12 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
 const guideSidebarEN = [
   {
     text: 'Introduction',
     items: [
       { text: 'What is ArchForge?', link: '/guide/introduction' },
+      { text: 'Architecture', link: '/guide/architecture' },
       { text: 'Quick Start', link: '/guide/quick-start' },
       { text: 'Tech Stack', link: '/guide/tech-stack' },
       { text: 'Project Structure', link: '/guide/project-structure' },
@@ -73,6 +75,7 @@ const guideSidebarZH = [
     text: '介绍',
     items: [
       { text: '什么是 ArchForge？', link: '/zh/guide/introduction' },
+      { text: '系统架构', link: '/zh/guide/architecture' },
       { text: '快速开始', link: '/zh/guide/quick-start' },
       { text: '技术选型', link: '/zh/guide/tech-stack' },
       { text: '项目结构', link: '/zh/guide/project-structure' },
@@ -143,7 +146,7 @@ const repoLinks = [
   { text: 'Spec (ArchForgeSpec)', link: 'https://github.com/sofn/ArchForgeSpec' },
 ]
 
-export default defineConfig({
+export default withMermaid({
   title: 'ArchForge',
   description: 'Contract-first five-repo platform: Spring Boot 4.1 + sa-token + Vue 3 + Next.js',
   base: '/',

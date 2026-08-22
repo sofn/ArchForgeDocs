@@ -33,6 +33,8 @@ docs/
 
 Config: `docs/.vitepress/config.mts`.
 
+Diagrams are written as ```mermaid blocks and rendered at runtime via `vitepress-plugin-mermaid`. The canonical architecture walkthrough lives at [`docs/guide/architecture.md`](./docs/guide/architecture.md).
+
 ## Commands
 
 ```bash
