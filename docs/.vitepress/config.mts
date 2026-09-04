@@ -28,6 +28,7 @@ const guideSidebarEN = [
       { text: 'ORM Query Strategy', link: '/guide/orm-query' },
       { text: 'C-end Web', link: '/guide/c-end-web' },
       { text: 'Developer CLI', link: '/guide/cli' },
+      { text: 'Security Engineering Spec', link: '/guide/security-engineering' },
     ]
   }
 ]
@@ -96,6 +97,7 @@ const guideSidebarZH = [
       { text: '依赖管理', link: '/zh/guide/dependency-management' },
       { text: 'C 端 Web', link: '/zh/guide/c-end-web' },
       { text: '开发 CLI', link: '/zh/guide/cli' },
+      { text: '安全工程规范', link: '/zh/guide/security-engineering' },
     ]
   }
 ]
