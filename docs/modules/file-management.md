@@ -100,4 +100,4 @@ The `AdaptiveFileStorageServiceFactory` picks the right implementation based on 
 
 - [Project Structure](../guide/project-structure.md) — where `SysFile` and the storage layer live
 - [Tech Stack](../guide/tech-stack.md) — S3/RustFS technology choices
-- [Quartz Scheduling](./quartz.md) — use scheduled jobs to clean up expired files
+- [Scheduled Jobs](./scheduler.md) — use scheduled jobs to clean up expired files

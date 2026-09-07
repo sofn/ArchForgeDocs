@@ -100,4 +100,4 @@ arch-forge:
 
 - [项目结构](/zh/guide/project-structure.md) — `SysFile` 与存储层所在位置
 - [技术栈](/zh/guide/tech-stack.md) — S3/RustFS 选型说明
-- [定时任务](./quartz.md) — 使用定时任务清理过期文件
+- [定时任务](./scheduler.md) — 使用定时任务清理过期文件

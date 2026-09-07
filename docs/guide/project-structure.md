@@ -75,7 +75,7 @@ ArchForge/
 │   └── src/main/
 │       ├── java/
 │       │   ├── .../Application.java
-│       │   └── controller/          # Login, file, quartz, monitor, system CRUD
+│       │   └── controller/          # Login, file, scheduler, monitor, system CRUD
 │       └── resources/
 │           ├── application.yaml
 │           ├── application-dev.yaml
