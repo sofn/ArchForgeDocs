@@ -25,7 +25,7 @@ java --enable-preview -jar archforge-cli/build/libs/archforge-cli.jar --help
 
 | Command | What it does |
 |---------|----------------|
-| `./archforge init [--write] [--profile dev\|test\|staging\|prod]` | Generate secrets (dry-run unless `--write`), patch dev/test YAML placeholders. `dev` also starts postgres/redis and runs Flyway; a failed migration fails the command. |
+| `./archforge init [--write] [--profile dev\|test\|staging\|prod]` | With `--write`: generate secrets into `.env`, patch dev/test YAML placeholders, and for `dev` start postgres/redis, sync the DB role password and run Flyway (a failed migration fails the command). Without `--write` it only prints that plan and changes nothing. |
 | `./archforge infra up\|down\|stop [--profile dev]` | Start / remove / pause postgres and redis via Docker Compose. |
 | `./archforge db init` | Start postgres and apply Flyway via `:archforge-server-admin:flywayMigrateAll` — `__root` first, then every module with its own history table, exactly like application startup. `DB_PASSWORD` / `DB_USERNAME` are passed to Gradle; a failure exits non-zero. |
 | `./archforge db update` | Apply the latest Flyway migrations (same `flywayMigrateAll`). |

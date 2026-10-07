@@ -183,8 +183,8 @@ ArchForge 提供**低代码元表格**能力，管理员可在后台界面定义
 | GET | `/admin/meta-table/importable-tables` | `meta-table:list` | 可纳管的物理表 |
 | GET | `/admin/meta-table/import-preview?tableName=` | `meta-table:list` | 预览导入的字段映射 |
 | POST | `/admin/meta-table/import` | `meta-table:add` | 纳管已有物理表 |
-| POST | `/admin/meta-table/{tableCode}/copy` | `meta-table:add` | 复制元表格 |
-| POST | `/admin/meta-table/{tableCode}/generate` | `meta-table:edit` | 生成前后端代码 |
+| POST | `/admin/meta-table/{tableCode}/copy` | `meta-table:add` | 复制元表格，返回副本的 `tableCode` |
+| POST | `/admin/meta-table/{tableCode}/generate` | `meta-table:generate` | 生成前后端代码 |
 | GET | `/admin/meta-table/{tableCode}/delete-check` | `meta-table:remove` | 删除前查看数据行数 |
 | DELETE | `/admin/meta-table/{tableCode}?force={false\|true}` | `meta-table:remove` | 删除元表格 |
 | GET | `/admin/meta-table/{tableCode}/migrations` | `meta-table:list` | 查询 Schema 迁移历史 |
@@ -212,7 +212,7 @@ ArchForge 提供**低代码元表格**能力，管理员可在后台界面定义
 | `meta-table:list` | 查看元表格、详情与迁移历史；查询数据行 |
 | `meta-table:query` | 查询元表格数据 |
 | `meta-table:add` | 创建、复制、纳管元表格；插入 / 导入数据行 |
-| `meta-table:edit` | 更新元表格、生成代码、导出迁移；更新数据行 |
+| `meta-table:edit` | 更新元表格、导出迁移；更新数据行 |
 | `meta-table:remove` | 删除元表格（含删除前检查）；删除数据行 |
 | `meta-table:export` | 导出元表格数据 |
 | `meta-table:design` | 设计字段 |

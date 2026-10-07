@@ -65,16 +65,20 @@ You can add more dashboards by dropping JSON files into `docker/observability/gr
 
 Prometheus alert rules are in `docker/observability/prometheus/rules/archforge.yml`:
 
-| Alert | Trigger |
-|-------|---------|
-| `HighErrorRate` | 5xx rate > 1% over 2 minutes |
-| `HighLatency` | P99 latency > 2s over 5 minutes |
-| `JvmHeapHigh` | JVM heap usage > 85% |
-| `CpuHigh` | CPU usage > 80% |
-| `DiskSpaceLow` | Free disk space < 15% |
-| `ApplicationDown` | Actuator scrape target is down |
+| Alert | Severity | Trigger |
+|-------|----------|---------|
+| `HighErrorRate` | critical | 5xx rate > 1% for 2 minutes, per application, only with real traffic (> 0.1 req/s) |
+| `HighLatency` | warning | P99 latency > 2s for 5 minutes, per application |
+| `JvmHeapHigh` | warning | whole-heap usage per instance > 85% |
+| `CpuHigh` | warning | process CPU (normalised to the whole machine) > 80% |
+| `DiskSpaceLow` | warning / critical | free disk < 15% / < 5% (the critical one silences the warning) |
+| `DbPoolExhausted` | critical | threads waiting for a JDBC connection (`hikaricp_connections_pending > 0`) for 2 minutes |
+| `DbPoolSaturated` | warning | connection pool > 90% busy for 5 minutes |
+| `ApplicationDown` | critical | actuator scrape target is down |
 
-Alertmanager is configured with a placeholder webhook receiver. Edit `docker/observability/alertmanager/alertmanager.yml` to point at your real notification channel.
+Business errors are returned with HTTP 200 (the response contract) and are therefore invisible to status-code based rules; they are counted as `archforge_business_errors_total{code=...}` instead.
+
+Alerts are delivered to `ALERT_WEBHOOK_URL` (set it in the environment of `docker compose`; the Alertmanager config is a template rendered at container start). The payload is Alertmanager's standard webhook JSON — WeCom / DingTalk / Feishu robots need an adapter in front (for example `prometheus-webhook-dingtalk`); point `ALERT_WEBHOOK_URL` at the adapter. Without it, alerts are evaluated but not delivered.
 
 ## Distributed Traces
 

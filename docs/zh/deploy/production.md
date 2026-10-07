@@ -16,9 +16,11 @@ ArchForge 生产环境部署的检查清单与指南。
 | 8 | 设置 JPA DDL 为 validate | 高 | `spring.jpa.hibernate.ddl-auto: validate` |
 | 9 | 配置 HTTPS | 高 | 在 Nginx 或负载均衡器处终止 SSL |
 | 10 | 设置数据库备份 | 高 | 自动化每日备份 |
-| 11 | 调整 OTLP 采样率 | 中 | 生产环境设置为 10% |
+| 11 | 检查 OTLP 采样率 | 中 | prod/staging 下 `SAMPLING_PROBABILITY` 默认 10% |
 | 12 | 检查日志级别 | 中 | 生产环境避免使用 DEBUG 级别 |
 | 13 | 设置内存限制 | 中 | JVM 参数或 Docker 资源限制 |
+| 14 | 设置 `CORS_ALLOWED_ORIGINS` | **关键** | 写明具体来源，不能用 `*`——除 dev/test 外的 profile 不配置就拒绝启动 |
+| 15 | 设置 `ALERT_WEBHOOK_URL` | 高 | Alertmanager 投递告警的地址（见[可观测性](./observability.md)） |
 
 ## 生成密钥
 

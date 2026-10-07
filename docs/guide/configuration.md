@@ -263,6 +263,12 @@ management:
 
 Orchestrator probes keep using the business port through `/livez` and `/readyz` (`management.endpoint.health.probes.add-additional-paths`). Liveness only looks at the process; readiness also checks the database and Redis. server-web follows the same layout on `8081` / `8091`.
 
+## Errors and CORS
+
+- A `500` response carries a generic message; the exception class and root cause (SQL, table names, …) go to the log only. `arch-forge.error.expose-details: true` puts them back into the response — the dev and test profiles set it, staging and prod must not.
+- Business errors keep HTTP 200 with the error `code` in the body and are counted as `archforge_business_errors_total{code}`.
+- `arch-forge.cors.allowed-origins` must list explicit origins in every profile except dev/test; an empty list or `*` stops the application at startup.
+
 ## Request Log
 
 `arch-forge.request-log` writes one line per request (API, method, status, time, plus bodies where enabled):

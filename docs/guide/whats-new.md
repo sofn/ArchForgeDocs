@@ -9,6 +9,10 @@ Manual changelog for the documentation site. Data as of **2026-10**.
 - **Secrets**: prod Redis requires `REDIS_PASSWORD`; Redis values are deserialized through a type allow-list; `AESEncrypter` has no built-in key any more (AES-GCM); request logs mask credential key variants (`accessToken`, `refresh_token`, …) and staging/prod do not log bodies.
 - **CLI**: `db init` / `db update` / `init` / `up` run the module-aware `flywayMigrateAll`, pass the DB credentials and fail on migration errors; `doctor` prints ASCII `[ OK ]` / `[FAIL]`.
 - **C-end API**: client mistakes return `404` / `405` / `400` problem details instead of `500`.
+- **Permissions**: every admin handler has its own permission, and every checked permission is grantable through a menu or button (the scheduler, file upload/delete and CMS image upload used to check codes nobody could be given). Meta-table code generation needs `meta-table:generate`; `copy` returns the new `tableCode`.
+- **Hardening**: `500` responses no longer reveal exception details outside dev/test; staging needs explicit CORS origins; API signatures cover the request body; `JWT_SECRET` is gone (sa-token, no JWT).
+- **Alerts**: per-application error rate with a traffic floor, whole-heap memory, two disk tiers, DB pool exhaustion; Alertmanager delivers to `ALERT_WEBHOOK_URL`; prod/staging sample 10% of traces.
+- **CLI**: `init` without `--write` is a pure dry-run.
 
 ## 2026-04
 

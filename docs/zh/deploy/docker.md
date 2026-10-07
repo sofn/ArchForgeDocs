@@ -137,7 +137,8 @@ cp .env.example .env
 
 | 服务 | 端口 | 说明 |
 |------|------|------|
-| 后端 (ArchForge) | 8080 | REST API |
+| 管理端后端（`archforge-server-admin`） | 8080 | 管理端 REST API |
+| C 端后端（`archforge-server-web`） | 8081 | C 端 REST API |
 | PostgreSQL | 5432 | 数据库 |
 | Redis | 6379 | 缓存 |
 

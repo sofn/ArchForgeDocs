@@ -104,7 +104,7 @@ No login required. The list is `AdminSaTokenConfig.PUBLIC_PATHS`; a contract tes
 - `GET /livez`, `GET /readyz`, `GET /actuator/health/**`, `/actuator/info`, `/actuator/prometheus` — in `staging` / `prod` the actuator itself is on the management port (see [Configuration](../guide/configuration.md#actuator-endpoints))
 - `GET /swagger-ui/**` and `GET /v3/api-docs/**` (disabled in prod)
 
-Everything else needs a login, and finer access is `@SaCheckPermission`: every meta-table endpoint carries its own `meta-table:*` permission.
+Everything else needs a login, and every admin handler carries its own `@SaCheckPermission` (only login/session endpoints are exempt). Two contract tests keep it that way: one fails on a handler without a permission, the other on a permission that no menu or button grants — such a permission is usable only by the `*` super-admin.
 
 ## Captcha
 

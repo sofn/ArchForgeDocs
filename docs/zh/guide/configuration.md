@@ -263,6 +263,12 @@ management:
 
 编排器探针仍走业务端口上的 `/livez` 与 `/readyz`（`management.endpoint.health.probes.add-additional-paths`）。存活探针只看进程本身，就绪探针额外检查数据库与 Redis。server-web 同理，对应 `8081` / `8091`。
 
+## 错误与 CORS
+
+- `500` 响应只带通用消息；异常类名与根因（SQL、表名等）只进日志。`arch-forge.error.expose-details: true` 会把它们放回响应——dev 与 test profile 打开，staging 与 prod 不要打开。
+- 业务错误仍返回 HTTP 200，错误码在 body 的 `code` 里，并计入 `archforge_business_errors_total{code}`。
+- 除 dev/test 外的 profile，`arch-forge.cors.allowed-origins` 必须写明具体来源；为空或为 `*` 时应用拒绝启动。
+
 ## 请求日志
 
 `arch-forge.request-log` 每个请求记一行（接口、方法、状态、耗时，开启时附带请求/响应体）：

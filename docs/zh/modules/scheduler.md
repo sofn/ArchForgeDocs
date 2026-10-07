@@ -59,17 +59,17 @@ db-scheduler 自身的单表（由迁移 V23 创建）：每个任务实例一�
 
 | 方法 | 端点 | 描述 |
 |------|------|------|
-| GET | `/quartz` | 分页查询任务列表 |
-| POST | `/quartz/add` | 新增任务 |
-| PUT | `/quartz/update/{id}` | 更新任务 |
-| DELETE | `/quartz/{id}` | 删除任务 |
-| POST | `/quartz/pause/{id}` | 暂停任务 |
-| POST | `/quartz/resume/{id}` | 恢复任务 |
-| POST | `/quartz/run/{id}` | 立即执行一次（一次性实例） |
-| GET | `/quartz/log` | 查询执行日志 |
-| POST | `/quartz/validate-cron` | 校验 Cron 表达式 |
+| GET | `/admin/scheduler-job` | 分页查询任务列表 |
+| POST | `/admin/scheduler-job/add` | 新增任务 |
+| PUT | `/admin/scheduler-job/update/{id}` | 更新任务 |
+| DELETE | `/admin/scheduler-job/{id}` | 删除任务 |
+| POST | `/admin/scheduler-job/pause/{id}` | 暂停任务 |
+| POST | `/admin/scheduler-job/resume/{id}` | 恢复任务 |
+| POST | `/admin/scheduler-job/run/{id}` | 立即执行一次（一次性实例） |
+| GET | `/admin/scheduler-job/log` | 查询执行日志 |
+| POST | `/admin/scheduler-job/validate-cron` | 校验 Cron 表达式 |
 
-端点路径保留 `/quartz` 前缀以兼容前端。
+每个接口都校验 `system:scheduler-job:*` 权限：读操作用 `list`（即菜单本身），写操作用 `add` / `edit` / `remove`。这三个按钮自 V28 起存在，只授予管理员角色——定时任务会反射调用 Bean 方法。
 
 ### 任务定义示例
 
@@ -89,14 +89,14 @@ db-scheduler 自身的单表（由迁移 V23 创建）：每个任务实例一�
 
 ## 工作原理
 
-1. 管理后台把任务定义发给 `SchedulerJobController`（`/quartz`）。
+1. 管理后台把任务定义发给 `SchedulerJobController`（`/admin/scheduler-job`）。
 2. `ScheduledJobService` 校验（Cron 格式、`arch-forge.scheduler.allowed-job-beans` 名单、公有声明方法）后落库 `SysScheduledJob`。
 3. 服务层对 db-scheduler 实例做幂等 upsert：运行中的任务走 `scheduleIfNotExists` / `reschedule`，暂停的走 `cancel`。启动时 `SchedulerStartupSync` 逐行对账并清理孤儿实例，保证重启后状态一致。
 4. `ReflectionJobHandler` 在 db-scheduler 工作线程上执行载荷，并把结果写入 `SysJobLog`。
 
 ## 安全说明
 
-- 所有管理接口要求 `ADMIN` 角色及 `monitor:job:*` 权限。
+- 所有管理接口要求 `ADMIN` 角色及 `system:scheduler-job:*` 权限（以前校验的 `monitor:job:*` 从来没有菜单授予过）。
 - 反射调用仅限名单内 Bean 的公有声明方法——通过 `arch-forge.scheduler.allowed-job-beans` 配置。
 
 ## 相关页面

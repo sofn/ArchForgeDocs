@@ -95,6 +95,7 @@ const guideSidebarZH = [
       { text: '配置管理', link: '/zh/guide/configuration' },
       { text: '数据库迁移', link: '/zh/guide/database-migration' },
       { text: '依赖管理', link: '/zh/guide/dependency-management' },
+      { text: 'ORM 查询策略', link: '/zh/guide/orm-query' },
       { text: 'C 端 Web', link: '/zh/guide/c-end-web' },
       { text: '开发 CLI', link: '/zh/guide/cli' },
       { text: '安全工程规范', link: '/zh/guide/security-engineering' },

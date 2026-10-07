@@ -65,16 +65,20 @@ Grafana 会自动加载两个 Dashboard：
 
 Prometheus 告警规则位于 `docker/observability/prometheus/rules/archforge.yml`：
 
-| 告警 | 触发条件 |
-|-------|---------|
-| `HighErrorRate` | 5xx 比例在 2 分钟内超过 1% |
-| `HighLatency` | P99 延迟在 5 分钟内超过 2 秒 |
-| `JvmHeapHigh` | JVM 堆内存使用超过 85% |
-| `CpuHigh` | CPU 使用超过 80% |
-| `DiskSpaceLow` | 磁盘剩余空间低于 15% |
-| `ApplicationDown` | Actuator 抓取目标不可用 |
+| 告警 | 级别 | 触发条件 |
+|-------|------|---------|
+| `HighErrorRate` | critical | 按应用统计，5xx 比例持续 2 分钟超过 1%，且有真实流量（> 0.1 req/s） |
+| `HighLatency` | warning | 按应用统计，P99 延迟持续 5 分钟超过 2 秒 |
+| `JvmHeapHigh` | warning | 单实例整堆使用率超过 85% |
+| `CpuHigh` | warning | 进程 CPU（按整机归一化）超过 80% |
+| `DiskSpaceLow` | warning / critical | 磁盘剩余低于 15% / 5%（critical 会抑制 warning） |
+| `DbPoolExhausted` | critical | 有线程在等 JDBC 连接（`hikaricp_connections_pending > 0`）持续 2 分钟 |
+| `DbPoolSaturated` | warning | 连接池忙碌超过 90% 持续 5 分钟 |
+| `ApplicationDown` | critical | Actuator 抓取目标不可用 |
 
-Alertmanager 默认配置了一个占位 webhook 接收器，请修改 `docker/observability/alertmanager/alertmanager.yml` 指向真实通知渠道。
+业务错误按响应契约返回 HTTP 200，按状态码的规则看不到它们；改为按业务码计数：`archforge_business_errors_total{code=...}`。
+
+告警发往 `ALERT_WEBHOOK_URL`（在执行 `docker compose` 的环境里设置；Alertmanager 配置是容器启动时渲染的模板）。载荷是 Alertmanager 标准 webhook JSON——企业微信 / 钉钉 / 飞书机器人需要在前面加适配器（如 `prometheus-webhook-dingtalk`），把 `ALERT_WEBHOOK_URL` 指向适配器。不设置时告警照常计算，但不会送达。
 
 ## 分布式 Trace
 

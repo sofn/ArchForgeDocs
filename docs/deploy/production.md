@@ -16,9 +16,11 @@ A checklist and guide for deploying ArchForge to a production environment.
 | 8 | Set JPA DDL to validate | High | `spring.jpa.hibernate.ddl-auto: validate` |
 | 9 | Configure HTTPS | High | Terminate SSL at Nginx or load balancer |
 | 10 | Set up database backups | High | Automated daily backups |
-| 11 | Adjust OTLP sampling | Medium | Set to 10% for production |
+| 11 | Check OTLP sampling | Medium | `SAMPLING_PROBABILITY` defaults to 10% in prod/staging |
 | 12 | Review log levels | Medium | Avoid DEBUG in production |
 | 13 | Set memory limits | Medium | JVM flags or Docker resource limits |
+| 14 | Set `CORS_ALLOWED_ORIGINS` | **Critical** | Explicit origins, no `*` — every profile except dev/test refuses to start otherwise |
+| 15 | Set `ALERT_WEBHOOK_URL` | High | Where Alertmanager delivers alerts (see [Observability](./observability.md)) |
 
 ## Generate Secrets
 

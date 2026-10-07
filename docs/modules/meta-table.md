@@ -185,8 +185,8 @@ Tables are addressed by `tableCode`, never by database id (ids differ per enviro
 | GET | `/admin/meta-table/importable-tables` | `meta-table:list` | Physical tables that can be adopted |
 | GET | `/admin/meta-table/import-preview?tableName=` | `meta-table:list` | Preview the column mapping of an import |
 | POST | `/admin/meta-table/import` | `meta-table:add` | Adopt an existing physical table |
-| POST | `/admin/meta-table/{tableCode}/copy` | `meta-table:add` | Duplicate a meta table |
-| POST | `/admin/meta-table/{tableCode}/generate` | `meta-table:edit` | Generate frontend/backend code |
+| POST | `/admin/meta-table/{tableCode}/copy` | `meta-table:add` | Duplicate a meta table; answers with the copy's `tableCode` |
+| POST | `/admin/meta-table/{tableCode}/generate` | `meta-table:generate` | Generate frontend/backend code |
 | GET | `/admin/meta-table/{tableCode}/delete-check` | `meta-table:remove` | Row count before deleting |
 | DELETE | `/admin/meta-table/{tableCode}?force={false\|true}` | `meta-table:remove` | Delete meta table |
 | GET | `/admin/meta-table/{tableCode}/migrations` | `meta-table:list` | Schema migration history |
@@ -214,7 +214,7 @@ The admin UI for meta tables is located at `/src/views/meta-table/`:
 | `meta-table:list` | View meta tables, their detail and migration history; list rows |
 | `meta-table:query` | Query meta table data |
 | `meta-table:add` | Create, copy or import a meta table; insert / import rows |
-| `meta-table:edit` | Update a meta table, generate code, export migrations; update rows |
+| `meta-table:edit` | Update a meta table, export migrations; update rows |
 | `meta-table:remove` | Delete a meta table (incl. delete-check); delete rows |
 | `meta-table:export` | Export meta table data |
 | `meta-table:design` | Design columns |

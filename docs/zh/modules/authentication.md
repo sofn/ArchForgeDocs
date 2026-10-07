@@ -104,7 +104,7 @@ SystemLoginUser loginUser = LoginContext.getAdminUser();
 - `GET /livez`、`GET /readyz`、`GET /actuator/health/**`、`/actuator/info`、`/actuator/prometheus`——`staging` / `prod` 下 actuator 本身在管理端口上（见[配置](../guide/configuration.md#actuator-端点)）
 - `GET /swagger-ui/**` 与 `GET /v3/api-docs/**`（生产环境关闭）
 
-其余接口都需要登录，更细的权限用 `@SaCheckPermission`：每个元表格接口都有自己的 `meta-table:*` 权限。
+其余接口都需要登录，并且每个管理端处理器都有自己的 `@SaCheckPermission`（只有登录/会话接口例外）。两条契约测试守着它：处理器缺权限会失败；权限码没有任何菜单或按钮授予也会失败——那样的权限只有 `*` 超级管理员能用。
 
 ## 验证码
 

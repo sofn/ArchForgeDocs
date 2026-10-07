@@ -10,7 +10,7 @@ Every profile (`dev`, `test`, `staging`, `prod`) runs Flyway at application star
 
 | Location | History table | Versions |
 |----------|---------------|----------|
-| `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` | `flyway_schema_history` | Shared legacy sequence `V1`…`V27` (no `V5`, no `V19`); the next file is **`V28`** |
+| `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` | `flyway_schema_history` | Shared legacy sequence `V1`…`V28` (no `V5`, no `V19`); the next file is **`V29`** |
 | `archforge-module-<name>/src/main/resources/db/migration/<name>/` | `flyway_schema_history_<name>` | Module-local, restarting at `V1` (`cms`, `task`) |
 
 At startup `FlywayConfig` migrates `__root` first, then every module directory in name order. `server-admin` and `server-web` migrate the same `archforge` database; Flyway's history-table lock serialises them.
@@ -45,7 +45,7 @@ V{version}__{description}.sql
 Create the next `__root` version in `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` — or the next module-local version in your module's `db/migration/<module>/`:
 
 ```sql
--- V28__add_audit_log_table.sql
+-- V29__add_audit_log_table.sql
 CREATE TABLE IF NOT EXISTS sys_audit_log (
     id          BIGSERIAL PRIMARY KEY,
     user_id     BIGINT       NOT NULL,

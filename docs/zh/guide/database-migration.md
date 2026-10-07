@@ -10,7 +10,7 @@ ArchForge 使用 [Flyway](https://flywaydb.org/) 管理数据库结构迁移，�
 
 | 位置 | 历史表 | 版本 |
 |------|--------|------|
-| `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` | `flyway_schema_history` | 共享的存量序列 `V1`…`V27`（没有 `V5`、`V19`）；下一个文件是 **`V28`** |
+| `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` | `flyway_schema_history` | 共享的存量序列 `V1`…`V28`（没有 `V5`、`V19`）；下一个文件是 **`V29`** |
 | `archforge-module-<name>/src/main/resources/db/migration/<name>/` | `flyway_schema_history_<name>` | 模块内独立编号，从 `V1` 开始（`cms`、`task`） |
 
 启动时 `FlywayConfig` 先迁移 `__root`，再按名称顺序逐个迁移模块目录。`server-admin` 与 `server-web` 迁移同一个 `archforge` 库，Flyway 的历史表锁会把它们串行化。
@@ -45,7 +45,7 @@ V{version}__{description}.sql
 在 `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` 中创建下一个 `__root` 版本——或在你的模块的 `db/migration/<module>/` 中创建下一个模块内版本：
 
 ```sql
--- V28__add_audit_log_table.sql
+-- V29__add_audit_log_table.sql
 CREATE TABLE IF NOT EXISTS sys_audit_log (
     id          BIGSERIAL PRIMARY KEY,
     user_id     BIGINT       NOT NULL,

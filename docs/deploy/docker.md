@@ -137,7 +137,8 @@ cp .env.example .env
 
 | Service | Port | Description |
 |---------|------|-------------|
-| Backend (ArchForge) | 8080 | REST API |
+| Backend admin (`archforge-server-admin`) | 8080 | Admin REST API |
+| Backend web (`archforge-server-web`) | 8081 | C-end REST API |
 | PostgreSQL | 5432 | Database |
 | Redis | 6379 | Cache |
 

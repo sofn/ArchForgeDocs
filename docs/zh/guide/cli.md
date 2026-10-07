@@ -25,7 +25,7 @@ java --enable-preview -jar archforge-cli/build/libs/archforge-cli.jar --help
 
 | 命令 | 作用 |
 |---------|----------------|
-| `./archforge init [--write] [--profile dev\|test\|staging\|prod]` | 生成密钥（不加 `--write` 为演练），修补 dev/test YAML 占位符。`dev` 还会启动 postgres/redis 并执行 Flyway；迁移失败则命令失败。 |
+| `./archforge init [--write] [--profile dev\|test\|staging\|prod]` | 加 `--write`：把密钥写入 `.env`、修补 dev/test YAML 占位符，`dev` 还会启动 postgres/redis、同步数据库角色密码并执行 Flyway（迁移失败则命令失败）。不加 `--write` 只打印上述计划，不做任何改动。 |
 | `./archforge infra up\|down\|stop [--profile dev]` | 通过 Docker Compose 启动 / 删除 / 暂停 postgres 与 redis。 |
 | `./archforge db init` | 启动 postgres，并通过 `:archforge-server-admin:flywayMigrateAll` 执行 Flyway——先 `__root`，再逐个模块（各自独立的历史表），与应用启动时完全一致。会把 `DB_PASSWORD` / `DB_USERNAME` 传给 Gradle；失败时以非零码退出。 |
 | `./archforge db update` | 应用最新 Flyway 迁移（同样是 `flywayMigrateAll`）。 |

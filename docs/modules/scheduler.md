@@ -59,17 +59,17 @@ db-scheduler's own single table (created by migration V23): one row per task ins
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/quartz` | Query job list with pagination |
-| POST | `/quartz/add` | Create a new job |
-| PUT | `/quartz/update/{id}` | Update a job |
-| DELETE | `/quartz/{id}` | Delete a job |
-| POST | `/quartz/pause/{id}` | Pause a job |
-| POST | `/quartz/resume/{id}` | Resume a job |
-| POST | `/quartz/run/{id}` | Run a job immediately (one-shot instance) |
-| GET | `/quartz/log` | Query execution logs for a job |
-| POST | `/quartz/validate-cron` | Validate a cron expression |
+| GET | `/admin/scheduler-job` | Query job list with pagination |
+| POST | `/admin/scheduler-job/add` | Create a new job |
+| PUT | `/admin/scheduler-job/update/{id}` | Update a job |
+| DELETE | `/admin/scheduler-job/{id}` | Delete a job |
+| POST | `/admin/scheduler-job/pause/{id}` | Pause a job |
+| POST | `/admin/scheduler-job/resume/{id}` | Resume a job |
+| POST | `/admin/scheduler-job/run/{id}` | Run a job immediately (one-shot instance) |
+| GET | `/admin/scheduler-job/log` | Query execution logs for a job |
+| POST | `/admin/scheduler-job/validate-cron` | Validate a cron expression |
 
-Endpoint paths keep the `/quartz` prefix for frontend compatibility.
+Every endpoint checks a `system:scheduler-job:*` permission: `list` (the menu itself) for reads, `add` / `edit` / `remove` for writes. Those three buttons exist since V28 and are granted to the admin role only — jobs reflectively invoke bean methods.
 
 ### Example Job Definition
 
@@ -89,14 +89,14 @@ Endpoint paths keep the `/quartz` prefix for frontend compatibility.
 
 ## How It Works
 
-1. The admin UI sends the job definition to `SchedulerJobController` (`/quartz`).
+1. The admin UI sends the job definition to `SchedulerJobController` (`/admin/scheduler-job`).
 2. `ScheduledJobService` validates it (cron format, bean allowlist via `arch-forge.scheduler.allowed-job-beans`, public declared method) and persists the `SysScheduledJob` row.
 3. The service upserts the db-scheduler instance: `scheduleIfNotExists` / `reschedule` for running jobs, `cancel` for paused ones. A startup sync (`SchedulerStartupSync`) re-asserts every row after restarts and cancels orphaned instances.
 4. `ReflectionJobHandler` executes the payload on a db-scheduler worker thread and writes a `SysJobLog` record with the result.
 
 ## Security Notes
 
-- All management endpoints require the `ADMIN` role plus `monitor:job:*` permissions.
+- All management endpoints require the `ADMIN` role plus a `system:scheduler-job:*` permission (they used to check `monitor:job:*`, which no menu ever granted).
 - Reflective dispatch is restricted to allowlisted beans with a public declared method — configure via `arch-forge.scheduler.allowed-job-beans`.
 
 ## Related Pages
