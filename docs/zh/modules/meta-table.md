@@ -12,7 +12,7 @@ ArchForge 提供**低代码元表格**能力，管理员可在后台界面定义
 |------|------|
 | 表格编码 | 唯一机器可读标识，作为物理表名后缀 |
 | 表格名称 | 人类可读展示名 |
-| 表前缀 | 物理表前缀，默认 `meta_` |
+| 表前缀 | 物理表前缀，默认 `meta_`。只能是小写字母、数字、`_`，最长 32 位；`前缀 + 编码` 不得以 `sys_`、`qrtz_`、`pg_`、`sql_`、`information_schema_`、`flyway_` 开头 |
 | 状态 | 启用（1）/ 禁用（0） |
 | 描述 | 可选备注 |
 
@@ -41,14 +41,14 @@ ArchForge 提供**低代码元表格**能力，管理员可在后台界面定义
 
 - **长度 / 精度 / 小数位** — 用于字符串、小数与数组元素大小
 - **可空 / 必填** — 控制 `NOT NULL`
-- **默认值** — 存储为类型化默认值
+- **默认值** — 执行任何 DDL 之前按字段类型校验：数值会被解析后重新输出，文本会被转义加引号；与类型不符的值直接拒绝
 - **唯一** — 强制唯一值
 - **索引 / 索引类型 / 索引分组** — 单列或组合索引（`BTREE`、`GIN`、`GIST`、`FULLTEXT`）
 - **可搜索** — 在数据列表搜索表单中显示
 - **列表可见** — 默认在数据表格中显示
 - **租户字段 / 所有者字段** — 用于多租户或行所有者语义
 - **选项** — ENUM 类型的值列表
-- **引用表 / 引用列** — 用于外键关系描述
+- **引用表 / 引用列 / 显示表达式** — 用于 `REFERENCE` 字段。显示表达式只允许 `ref.<列名>`（可加 `::text`）、`'字符串'` 与 `||`，例如 `ref.username || ' (' || ref.email || ')'`；函数、运算符、子查询一律拒绝
 
 ### Schema 演进
 
@@ -170,26 +170,31 @@ ArchForge 提供**低代码元表格**能力，管理员可在后台界面定义
 
 ## API 接口
 
-所有接口均需要 `ADMIN` 角色。
+元表格一律用 `tableCode` 定位，不用数据库 id（各环境的 id 不同）。每个接口都声明了自己的权限——只有类级的 `ADMIN` 角色不够。
 
-| 方法 | 接口 | 说明 |
-|------|------|------|
-| POST | `/meta-table` | 元表格分页列表 |
-| GET | `/meta-table/{id}` | 元表格详情（含字段） |
-| POST | `/meta-table/create` | 创建元表格 |
-| PUT | `/meta-table/{id}` | 更新表与字段 |
-| POST | `/meta-table/{id}/copy` | 复制元表格 |
-| POST | `/meta-table/{id}/generate` | 生成前后端代码 |
-| GET | `/meta-table/{id}/delete-check` | 检查能否删除 |
-| DELETE | `/meta-table/{id}?force={false\|true}` | 删除元表格 |
-| GET | `/meta-table/{id}/migrations` | 查询 Schema 迁移历史 |
-| GET | `/meta-table/{id}/export-migration` | 导出迁移为 Flyway SQL |
-| POST | `/meta-table/{id}/data` | 查询动态表数据 |
-| POST | `/meta-table/{id}/data/create` | 插入一行 |
-| PUT | `/meta-table/{id}/data/{dataId}` | 更新一行 |
-| POST | `/meta-table/{id}/data/{dataId}/delete` | 软删除一行 |
-| GET | `/meta-table/{id}/export?format=EXCEL` | 导出表数据 |
-| POST | `/meta-table/{id}/import?format=CSV` | 导入表数据 |
+| 方法 | 接口 | 权限 | 说明 |
+|------|------|------|------|
+| POST | `/admin/meta-table` | `meta-table:list` | 元表格分页列表 |
+| GET | `/admin/meta-table/{tableCode}` | `meta-table:list` | 元表格详情（含字段） |
+| POST | `/admin/meta-table/create` | `meta-table:add` | 创建元表格 |
+| PUT | `/admin/meta-table/{tableCode}` | `meta-table:edit` | 更新表与字段 |
+| PATCH | `/admin/meta-table/{tableCode}` | `meta-table:edit` | 只更新名称 / 描述 / 状态 |
+| POST | `/admin/meta-table/{tableCode}/schema-preview` | `meta-table:edit` | 保存前预览结构变更 |
+| GET | `/admin/meta-table/importable-tables` | `meta-table:list` | 可纳管的物理表 |
+| GET | `/admin/meta-table/import-preview?tableName=` | `meta-table:list` | 预览导入的字段映射 |
+| POST | `/admin/meta-table/import` | `meta-table:add` | 纳管已有物理表 |
+| POST | `/admin/meta-table/{tableCode}/copy` | `meta-table:add` | 复制元表格 |
+| POST | `/admin/meta-table/{tableCode}/generate` | `meta-table:edit` | 生成前后端代码 |
+| GET | `/admin/meta-table/{tableCode}/delete-check` | `meta-table:remove` | 删除前查看数据行数 |
+| DELETE | `/admin/meta-table/{tableCode}?force={false\|true}` | `meta-table:remove` | 删除元表格 |
+| GET | `/admin/meta-table/{tableCode}/migrations` | `meta-table:list` | 查询 Schema 迁移历史 |
+| GET | `/admin/meta-table/{tableCode}/export-migration` | `meta-table:edit` | 导出迁移为 Flyway SQL |
+| POST | `/admin/meta-table/{tableCode}/data` | `meta-table:list` | 查询动态表数据 |
+| POST | `/admin/meta-table/{tableCode}/data/create` | `meta-table:add` | 插入一行 |
+| PUT | `/admin/meta-table/{tableCode}/data/{dataId}` | `meta-table:edit` | 更新一行 |
+| POST | `/admin/meta-table/{tableCode}/data/{dataId}/delete` | `meta-table:remove` | 软删除一行 |
+| GET | `/admin/meta-table/{tableCode}/export?format=EXCEL` | `meta-table:export` | 导出表数据 |
+| POST | `/admin/meta-table/{tableCode}/import?format=CSV` | `meta-table:add` | 导入表数据 |
 
 ## 管理端界面
 
@@ -198,30 +203,36 @@ ArchForge 提供**低代码元表格**能力，管理员可在后台界面定义
 - **元表格列表** — 按编码/名称搜索、分页展示、新增/修改/复制/删除/生成代码
 - **表设计器** — 弹窗编辑表元数据与字段列表
 - **数据管理** — 打开某张表的数据网格，执行增删改查、搜索、导入、导出
-- 所有按钮受 `meta:table:*` 权限控制
+- 所有按钮受 `meta-table:*` 权限控制
 
 ## 权限点
 
 | 权限 | 说明 |
 |------|------|
-| `meta:table:list` | 查看元表格 |
-| `meta:table:query` | 查询元表格数据 |
-| `meta:table:add` | 创建元表格 |
-| `meta:table:edit` | 更新元表格 |
-| `meta:table:remove` | 删除元表格 |
-| `meta:table:export` | 导出元表格数据 |
-| `meta:table:design` | 设计字段 |
-| `meta:table:data` | 管理行数据 |
-| `meta:table:generate` | 生成代码脚手架 |
+| `meta-table:list` | 查看元表格、详情与迁移历史；查询数据行 |
+| `meta-table:query` | 查询元表格数据 |
+| `meta-table:add` | 创建、复制、纳管元表格；插入 / 导入数据行 |
+| `meta-table:edit` | 更新元表格、生成代码、导出迁移；更新数据行 |
+| `meta-table:remove` | 删除元表格（含删除前检查）；删除数据行 |
+| `meta-table:export` | 导出元表格数据 |
+| `meta-table:design` | 设计字段 |
+| `meta-table:data` | 管理行数据 |
+| `meta-table:generate` | 生成代码脚手架 |
 
 ## 典型使用流程
 
 1. 创建元表格，填写唯一编码、名称与表前缀。
 2. 添加字段：选择类型、长度、约束、索引等。
-3. 保存设计；后端自动创建物理表 `{prefix}{table_code}`。
+3. 保存设计；后端自动创建物理表 `{prefix}{table_code}`。若同名物理表已存在则拒绝保存——已有的表请用**导入**纳管。
 4. 切换到**数据**视图，进行增删改查、导入或导出。
 5. （可选）点击**生成代码**生成前后端完整模块脚手架。
 6. 需求变更时再次编辑表格；系统自动计算并应用 Schema 迁移 DDL。
+
+## 定义文件
+
+表定义也可以作为 `project-definition/meta/<tableCode>.yaml` 纳入版本控制：`./archforge meta export` 从数据库导出，`./archforge meta import` 把文件同步进数据库（不加 `--apply` 只做演练），`./archforge meta check` 在出现漂移时退出码为 1。设置 `arch-forge.meta.source=file` 后以文件为准——启动时应用定义文件，设计器 / 导入的写操作会被拒绝。
+
+同步本身从不执行 DDL：物理表来自 Flyway 或设计器。因此登记了但物理表不存在时，`meta check` 同样失败，`meta import`、file 模式启动与 shadow 校验会告警。
 
 ## 相关页面
 

@@ -97,13 +97,14 @@ SystemLoginUser loginUser = LoginContext.getAdminUser();
 
 ## 公开接口（管理端）
 
-通常无需登录：
+无需登录。名单即 `AdminSaTokenConfig.PUBLIC_PATHS`；若某个 `/admin/auth/**` 条目背后没有真实端点，契约测试会失败——不会给尚不存在的端点预先开放免登录：
 
-- `POST /auth/login`
-- `GET /auth/captchaImage`
-- `GET /auth/getConfig`
-- `GET /actuator/**`（随 Profile 变化）
+- `POST /admin/auth/login`、`POST /admin/auth/refresh-token`
+- `GET /admin/auth/captchaImage`、`GET /admin/auth/getConfig`
+- `GET /livez`、`GET /readyz`、`GET /actuator/health/**`、`/actuator/info`、`/actuator/prometheus`——`staging` / `prod` 下 actuator 本身在管理端口上（见[配置](../guide/configuration.md#actuator-端点)）
 - `GET /swagger-ui/**` 与 `GET /v3/api-docs/**`（生产环境关闭）
+
+其余接口都需要登录，更细的权限用 `@SaCheckPermission`：每个元表格接口都有自己的 `meta-table:*` 权限。
 
 ## 验证码
 

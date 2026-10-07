@@ -1,6 +1,6 @@
 # 可观测性
 
-ArchForge 提供了一套预配置的可观测性栈，基于 **Prometheus**、**Grafana**、**Jaeger** 和 **Alertmanager**。它通过 `/actuator/prometheus` 采集指标，并通过 OpenTelemetry OTLP 接收分布式追踪。
+ArchForge 提供了一套预配置的可观测性栈，基于 **Prometheus**、**Grafana**、**Jaeger** 和 **Alertmanager**。它通过 `/actuator/prometheus` 采集指标（`dev` 在业务端口上，`staging` / `prod` 在管理端口上：admin `8089`、web `8091`），并通过 OpenTelemetry OTLP 接收分布式追踪。
 
 ## 组件
 
@@ -20,22 +20,18 @@ cd docker/observability
 docker compose up -d
 ```
 
-或使用开发脚本：
-
-```bash
-scripts/dev/init-observability.sh
-```
-
-Grafana 默认账号：`admin / admin`。
+Grafana 账号：`admin` / `GRAFANA_ADMIN_PASSWORD` 的值（默认 `changeme`，请自行设置）。
 
 ### 2. 连接后端
 
 #### Docker Compose 部署
 
-prod/staging/fulljre/jlink 等 compose 文件已挂载 `archforge-observability` 网络，并注入环境变量：
+prod/staging/fulljre/jlink 等 compose 文件已挂载 `archforge-observability` 网络（prod/staging 中 admin **和** web 都加入），并注入环境变量：
 
 - `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318/v1/traces`
 - `SAMPLING_PROBABILITY=0.1`
+
+Prometheus 通过 DNS 服务发现找到后端——`archforge` / `backend` 的 `8089` 端口（admin）与 `backend-web` 的 `8091` 端口（web）——所以你的部署里不存在的服务名不会变成永远 down 的目标。Jaeger 自身的指标从它的管理端口 `14269` 采集。
 
 先启动可观测性栈，使网络存在后再启动应用栈：
 
@@ -88,6 +84,8 @@ Alertmanager 默认配置了一个占位 webhook 接收器，请修改 `docker/o
 
 也可直接使用 Jaeger UI：http://localhost:16686。
 
+应用的每行日志都带 `[traceId,requestId]`，从日志可以直接跳到对应的链路。
+
 ## 关闭
 
 ```bash
@@ -95,8 +93,8 @@ cd docker/observability
 docker compose down
 ```
 
-一键停止包括开发环境在内的所有容器：
+开发依赖（PostgreSQL / Redis）单独停止：
 
 ```bash
-scripts/dev/down.sh
+./archforge infra down
 ```

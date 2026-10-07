@@ -97,13 +97,14 @@ Two layers still apply:
 
 ## Public Endpoints (admin)
 
-Typically unauthenticated:
+No login required. The list is `AdminSaTokenConfig.PUBLIC_PATHS`; a contract test fails if an `/admin/auth/**` entry has no endpoint behind it, so nothing is pre-opened for endpoints that do not exist yet:
 
-- `POST /auth/login`
-- `GET /auth/captchaImage`
-- `GET /auth/getConfig`
-- `GET /actuator/**` (profile-dependent)
+- `POST /admin/auth/login`, `POST /admin/auth/refresh-token`
+- `GET /admin/auth/captchaImage`, `GET /admin/auth/getConfig`
+- `GET /livez`, `GET /readyz`, `GET /actuator/health/**`, `/actuator/info`, `/actuator/prometheus` — in `staging` / `prod` the actuator itself is on the management port (see [Configuration](../guide/configuration.md#actuator-endpoints))
 - `GET /swagger-ui/**` and `GET /v3/api-docs/**` (disabled in prod)
+
+Everything else needs a login, and finer access is `@SaCheckPermission`: every meta-table endpoint carries its own `meta-table:*` permission.
 
 ## Captcha
 

@@ -111,6 +111,8 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8081
 
 Admin (`:8080`) wraps success as `{code, message, data}`. C-end (`:8081`) errors use RFC 9457 `ProblemDetail`.
 
+Client mistakes keep their own status — unmapped path `404`, wrong method `405`, missing or mistyped parameter or an unreadable body `400` — and the body's `code` property equals the status. `500` means a real server failure.
+
 ## Main API Endpoints
 
 | Endpoint | Method | Description |

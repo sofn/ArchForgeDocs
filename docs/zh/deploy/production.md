@@ -11,7 +11,7 @@ ArchForge 生产环境部署的检查清单与指南。
 | 3 | 更换 PostgreSQL 密码 | **关键** | 使用强密码 |
 | 4 | 启用验证码 | 高 | 设置 `arch-forge.captcha.enabled: true` |
 | 5 | 配置 PostgreSQL（主/从） | 高 | 按需设置数据库复制 |
-| 6 | 配置 Redis | 高 | 使用独立的 Redis 实例 |
+| 6 | 配置 Redis | 高 | 使用独立实例并**设置密码**——`REDIS_PASSWORD`（`docker-compose.prod.yml` 以 `--requirepass` 启动 Redis，不设置就起不来） |
 | 7 | 启用 Flyway | 高 | 设置 `arch-forge.flyway.enabled: true` |
 | 8 | 设置 JPA DDL 为 validate | 高 | `spring.jpa.hibernate.ddl-auto: validate` |
 | 9 | 配置 HTTPS | 高 | 在 Nginx 或负载均衡器处终止 SSL |
@@ -82,6 +82,7 @@ spring:
     redis:
       host: ${REDIS_HOST:redis}
       port: 6379
+      password: ${REDIS_PASSWORD}
 
 sa-token:
   timeout: 86400                 # 生产环境 24 小时
@@ -97,6 +98,12 @@ arch-forge:
     postgresql: false            # Use real PostgreSQL
 
 management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8089}   # actuator 不在业务端口（web 为 8091）
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
   tracing:
     sampling:
       probability: 0.1           # 10% sampling in production
@@ -218,12 +225,15 @@ pg_dump -h <master-host> -U archforge archforge_user | gzip > backup_$(date +%Y%
 
 ## 监控
 
-### 健康检查
+### 健康检查与探针
 
 ```bash
-curl http://localhost:8080/actuator/health
+curl http://localhost:8080/livez     # 存活：只看进程
+curl http://localhost:8080/readyz    # 就绪：再加数据库与 Redis
 ```
+
+`prod`（以及 `staging`）下 actuator 本身监听管理端口——admin `8089`、web `8091`，可用 `MANAGEMENT_SERVER_PORT` 覆盖。此时业务端口上的 `/actuator/health` 返回 `404`，编排器探针请改用 `/livez` 与 `/readyz`。管理端口不要发布出去。
 
 ### Prometheus 指标
 
-将以下端点暴露给 Prometheus 采集器：
+在内网采集管理端口上的 `/actuator/prometheus`：`docker/docker-compose.prod.yml` 中为 `backend:8089` 与 `backend-web:8091`，两者都已加入 `archforge-observability` 网络。自带的 Prometheus 配置通过 DNS 发现它们，见[可观测性](./observability.md)。

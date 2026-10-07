@@ -25,16 +25,18 @@ java --enable-preview -jar archforge-cli/build/libs/archforge-cli.jar --help
 
 | Command | What it does |
 |---------|----------------|
-| `./archforge init [--write] [--profile dev\|test\|staging\|prod]` | Generate secrets (dry-run unless `--write`), patch dev/test YAML placeholders. `dev` also starts postgres/redis and runs Flyway. |
+| `./archforge init [--write] [--profile dev\|test\|staging\|prod]` | Generate secrets (dry-run unless `--write`), patch dev/test YAML placeholders. `dev` also starts postgres/redis and runs Flyway; a failed migration fails the command. |
 | `./archforge infra up\|down\|stop [--profile dev]` | Start / remove / pause postgres and redis via Docker Compose. |
-| `./archforge db init` | Start postgres and apply Flyway (`:archforge-server-admin:flywayMigrate`). |
-| `./archforge db update` | Apply latest Flyway migrations. |
+| `./archforge db init` | Start postgres and apply Flyway via `:archforge-server-admin:flywayMigrateAll` — `__root` first, then every module with its own history table, exactly like application startup. `DB_PASSWORD` / `DB_USERNAME` are passed to Gradle; a failure exits non-zero. |
+| `./archforge db update` | Apply the latest Flyway migrations (same `flywayMigrateAll`). |
 | `./archforge db backup` | `pg_dump` into `backup/db/`. |
 | `./archforge db recovery --file <path> [--yes]` | Restore a dump (type `YES`, or `--yes` for automation). |
-| `./archforge up [--profile dev]` | Dev: start infra, then detach `archforge-server-admin`, `archforge-server-web`, and sibling frontends if present. |
+| `./archforge up [--profile dev]` | Dev: start infra, then detach `archforge-server-admin`, `archforge-server-web`, and sibling frontends if present. The Flyway migration runs first; if it fails nothing else is started. |
 | `./archforge down [--profile dev]` | Stop compose services for the profile. |
 | `./archforge build [--profile dev]` | `bootBuildImage` for admin + web; optional frontend Docker images. |
 | `./archforge docker up\|down [--profile dev]` | Start deps, migrate, then bring compose services up / down. |
+| `./archforge doctor` | Check the local environment (JDK 25, Docker / Compose, Node / pnpm, ports, `.env`). Prints `[ OK ]` / `[FAIL]` lines (ASCII, readable on any console) and exits 1 when something fails. |
+| `./archforge meta export\|import\|check [--dir <dir>] [--table <code>]` | Meta-table definition files ↔ DB. `import` is a dry-run unless `--apply`. `check` exits 1 on drift **and** when a registered table has no physical table — the sync never runs DDL. |
 | `./archforge skills install\|update\|remove --tool <claude\|codex\|cursor\|devin>` | Install or remove agent skill snippets. |
 | `./archforge skills list` | List supported AI tools. |
 | `./archforge --mcp` | Start the MCP stdio server. |

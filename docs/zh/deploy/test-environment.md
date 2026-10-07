@@ -92,9 +92,9 @@ SPRING_PROFILES_ACTIVE=test java --enable-preview -jar archforge-server-admin/bu
 
 ## 验证
 
-- 健康检查：`curl http://localhost:8080/actuator/health`
+- 健康检查：`curl http://localhost:8080/actuator/health`（探针：`/livez`、`/readyz`）
 - Swagger：`http://localhost:8080/swagger-ui/index.html`
-- 登录：POST `/auth/login`，请求体 `{"username": "admin", "password": "admin123"}`
+- 登录：POST `/admin/auth/login`，请求体 `{"username": "admin", "password": "admin123"}`
 
 ## 导入测试数据
 

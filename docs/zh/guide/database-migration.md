@@ -4,25 +4,18 @@ ArchForge 使用 [Flyway](https://flywaydb.org/) 管理数据库结构迁移，�
 
 ## 环境策略
 
-| 环境 | DDL 管理 | 数据初始化 | Flyway |
-|-------------|---------------|-------------------|--------|
-| **dev** | Hibernate DDL `auto=update` | InitDbMockServer（种子 SQL） | 已禁用 |
-| **test** | Flyway 迁移 | Flyway V2 种子数据 | 已启用 |
-| **prod** | Flyway 迁移 | Flyway V2 种子数据（首次部署） | 已启用 |
-
-在开发环境中，Hibernate 自动根据 Testcontainers PostgreSQL 数据库创建和更新表。在测试和生产环境中，Flyway 完全接管数据库结构管理，而 Hibernate 仅做校验（`ddl-auto: validate`）。
+所有 profile（`dev`、`test`、`staging`、`prod`）都在应用启动时执行 Flyway（`arch-forge.flyway.enabled: true`），Hibernate 只做校验（`spring.jpa.hibernate.ddl-auto: validate`）。任何地方都不使用 `ddl-auto: update`——数据库结构只归 Flyway 管。
 
 ## 迁移脚本
 
-脚本位于 `archforge-server-admin/src/main/resources/db/migration/`：
+| 位置 | 历史表 | 版本 |
+|------|--------|------|
+| `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` | `flyway_schema_history` | 共享的存量序列 `V1`…`V27`（没有 `V5`、`V19`）；下一个文件是 **`V28`** |
+| `archforge-module-<name>/src/main/resources/db/migration/<name>/` | `flyway_schema_history_<name>` | 模块内独立编号，从 `V1` 开始（`cms`、`task`） |
 
-```
-db/migration/
-├── V1__init_schema.sql       # All table definitions
-├── V2__init_seed_data.sql    # Base data (users, roles, departments, configs)
-├── V3__init_menu_data.sql    # Menu and role-menu data
-└── V4__xxx.sql               # Future incremental migrations...
-```
+启动时 `FlywayConfig` 先迁移 `__root`，再按名称顺序逐个迁移模块目录。`server-admin` 与 `server-web` 迁移同一个 `archforge` 库，Flyway 的历史表锁会把它们串行化。
+
+命令行上 `./archforge db init` / `./archforge db update` 执行 `./gradlew :archforge-server-admin:flywayMigrateAll`，效果相同：先对 `__root` 执行 `flywayMigrate`，再为每个模块执行一个带独立历史表的 `flywayMigrate<Module>`。不要把 `__root` 和模块目录放进同一次 Flyway 执行——`__root/V1` 与 `cms/V1` 会撞版本（"Found more than one migration with version 1"）。
 
 ### 命名规范
 
@@ -49,10 +42,10 @@ V{version}__{description}.sql
 
 ### 步骤一：编写迁移脚本
 
-在 `archforge-server-admin/src/main/resources/db/migration/` 中创建新文件：
+在 `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` 中创建下一个 `__root` 版本——或在你的模块的 `db/migration/<module>/` 中创建下一个模块内版本：
 
 ```sql
--- V4__add_audit_log_table.sql
+-- V28__add_audit_log_table.sql
 CREATE TABLE IF NOT EXISTS sys_audit_log (
     id          BIGSERIAL PRIMARY KEY,
     user_id     BIGINT       NOT NULL,
@@ -64,7 +57,7 @@ CREATE TABLE IF NOT EXISTS sys_audit_log (
 
 ### 步骤二：在开发环境验证
 
-在开发模式下（Testcontainers PostgreSQL + Hibernate DDL auto），添加对应的 JPA 实体并验证实体映射是否正确。开发环境中 Flyway 已禁用，因此迁移脚本本身不会被执行。
+重启应用（或执行 `./archforge db update`）：Flyway 会把新脚本应用到开发库；若 JPA 实体与之不符，`ddl-auto: validate` 会让启动失败。
 
 ### 步骤三：在测试环境测试
 
@@ -126,10 +119,11 @@ SPRING_PROFILES_ACTIVE=prod java -jar archforge-server-admin.jar
 
 ```
 1. 开发人员编写迁移脚本
-   └─ archforge-server-admin/src/main/resources/db/migration/V{N}__description.sql
+   └─ archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/V{N}__description.sql
+      （或 archforge-module-<name>/src/main/resources/db/migration/<name>/V{N}__description.sql）
 
 2. 开发环境验证
-   └─ Testcontainers PostgreSQL + Hibernate DDL auto — 验证实体兼容性
+   └─ 启动时 Flyway 执行脚本，ddl-auto: validate 校验实体
 
 3. 测试环境验证
    └─ 部署到测试环境，Flyway 执行迁移，验证 SQL 正确性
@@ -159,33 +153,20 @@ psql -h <master-host> -U archforge -d archforge -c \
 
 ## 配置参考
 
-### 开发环境 Profile
+所有 profile：
 
 ```yaml
 spring:
   jpa:
     hibernate:
-      ddl-auto: update          # Hibernate manages DDL
+      ddl-auto: validate        # Flyway 管理 DDL，Hibernate 只做校验
 
 arch-forge:
   flyway:
-    enabled: false              # Flyway disabled
-  embedded:
-    postgresql: true            # Start PostgreSQL via Testcontainers
+    enabled: true
 ```
 
-### 测试 / 生产环境 Profile
-
-```yaml
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: validate        # Flyway manages DDL, Hibernate only validates
-
-arch-forge:
-  flyway:
-    enabled: true               # Flyway enabled
-```
+本项目里 `spring.flyway.*` 不绑定任何东西（Spring Boot 4 没有 Flyway 自动配置），全部配置在 `arch-forge.flyway.*` 下。`staging` / `prod` 另外设置了 `ignore-migration-patterns: "*:missing"`，让历史表里仍记着已删除版本的库也能启动。
 
 ## Docker 部署
 

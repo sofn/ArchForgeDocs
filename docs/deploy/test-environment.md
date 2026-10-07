@@ -92,9 +92,9 @@ SPRING_PROFILES_ACTIVE=test java --enable-preview -jar archforge-server-admin/bu
 
 ## Verify
 
-- Health: `curl http://localhost:8080/actuator/health`
+- Health: `curl http://localhost:8080/actuator/health` (probes: `/livez`, `/readyz`)
 - Swagger: `http://localhost:8080/swagger-ui/index.html`
-- Login: POST `/auth/login` with `{"username": "admin", "password": "admin123"}`
+- Login: POST `/admin/auth/login` with `{"username": "admin", "password": "admin123"}`
 
 ## Import Test Data
 

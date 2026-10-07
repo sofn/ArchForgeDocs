@@ -11,7 +11,7 @@ A checklist and guide for deploying ArchForge to a production environment.
 | 3 | Change PostgreSQL password | **Critical** | Use a strong password |
 | 4 | Enable captcha | High | Set `arch-forge.captcha.enabled: true` |
 | 5 | Configure PostgreSQL (master/slave) | High | Set up replication if needed |
-| 6 | Configure Redis | High | Use a dedicated Redis instance |
+| 6 | Configure Redis | High | Dedicated instance **with a password** — `REDIS_PASSWORD` (`docker-compose.prod.yml` starts Redis with `--requirepass` and fails without it) |
 | 7 | Enable Flyway | High | Set `arch-forge.flyway.enabled: true` |
 | 8 | Set JPA DDL to validate | High | `spring.jpa.hibernate.ddl-auto: validate` |
 | 9 | Configure HTTPS | High | Terminate SSL at Nginx or load balancer |
@@ -82,6 +82,7 @@ spring:
     redis:
       host: ${REDIS_HOST:redis}
       port: 6379
+      password: ${REDIS_PASSWORD}
 
 sa-token:
   timeout: 86400                 # 24 hours for production
@@ -97,6 +98,12 @@ arch-forge:
     postgresql: false            # Use real PostgreSQL
 
 management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8089}   # actuator off the business port (web: 8091)
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
   tracing:
     sampling:
       probability: 0.1           # 10% sampling in production
@@ -218,13 +225,16 @@ Schedule via cron for daily backups and retain 30 days:
 
 ## Monitoring
 
-### Health Check
+### Health Checks and Probes
 
 ```bash
-curl http://localhost:8080/actuator/health
+curl http://localhost:8080/livez     # liveness: the process only
+curl http://localhost:8080/readyz    # readiness: + database + Redis
 ```
+
+In `prod` (and `staging`) the actuator itself listens on the management port — admin `8089`, web `8091`, override with `MANAGEMENT_SERVER_PORT`. `/actuator/health` on the business port returns `404` there, so point orchestrator probes at `/livez` and `/readyz`. Never publish the management port.
 
 ### Prometheus Metrics
 
-Expose to your Prometheus scraper:
+Scrape `/actuator/prometheus` on the management port from inside the network: `backend:8089` and `backend-web:8091` in `docker/docker-compose.prod.yml`, which joins both services to the `archforge-observability` network. The bundled Prometheus config discovers them by DNS — see [Observability](./observability.md).
 

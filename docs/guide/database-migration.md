@@ -4,25 +4,18 @@ ArchForge uses [Flyway](https://flywaydb.org/) to manage database schema migrati
 
 ## Environment Strategy
 
-| Environment | DDL Management | Data Initialization | Flyway |
-|-------------|---------------|-------------------|--------|
-| **dev** | Hibernate DDL `auto=update` | InitDbMockServer (seed SQL) | Disabled |
-| **test** | Flyway migration | Flyway V2 seed data | Enabled |
-| **prod** | Flyway migration | Flyway V2 seed data (first deploy) | Enabled |
-
-In development, Hibernate automatically creates and updates tables against the Testcontainers PostgreSQL database. For test and production, Flyway takes full control of schema management while Hibernate only validates the schema (`ddl-auto: validate`).
+Every profile (`dev`, `test`, `staging`, `prod`) runs Flyway at application startup (`arch-forge.flyway.enabled: true`) and Hibernate only validates the result (`spring.jpa.hibernate.ddl-auto: validate`). Nothing ever uses `ddl-auto: update` — the schema belongs to Flyway.
 
 ## Migration Scripts
 
-Scripts are located in `archforge-server-admin/src/main/resources/db/migration/`:
+| Location | History table | Versions |
+|----------|---------------|----------|
+| `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` | `flyway_schema_history` | Shared legacy sequence `V1`…`V27` (no `V5`, no `V19`); the next file is **`V28`** |
+| `archforge-module-<name>/src/main/resources/db/migration/<name>/` | `flyway_schema_history_<name>` | Module-local, restarting at `V1` (`cms`, `task`) |
 
-```
-db/migration/
-├── V1__init_schema.sql       # All table definitions
-├── V2__init_seed_data.sql    # Base data (users, roles, departments, configs)
-├── V3__init_menu_data.sql    # Menu and role-menu data
-└── V4__xxx.sql               # Future incremental migrations...
-```
+At startup `FlywayConfig` migrates `__root` first, then every module directory in name order. `server-admin` and `server-web` migrate the same `archforge` database; Flyway's history-table lock serialises them.
+
+From the command line, `./archforge db init` / `./archforge db update` run `./gradlew :archforge-server-admin:flywayMigrateAll`, which does the same: `flywayMigrate` for `__root`, then one `flywayMigrate<Module>` per module with its own history table. Never put `__root` and module directories into a single Flyway run — `__root/V1` and `cms/V1` collide ("Found more than one migration with version 1").
 
 ### Naming Convention
 
@@ -49,10 +42,10 @@ V{version}__{description}.sql
 
 ### Step 1: Write the Migration Script
 
-Create a new file in `archforge-server-admin/src/main/resources/db/migration/`:
+Create the next `__root` version in `archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/` — or the next module-local version in your module's `db/migration/<module>/`:
 
 ```sql
--- V4__add_audit_log_table.sql
+-- V28__add_audit_log_table.sql
 CREATE TABLE IF NOT EXISTS sys_audit_log (
     id          BIGSERIAL PRIMARY KEY,
     user_id     BIGINT       NOT NULL,
@@ -64,7 +57,7 @@ CREATE TABLE IF NOT EXISTS sys_audit_log (
 
 ### Step 2: Verify in Dev
 
-In dev mode (Testcontainers PostgreSQL + Hibernate DDL auto), add the corresponding JPA entity and verify that the entity mapping is correct. Flyway is disabled in dev, so the migration script itself is not executed.
+Restart the app (or run `./archforge db update`): Flyway applies the new script to the dev database, and `ddl-auto: validate` fails the startup if the JPA entity does not match it.
 
 ### Step 3: Test in Test Environment
 
@@ -126,10 +119,11 @@ SPRING_PROFILES_ACTIVE=prod java -jar archforge-server-admin.jar
 
 ```
 1. Developer writes migration script
-   └─ archforge-server-admin/src/main/resources/db/migration/V{N}__description.sql
+   └─ archforge-common/archforge-common-jpa/src/main/resources/db/migration/__root/V{N}__description.sql
+      (or archforge-module-<name>/src/main/resources/db/migration/<name>/V{N}__description.sql)
 
 2. Dev environment validation
-   └─ Testcontainers PostgreSQL + Hibernate DDL auto — verify entity compatibility
+   └─ Flyway applies it on startup; ddl-auto: validate checks the entities
 
 3. Test environment validation
    └─ Deploy to test, Flyway executes, verify SQL correctness
@@ -159,22 +153,7 @@ psql -h <master-host> -U archforge -d archforge -c \
 
 ## Configuration Reference
 
-### Dev Profile
-
-```yaml
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: update          # Hibernate manages DDL
-
-arch-forge:
-  flyway:
-    enabled: false              # Flyway disabled
-  embedded:
-    postgresql: true            # Start PostgreSQL via Testcontainers
-```
-
-### Test / Prod Profile
+All profiles:
 
 ```yaml
 spring:
@@ -184,8 +163,10 @@ spring:
 
 arch-forge:
   flyway:
-    enabled: true               # Flyway enabled
+    enabled: true
 ```
+
+`spring.flyway.*` binds to nothing in this project (Spring Boot 4 has no Flyway auto-configuration); everything is configured under `arch-forge.flyway.*`. `staging` / `prod` additionally set `ignore-migration-patterns: "*:missing"` so databases that still list deleted versions in their history can start.
 
 ## Docker Deployment
 

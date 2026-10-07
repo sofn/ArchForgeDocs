@@ -12,7 +12,7 @@ Define a table through the admin UI with the following metadata:
 |----------|-------------|
 | Table code | Unique machine-readable identifier, used as the physical table name suffix |
 | Table name | Human-readable display name |
-| Table prefix | Physical table prefix, defaults to `meta_` |
+| Table prefix | Physical table prefix, defaults to `meta_`. Lowercase letters, digits and `_`, at most 32 characters; `prefix + code` may not start with `sys_`, `qrtz_`, `pg_`, `sql_`, `information_schema_` or `flyway_` |
 | Status | Enabled (1) or disabled (0) |
 | Description | Optional notes |
 
@@ -43,14 +43,14 @@ Each column can be configured with:
 
 - **Length / precision / scale** — for string, decimal, and array element sizing
 - **Nullable / required** — controls `NOT NULL`
-- **Default value** — stored as a typed default
+- **Default value** — checked against the column type before any DDL runs: numbers are parsed and re-printed, text is quoted; a value that does not fit the type is rejected
 - **Unique** — enforces unique values
 - **Index / index type / index group** — single or composite indexes (`BTREE`, `GIN`, `GIST`, `FULLTEXT`)
 - **Searchable** — exposed in the data list search form
 - **List visible** — shown in the data grid by default
 - **Tenant / owner column** — flags for multi-tenant or row-owner semantics
 - **Options** — for ENUM type value lists
-- **Reference table / column** — for future foreign-key documentation
+- **Reference table / column / display expression** — for `REFERENCE` columns. The display expression may only use `ref.<column>` (optionally `::text`), `'string literals'` and `||`, e.g. `ref.username || ' (' || ref.email || ')'`; functions, operators and sub-queries are rejected
 
 ### Schema Evolution
 
@@ -172,26 +172,31 @@ The generated controller delegates list/export/import to `MetaTableCrudService` 
 
 ## API Endpoints
 
-All endpoints require the `ADMIN` role.
+Tables are addressed by `tableCode`, never by database id (ids differ per environment). Every endpoint declares its own permission — the class-level `ADMIN` role alone is not enough.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/meta-table` | Paginated list of meta tables |
-| GET | `/meta-table/{id}` | Meta table detail with columns |
-| POST | `/meta-table/create` | Create a new meta table |
-| PUT | `/meta-table/{id}` | Update table and columns |
-| POST | `/meta-table/{id}/copy` | Duplicate a meta table |
-| POST | `/meta-table/{id}/generate` | Generate frontend/backend code |
-| GET | `/meta-table/{id}/delete-check` | Check if table can be deleted |
-| DELETE | `/meta-table/{id}?force={false\|true}` | Delete meta table |
-| GET | `/meta-table/{id}/migrations` | List schema migration history |
-| GET | `/meta-table/{id}/export-migration` | Export migrations as Flyway SQL |
-| POST | `/meta-table/{id}/data` | List rows of the dynamic table |
-| POST | `/meta-table/{id}/data/create` | Insert a row |
-| PUT | `/meta-table/{id}/data/{dataId}` | Update a row |
-| POST | `/meta-table/{id}/data/{dataId}/delete` | Soft-delete a row |
-| GET | `/meta-table/{id}/export?format=EXCEL` | Export table data |
-| POST | `/meta-table/{id}/import?format=CSV` | Import table data |
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| POST | `/admin/meta-table` | `meta-table:list` | Paginated list of meta tables |
+| GET | `/admin/meta-table/{tableCode}` | `meta-table:list` | Detail with columns |
+| POST | `/admin/meta-table/create` | `meta-table:add` | Create a meta table |
+| PUT | `/admin/meta-table/{tableCode}` | `meta-table:edit` | Update table and columns |
+| PATCH | `/admin/meta-table/{tableCode}` | `meta-table:edit` | Update name / description / status only |
+| POST | `/admin/meta-table/{tableCode}/schema-preview` | `meta-table:edit` | Preview the schema diff before saving |
+| GET | `/admin/meta-table/importable-tables` | `meta-table:list` | Physical tables that can be adopted |
+| GET | `/admin/meta-table/import-preview?tableName=` | `meta-table:list` | Preview the column mapping of an import |
+| POST | `/admin/meta-table/import` | `meta-table:add` | Adopt an existing physical table |
+| POST | `/admin/meta-table/{tableCode}/copy` | `meta-table:add` | Duplicate a meta table |
+| POST | `/admin/meta-table/{tableCode}/generate` | `meta-table:edit` | Generate frontend/backend code |
+| GET | `/admin/meta-table/{tableCode}/delete-check` | `meta-table:remove` | Row count before deleting |
+| DELETE | `/admin/meta-table/{tableCode}?force={false\|true}` | `meta-table:remove` | Delete meta table |
+| GET | `/admin/meta-table/{tableCode}/migrations` | `meta-table:list` | Schema migration history |
+| GET | `/admin/meta-table/{tableCode}/export-migration` | `meta-table:edit` | Export migrations as Flyway SQL |
+| POST | `/admin/meta-table/{tableCode}/data` | `meta-table:list` | List rows of the dynamic table |
+| POST | `/admin/meta-table/{tableCode}/data/create` | `meta-table:add` | Insert a row |
+| PUT | `/admin/meta-table/{tableCode}/data/{dataId}` | `meta-table:edit` | Update a row |
+| POST | `/admin/meta-table/{tableCode}/data/{dataId}/delete` | `meta-table:remove` | Soft-delete a row |
+| GET | `/admin/meta-table/{tableCode}/export?format=EXCEL` | `meta-table:export` | Export table data |
+| POST | `/admin/meta-table/{tableCode}/import?format=CSV` | `meta-table:add` | Import table data |
 
 ## Admin UI
 
@@ -200,30 +205,36 @@ The admin UI for meta tables is located at `/src/views/meta-table/`:
 - **Meta table list** — search by code/name, paginated table, create/edit/copy/delete/generate actions
 - **Table designer** — dialog form for editing table metadata and columns
 - **Data management** — open a meta table’s data grid to perform CRUD, search, import, and export
-- All buttons are controlled by `meta:table:*` permissions
+- All buttons are controlled by `meta-table:*` permissions
 
 ## Permissions
 
 | Permission | Description |
 |------------|-------------|
-| `meta:table:list` | View meta tables |
-| `meta:table:query` | Query meta table data |
-| `meta:table:add` | Create a meta table |
-| `meta:table:edit` | Update a meta table |
-| `meta:table:remove` | Delete a meta table |
-| `meta:table:export` | Export meta table data |
-| `meta:table:design` | Design columns |
-| `meta:table:data` | Manage row data |
-| `meta:table:generate` | Generate code scaffold |
+| `meta-table:list` | View meta tables, their detail and migration history; list rows |
+| `meta-table:query` | Query meta table data |
+| `meta-table:add` | Create, copy or import a meta table; insert / import rows |
+| `meta-table:edit` | Update a meta table, generate code, export migrations; update rows |
+| `meta-table:remove` | Delete a meta table (incl. delete-check); delete rows |
+| `meta-table:export` | Export meta table data |
+| `meta-table:design` | Design columns |
+| `meta-table:data` | Manage row data |
+| `meta-table:generate` | Generate code scaffold |
 
 ## Typical Workflow
 
 1. Create a meta table with a unique code, name, and prefix.
 2. Add columns with types, constraints, and index settings.
-3. Save the design; the backend creates the physical table (`{prefix}{table_code}`).
+3. Save the design; the backend creates the physical table (`{prefix}{table_code}`). If a table with that name already exists, saving is refused — adopt existing tables with **Import** instead.
 4. Switch to the **Data** view to insert, edit, delete, import, or export rows.
 5. (Optional) Click **Generate** to produce a full-stack module scaffold.
 6. When requirements change, edit the table; the system computes and applies schema migration DDL.
+
+## Definition Files
+
+Table definitions can also live in version control as `project-definition/meta/<tableCode>.yaml`: `./archforge meta export` writes them from the DB, `./archforge meta import` syncs files into the DB (dry-run unless `--apply`) and `./archforge meta check` exits 1 on drift. With `arch-forge.meta.source=file` the files are the source of truth — they are applied at startup and designer / import writes are rejected.
+
+The sync never runs DDL: physical tables come from Flyway or the designer. So `meta check` also fails — and `meta import`, the file-mode startup and the shadow check warn — when a registered table has no physical table.
 
 ## Related Pages
 

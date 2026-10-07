@@ -1,6 +1,6 @@
 # Observability
 
-ArchForge ships with a pre-configured observability stack based on **Prometheus**, **Grafana**, **Jaeger**, and **Alertmanager**. It consumes metrics from `/actuator/prometheus` and traces via OpenTelemetry OTLP.
+ArchForge ships with a pre-configured observability stack based on **Prometheus**, **Grafana**, **Jaeger**, and **Alertmanager**. It consumes metrics from `/actuator/prometheus` — on the business port in `dev`, on the management ports (admin `8089`, web `8091`) in `staging` / `prod` — and traces via OpenTelemetry OTLP.
 
 ## Components
 
@@ -20,22 +20,18 @@ cd docker/observability
 docker compose up -d
 ```
 
-Or use the dev helper:
-
-```bash
-scripts/dev/init-observability.sh
-```
-
-Grafana default credentials: `admin / admin`.
+Grafana credentials: `admin` / the value of `GRAFANA_ADMIN_PASSWORD` (default `changeme` — set your own).
 
 ### 2. Connect the backend
 
 #### Docker Compose deployment
 
-The production/staging/fulljre/jlink compose files already attach to the `archforge-observability` network and export:
+The production/staging/fulljre/jlink compose files already attach to the `archforge-observability` network (admin **and** web in production/staging) and export:
 
 - `OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318/v1/traces`
 - `SAMPLING_PROBABILITY=0.1`
+
+Prometheus finds the backends by DNS service discovery — `archforge` / `backend` on port `8089` (admin) and `backend-web` on port `8091` (web) — so service names that do not exist in your stack never show up as permanently-down targets. Jaeger's own metrics are scraped on its admin port `14269`.
 
 Start the app stack **after** the observability stack is up so the network exists:
 
@@ -88,6 +84,8 @@ Alertmanager is configured with a placeholder webhook receiver. Edit `docker/obs
 
 You can also use the standalone Jaeger UI at http://localhost:16686.
 
+Every application log line carries `[traceId,requestId]`, so a log line leads straight to its trace.
+
 ## Shut down
 
 ```bash
@@ -95,8 +93,8 @@ cd docker/observability
 docker compose down
 ```
 
-To stop everything including dev containers:
+Dev dependencies (PostgreSQL / Redis) are stopped separately:
 
 ```bash
-scripts/dev/down.sh
+./archforge infra down
 ```

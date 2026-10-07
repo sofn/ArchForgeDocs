@@ -232,6 +232,8 @@ Override the OTLP endpoint in production via `OTEL_EXPORTER_OTLP_ENDPOINT` envir
 
 ## Actuator Endpoints
 
+`dev` (and the default profile) expose the actuator on the business port:
+
 ```yaml
 management:
   endpoints:
@@ -240,11 +242,35 @@ management:
         include: health,info,metrics,prometheus
 ```
 
-| Endpoint | URL |
+| Endpoint | URL (dev) |
 |----------|-----|
+| Liveness / readiness probes | `http://localhost:8080/livez`, `http://localhost:8080/readyz` |
 | Health | `http://localhost:8080/actuator/health` |
 | Metrics | `http://localhost:8080/actuator/metrics` |
 | Prometheus | `http://localhost:8080/actuator/prometheus` |
+
+`staging` and `prod` move the actuator to a **separate management port**. It is never published and never proxied by the frontend nginx, so `/actuator/prometheus` cannot be reached from outside; only `health,info,prometheus` are exposed there:
+
+```yaml
+management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8089}   # server-web: 8091
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+```
+
+Orchestrator probes keep using the business port through `/livez` and `/readyz` (`management.endpoint.health.probes.add-additional-paths`). Liveness only looks at the process; readiness also checks the database and Redis. server-web follows the same layout on `8081` / `8091`.
+
+## Request Log
+
+`arch-forge.request-log` writes one line per request (API, method, status, time, plus bodies where enabled):
+
+- `mask-fields` entries are **key fragments**: a key that *contains* one (case-insensitive, `_` and `-` ignored) is masked, so `token` also covers `accessToken` and `refresh_token`.
+- `staging` and `prod` set `include-request-payload` and `include-response-payload` to `false` — bodies carry session tokens and personal data.
+- Payloads longer than 64 KB (or `max-payload-length`, if larger) are logged as their length only.
+- Every log line carries `[traceId,requestId]`; paste the traceId into Jaeger / Grafana to open the request's trace.
 
 ## Related Pages
 

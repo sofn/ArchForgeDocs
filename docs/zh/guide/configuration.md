@@ -232,6 +232,8 @@ management:
 
 ## Actuator 端点
 
+`dev`（以及默认 profile）把 actuator 放在业务端口上：
+
 ```yaml
 management:
   endpoints:
@@ -240,11 +242,35 @@ management:
         include: health,info,metrics,prometheus
 ```
 
-| 端点 | URL |
+| 端点 | URL（dev） |
 |----------|-----|
+| 存活 / 就绪探针 | `http://localhost:8080/livez`、`http://localhost:8080/readyz` |
 | 健康检查 | `http://localhost:8080/actuator/health` |
 | 指标 | `http://localhost:8080/actuator/metrics` |
 | Prometheus | `http://localhost:8080/actuator/prometheus` |
+
+`staging` 与 `prod` 把 actuator 挪到**独立的管理端口**：它不发布到宿主机，也不经过前端 nginx 代理，外部访问不到 `/actuator/prometheus`；该端口只暴露 `health,info,prometheus`：
+
+```yaml
+management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:8089}   # server-web 为 8091
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+```
+
+编排器探针仍走业务端口上的 `/livez` 与 `/readyz`（`management.endpoint.health.probes.add-additional-paths`）。存活探针只看进程本身，就绪探针额外检查数据库与 Redis。server-web 同理，对应 `8081` / `8091`。
+
+## 请求日志
+
+`arch-forge.request-log` 每个请求记一行（接口、方法、状态、耗时，开启时附带请求/响应体）：
+
+- `mask-fields` 里的是**键名片段**：键名（忽略大小写、`_` 和 `-`）**包含**任一片段就脱敏，所以 `token` 同时覆盖 `accessToken` 与 `refresh_token`。
+- `staging` 与 `prod` 把 `include-request-payload`、`include-response-payload` 设为 `false`——请求/响应体里有会话 token 和个人信息。
+- 超过 64 KB（或更大的 `max-payload-length`）的载荷只记录长度。
+- 每行日志都带 `[traceId,requestId]`，把 traceId 粘到 Jaeger / Grafana 就能打开这次请求的链路。
 
 ## 相关页面
 
