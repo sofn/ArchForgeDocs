@@ -7,7 +7,7 @@ A checklist and guide for deploying ArchForge to a production environment.
 | # | Task | Priority | Notes |
 |---|------|----------|-------|
 | 1 | Set production secrets | **Critical** | No defaults — `DB_PASSWORD`, Redis, RSA, Sa-Token Redis, etc. |
-| 2 | Change RSA private key | **Critical** | Generate a new RSA key pair |
+| 2 | Change RSA private key | **Critical** | Generate a new RSA key pair; pass it as `ARCH_FORGE_RSA_PRIVATE_KEY` (the admin does not start without it) |
 | 3 | Change PostgreSQL password | **Critical** | Use a strong password |
 | 4 | Enable captcha | High | Set `arch-forge.captcha.enabled: true` |
 | 5 | Configure PostgreSQL (master/slave) | High | Set up replication if needed |
@@ -21,6 +21,9 @@ A checklist and guide for deploying ArchForge to a production environment.
 | 13 | Set memory limits | Medium | JVM flags or Docker resource limits |
 | 14 | Set `CORS_ALLOWED_ORIGINS` | **Critical** | Explicit origins, no `*` — every profile except dev/test refuses to start otherwise |
 | 15 | Set `ALERT_WEBHOOK_URL` | High | Where Alertmanager delivers alerts (see [Observability](./observability.md)) |
+| 16 | Set `WEB_PUBLIC_URL` | High | Public URL of the C-end site (links in mails and notifications) |
+
+`docker-compose.prod.yml` refuses to start until `DB_PASSWORD`, `REDIS_PASSWORD`, `ARCH_FORGE_RSA_PRIVATE_KEY`, `CORS_ALLOWED_ORIGINS` and `WEB_PUBLIC_URL` are set (`scripts/prod/.env.example` lists them). A contract test keeps the compose files in step with every variable the prod/staging profiles require.
 
 ## Generate Secrets
 
@@ -234,7 +237,7 @@ curl http://localhost:8080/livez     # liveness: the process only
 curl http://localhost:8080/readyz    # readiness: + database + Redis
 ```
 
-In `prod` (and `staging`) the actuator itself listens on the management port — admin `8089`, web `8091`, override with `MANAGEMENT_SERVER_PORT`. `/actuator/health` on the business port returns `404` there, so point orchestrator probes at `/livez` and `/readyz`. Never publish the management port.
+In `prod` (and `staging`) the actuator itself listens on the management port — admin `8089`, web `8091`, override with `MANAGEMENT_SERVER_PORT` in the service's environment (the compose files do not set it). Prometheus scrapes 8089/8091 — change `docker/observability/prometheus/prometheus.yml` together with it. `/actuator/health` on the business port returns `404` there, so point orchestrator probes at `/livez` and `/readyz`. Never publish the management port.
 
 ### Prometheus Metrics
 

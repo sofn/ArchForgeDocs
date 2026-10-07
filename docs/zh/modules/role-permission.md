@@ -103,20 +103,22 @@
 
 ### 配置方式
 
-管理员在角色管理页面设置数据范围。选择**自定义数据权限**时，可通过部门树选择允许的部门。后端通过 `POST /system/role/data-scope` 接口保存配置。
+管理员在角色管理页面设置数据范围。选择**自定义数据权限**时，可通过部门树选择允许的部门。后端通过 `POST /admin/role/data-scope` 接口保存配置。
 
 ### 代码用法
 
 ```java
-@GetMapping("/system/user")
-@DataPermission(deptAlias = "deptId", userAlias = "userId")
-public ResponseResult<PageResult<UserVO>> list(SysUserRequest request) {
-    Specification<SysUser> spec = dataScopeSpecification.apply(
-        queryHelper.build(request), DataScopeContextHolder.get()
-    );
-    return ResponseResult.success(userRepository.findAll(spec, pageable));
+// AdminUserServiceImpl — behind POST /admin/user (system:user:list)
+@DataPermission(deptAlias = "deptId", userAlias = "id")
+public AdminPageResponse<AdminUserDTO> getUserList(AdminUserListRequest request) {
+    Specification<SysUser> spec = (root, q, cb) -> QueryHelp.getPredicate(root, criteria, cb);
+    spec = dataScopeSpecification.apply(spec, DataScopeContextHolder.get());
+    Page<SysUser> users = sysUserService.findAll(spec, pageable);
+    // ...map to DTOs
 }
 ```
+
+数据范围只在 `@DataPermission` 调用内生效，并且失败关闭：解析不出当前用户时一行都不返回。元表格的每个数据接口都带这个注解（缺了会让契约测试失败）；生成的模块控制器会校验各自的 `<tableCode>:*` 权限，导入导出也按调用者的数据范围执行。
 
 ## 角色分配流程
 

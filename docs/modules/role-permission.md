@@ -111,20 +111,22 @@ In addition to menu and button permissions, each role can define a **data scope*
 
 ### Configuration
 
-Admins set the data scope in the role management UI. When **Custom** is selected, a department tree lets the admin pick the allowed departments. The backend exposes `POST /system/role/data-scope` to persist the configuration.
+Admins set the data scope in the role management UI. When **Custom** is selected, a department tree lets the admin pick the allowed departments. The backend exposes `POST /admin/role/data-scope` to persist the configuration.
 
 ### Usage in Code
 
 ```java
-@GetMapping("/system/user")
-@DataPermission(deptAlias = "deptId", userAlias = "userId")
-public ResponseResult<PageResult<UserVO>> list(SysUserRequest request) {
-    Specification<SysUser> spec = dataScopeSpecification.apply(
-        queryHelper.build(request), DataScopeContextHolder.get()
-    );
-    return ResponseResult.success(userRepository.findAll(spec, pageable));
+// AdminUserServiceImpl — behind POST /admin/user (system:user:list)
+@DataPermission(deptAlias = "deptId", userAlias = "id")
+public AdminPageResponse<AdminUserDTO> getUserList(AdminUserListRequest request) {
+    Specification<SysUser> spec = (root, q, cb) -> QueryHelp.getPredicate(root, criteria, cb);
+    spec = dataScopeSpecification.apply(spec, DataScopeContextHolder.get());
+    Page<SysUser> users = sysUserService.findAll(spec, pageable);
+    // ...map to DTOs
 }
 ```
+
+The scope only exists inside a `@DataPermission` call, and it fails closed: when the current user cannot be resolved the call sees no rows at all. Every meta-table row-data endpoint carries the annotation (a contract test fails on one that does not), and generated module controllers check their `<tableCode>:*` permissions and run export/import under the caller's data scope.
 
 ## Role Assignment Flow
 

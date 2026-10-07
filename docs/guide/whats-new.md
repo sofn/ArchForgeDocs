@@ -12,7 +12,9 @@ Manual changelog for the documentation site. Data as of **2026-10**.
 - **Permissions**: every admin handler has its own permission, and every checked permission is grantable through a menu or button (the scheduler, file upload/delete and CMS image upload used to check codes nobody could be given). Meta-table code generation needs `meta-table:generate`; `copy` returns the new `tableCode`.
 - **Hardening**: `500` responses no longer reveal exception details outside dev/test; staging needs explicit CORS origins; API signatures cover the request body; `JWT_SECRET` is gone (sa-token, no JWT).
 - **Alerts**: per-application error rate with a traffic floor, whole-heap memory, two disk tiers, DB pool exhaustion; Alertmanager delivers to `ALERT_WEBHOOK_URL`; prod/staging sample 10% of traces.
-- **CLI**: `init` without `--write` is a pure dry-run.
+- **CLI**: `init` without `--write` is a pure dry-run, and it no longer generates an `AES_KEY` nothing reads.
+- **Re-review fixes**: the prod/staging deploy scripts seed from the right directory; `docker-compose.prod.yml` passes every variable the admin requires; REFERENCE columns can only join the table itself or a registered meta table; data scope fails closed; generated controllers check permissions; the alert set gains `ApplicationMissing`; dotted page paths get their CSP; the meta-table edit page shows the loaded definition.
+- **Request log**: `mask-fields` entries are key fragments now (`token` also masks `accessToken`), see [Configuration](./configuration.md).
 
 ## 2026-04
 

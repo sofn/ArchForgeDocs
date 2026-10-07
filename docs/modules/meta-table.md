@@ -50,7 +50,7 @@ Each column can be configured with:
 - **List visible** — shown in the data grid by default
 - **Tenant / owner column** — flags for multi-tenant or row-owner semantics
 - **Options** — for ENUM type value lists
-- **Reference table / column / display expression** — for `REFERENCE` columns. The display expression may only use `ref.<column>` (optionally `::text`), `'string literals'` and `||`, e.g. `ref.username || ' (' || ref.email || ')'`; functions, operators and sub-queries are rejected
+- **Reference table / column / display expression** — for `REFERENCE` columns. The display expression may only use `ref.<column>` (optionally `::text`), `'string literals'` and `||`, e.g. `ref.username || ' (' || ref.email || ')'`; functions, operators and sub-queries are rejected. The referenced table must be the table itself or a registered meta table — platform tables (`sys_*` and the like) can never be joined, so a display expression cannot read e.g. `sys_user.password`
 
 ### Schema Evolution
 

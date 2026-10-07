@@ -74,11 +74,12 @@ Prometheus alert rules are in `docker/observability/prometheus/rules/archforge.y
 | `DiskSpaceLow` | warning / critical | free disk < 15% / < 5% (the critical one silences the warning) |
 | `DbPoolExhausted` | critical | threads waiting for a JDBC connection (`hikaricp_connections_pending > 0`) for 2 minutes |
 | `DbPoolSaturated` | warning | connection pool > 90% busy for 5 minutes |
-| `ApplicationDown` | critical | actuator scrape target is down |
+| `ApplicationDown` | critical | a discovered admin/web target stops answering (dev host targets excluded) |
+| `ApplicationMissing` | critical | no admin (or no web) instance answers at all — DNS discovery drops a vanished container, so `ApplicationDown` cannot see it |
 
 Business errors are returned with HTTP 200 (the response contract) and are therefore invisible to status-code based rules; they are counted as `archforge_business_errors_total{code=...}` instead.
 
-Alerts are delivered to `ALERT_WEBHOOK_URL` (set it in the environment of `docker compose`; the Alertmanager config is a template rendered at container start). The payload is Alertmanager's standard webhook JSON — WeCom / DingTalk / Feishu robots need an adapter in front (for example `prometheus-webhook-dingtalk`); point `ALERT_WEBHOOK_URL` at the adapter. Without it, alerts are evaluated but not delivered.
+Alerts are delivered to `ALERT_WEBHOOK_URL` (set it in the environment of `docker compose`; the Alertmanager config is a template rendered at container start). The payload is Alertmanager's standard webhook JSON — WeCom / DingTalk / Feishu robots need an adapter in front (for example `prometheus-webhook-dingtalk`); point `ALERT_WEBHOOK_URL` at the adapter. Without it, Alertmanager logs a warning at start and alerts are evaluated but not delivered.
 
 ## Distributed Traces
 

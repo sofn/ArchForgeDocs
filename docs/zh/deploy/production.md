@@ -7,7 +7,7 @@ ArchForge 生产环境部署的检查清单与指南。
 | # | 任务 | 优先级 | 备注 |
 |---|------|--------|------|
 | 1 | 配置生产密钥 | **关键** | 无默认值 — `DB_PASSWORD`、Redis、RSA、Sa-Token Redis 等 |
-| 2 | 更换 RSA 私钥 | **关键** | 生成新的 RSA 密钥对 |
+| 2 | 更换 RSA 私钥 | **关键** | 生成新的 RSA 密钥对，并以 `ARCH_FORGE_RSA_PRIVATE_KEY` 传入（不设置管理端不启动） |
 | 3 | 更换 PostgreSQL 密码 | **关键** | 使用强密码 |
 | 4 | 启用验证码 | 高 | 设置 `arch-forge.captcha.enabled: true` |
 | 5 | 配置 PostgreSQL（主/从） | 高 | 按需设置数据库复制 |
@@ -21,6 +21,9 @@ ArchForge 生产环境部署的检查清单与指南。
 | 13 | 设置内存限制 | 中 | JVM 参数或 Docker 资源限制 |
 | 14 | 设置 `CORS_ALLOWED_ORIGINS` | **关键** | 写明具体来源，不能用 `*`——除 dev/test 外的 profile 不配置就拒绝启动 |
 | 15 | 设置 `ALERT_WEBHOOK_URL` | 高 | Alertmanager 投递告警的地址（见[可观测性](./observability.md)） |
+| 16 | 设置 `WEB_PUBLIC_URL` | 高 | C 端站点的公网地址（邮件、通知里的链接） |
+
+`docker-compose.prod.yml` 在 `DB_PASSWORD`、`REDIS_PASSWORD`、`ARCH_FORGE_RSA_PRIVATE_KEY`、`CORS_ALLOWED_ORIGINS`、`WEB_PUBLIC_URL` 设齐之前拒绝启动（`scripts/prod/.env.example` 列出了它们）。有一条契约测试保证 compose 文件覆盖 prod/staging profile 要求的每个变量。
 
 ## 生成密钥
 
@@ -234,7 +237,7 @@ curl http://localhost:8080/livez     # 存活：只看进程
 curl http://localhost:8080/readyz    # 就绪：再加数据库与 Redis
 ```
 
-`prod`（以及 `staging`）下 actuator 本身监听管理端口——admin `8089`、web `8091`，可用 `MANAGEMENT_SERVER_PORT` 覆盖。此时业务端口上的 `/actuator/health` 返回 `404`，编排器探针请改用 `/livez` 与 `/readyz`。管理端口不要发布出去。
+`prod`（以及 `staging`）下 actuator 本身监听管理端口——admin `8089`、web `8091`，可在服务的环境变量里用 `MANAGEMENT_SERVER_PORT` 覆盖（compose 文件没有设置它）。Prometheus 抓取的是 8089/8091——改端口时要同时改 `docker/observability/prometheus/prometheus.yml`。此时业务端口上的 `/actuator/health` 返回 `404`，编排器探针请改用 `/livez` 与 `/readyz`。管理端口不要发布出去。
 
 ### Prometheus 指标
 

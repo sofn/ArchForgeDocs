@@ -74,11 +74,12 @@ Prometheus 告警规则位于 `docker/observability/prometheus/rules/archforge.y
 | `DiskSpaceLow` | warning / critical | 磁盘剩余低于 15% / 5%（critical 会抑制 warning） |
 | `DbPoolExhausted` | critical | 有线程在等 JDBC 连接（`hikaricp_connections_pending > 0`）持续 2 分钟 |
 | `DbPoolSaturated` | warning | 连接池忙碌超过 90% 持续 5 分钟 |
-| `ApplicationDown` | critical | Actuator 抓取目标不可用 |
+| `ApplicationDown` | critical | 已发现的 admin/web 抓取目标不再响应（不含 dev 宿主机目标） |
+| `ApplicationMissing` | critical | 一个 admin（或 web）实例都没有在响应——DNS 服务发现会把消失的容器直接摘掉，`ApplicationDown` 看不到这种情况 |
 
 业务错误按响应契约返回 HTTP 200，按状态码的规则看不到它们；改为按业务码计数：`archforge_business_errors_total{code=...}`。
 
-告警发往 `ALERT_WEBHOOK_URL`（在执行 `docker compose` 的环境里设置；Alertmanager 配置是容器启动时渲染的模板）。载荷是 Alertmanager 标准 webhook JSON——企业微信 / 钉钉 / 飞书机器人需要在前面加适配器（如 `prometheus-webhook-dingtalk`），把 `ALERT_WEBHOOK_URL` 指向适配器。不设置时告警照常计算，但不会送达。
+告警发往 `ALERT_WEBHOOK_URL`（在执行 `docker compose` 的环境里设置；Alertmanager 配置是容器启动时渲染的模板）。载荷是 Alertmanager 标准 webhook JSON——企业微信 / 钉钉 / 飞书机器人需要在前面加适配器（如 `prometheus-webhook-dingtalk`），把 `ALERT_WEBHOOK_URL` 指向适配器。不设置时 Alertmanager 启动会打印警告，告警照常计算但不会送达。
 
 ## 分布式 Trace
 

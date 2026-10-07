@@ -12,7 +12,9 @@
 - **权限**：每个管理端处理器都有自己的权限，并且每个被校验的权限码都能通过菜单或按钮授予（定时任务、文件上传/删除、CMS 图片上传以前校验的权限码谁都拿不到）。元表格生成代码需要 `meta-table:generate`；`copy` 返回新的 `tableCode`。
 - **加固**：dev/test 之外 `500` 不再泄露异常细节；staging 必须配置明确的 CORS 来源；API 签名覆盖请求体；移除 `JWT_SECRET`（sa-token，不用 JWT）。
 - **告警**：按应用并带流量门槛的错误率、整堆内存、两级磁盘、数据库连接池耗尽；Alertmanager 投递到 `ALERT_WEBHOOK_URL`；prod/staging 链路采样 10%。
-- **CLI**：`init` 不加 `--write` 时是纯演练。
+- **CLI**：`init` 不加 `--write` 时是纯演练，也不再生成没人读取的 `AES_KEY`。
+- **复审修复**：prod/staging 部署脚本从正确的目录导入种子数据；`docker-compose.prod.yml` 补齐管理端必需的变量；REFERENCE 字段只能关联本表或已登记的元表格；数据范围失败关闭；生成的控制器校验权限；告警新增 `ApplicationMissing`；带点的页面路径也有 CSP；元表格编辑页显示加载到的定义。
+- **请求日志**：`mask-fields` 现在按键名片段匹配（`token` 也会遮住 `accessToken`），见[配置](./configuration.md)。
 
 ## 2026-04
 
