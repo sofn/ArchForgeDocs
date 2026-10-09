@@ -24,7 +24,7 @@ java -version
 
 ### 1. Clone the sibling repositories
 
-Clone them **side by side**. There are five repos: ArchForge, ArchForgeAdmin, ArchForgeWeb, ArchForgeDocs, ArchForgeSpec.
+Clone them **side by side**. There are four repos: ArchForge, ArchForgeAdmin, ArchForgeWeb, ArchForgeDocs (ArchForgeSpec was merged into ArchForge).
 
 ```bash
 # Backend

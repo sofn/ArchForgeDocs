@@ -1,29 +1,32 @@
 # Project Structure
 
-ArchForge is **five independent Git repositories** cloned side by side. The backend itself is a domain-driven, multi-module Gradle build. Every Gradle module name is prefixed with `archforge-`.
+ArchForge is **four independent Git repositories** cloned side by side. The backend is a domain-driven, multi-module
+Gradle build; every Gradle module name is prefixed with `archforge-`. `ArchForge/repos.yaml` is the machine-readable
+version of this page.
 
-## Five sibling repositories
+## Four sibling repositories
 
 ```
 workspace/
-├── ArchForge/          # backend (this Gradle build)
+├── ArchForge/          # backend (admin :8080 + web :8081), the API contract (spec/), AI context (.agents/)
 ├── ArchForgeAdmin/     # admin UI (vue-pure-admin) :8848 → :8080
 ├── ArchForgeWeb/       # C-end UI (Next.js) :3000 → :8081
-├── ArchForgeDocs/      # VitePress documentation
-└── ArchForgeSpec/      # contracts / architecture / AI context
+└── ArchForgeDocs/      # this VitePress site
 ```
 
-There are no git submodules. Contracts live in ArchForgeSpec; this Docs repo only describes them.
+There are no git submodules. The contract lives in the backend repo and is generated from the code; this site only
+describes it. (A fifth repository, ArchForgeSpec, was merged into ArchForge —
+[ADR-0012](https://github.com/sofn/ArchForge/blob/main/docs/adr/0012-sibling-repositories.md).)
 
 ```mermaid
 flowchart LR
-  Spec[ArchForgeSpec]
   Backend[ArchForge]
   Admin[ArchForgeAdmin]
   Web[ArchForgeWeb]
-  Spec --> Backend
-  Spec --> Admin
-  Spec --> Web
+  Docs[ArchForgeDocs]
+  Backend -->|contract| Admin
+  Backend -->|contract| Web
+  Backend -.->|described by| Docs
   Admin -->|8848 to 8080| Backend
   Web -->|3000 to 8081| Backend
 ```
@@ -32,135 +35,97 @@ flowchart LR
 
 ```
 ArchForge/
-├── archforge                         # CLI launcher (`./archforge`)
-├── archforge-cli/                    # picocli developer CLI (independent of Spring)
-├── archforge-common/                 # Shared libraries
-│   ├── archforge-common-base/        # Core utilities
-│   │   └── src/main/java/
-│   │       ├── enums/               # BasicEnum, DictionaryEnum
-│   │       ├── utils/               # Encryption, IP, Jackson, i18n utilities
-│   │       ├── sensitive/           # @Sensitive data masking
-│   │       └── validation/          # Validation annotations
-│   ├── archforge-common-error/       # Error handling
-│   │   └── src/main/java/
-│   │       ├── ErrorCode.java
-│   │       ├── ErrorInfo.java       # {code, message}
-│   │       └── BizException.java
-│   └── archforge-common-jpa/         # JPA infrastructure
-│       └── src/main/java/
-│           ├── repository/          # BaseEntity, JPA converters
-│           ├── utils/query/         # QueryHelp, SafeExpr, AliasExpr
-│           └── annotation/          # @Query
-│
-├── archforge-infrastructure/         # Cross-cutting concerns
-│   └── src/main/java/
-│       ├── annotation/              # @Log, @RepeatSubmit, @RateLimit
-│       ├── auth/                    # Sa-Token: StpAdminUtil, StpWebUtil, LoginContext
-│       ├── config/                  # ArchForgeProperties, Swagger, I18n
-│       ├── file/                    # FileStorageService, adaptive local/S3 storage
-│       ├── web/                     # XssFilter (query/header; skips multipart)
-│       ├── frame/
-│       │   ├── context/             # RequestContext, RequestIDGenerator
-│       │   ├── filters/             # RequestLogFilter
-│       │   ├── response/            # ResultValueWrapper, ErrorExceptionHandle
-│       │   └── interceptor/         # RepeatSubmitInterceptor
-│       └── user/                    # BaseLoginUser, UserProvider SPI
-│
-├── archforge-domain/                 # Business logic modules
-│   ├── archforge-admin-user/         # User / role / menu / dept
-│   ├── archforge-blog/               # Blog bounded context
-│   └── archforge-meta-table/         # Metadata table / codegen
-│
-├── archforge-server-admin/           # Admin API entry point (:8080)
-│   └── src/main/
-│       ├── java/
-│       │   ├── .../Application.java
-│       │   └── controller/          # Login, file, scheduler, monitor, system CRUD
-│       └── resources/
-│           ├── application.yaml
-│           ├── application-dev.yaml
-│           ├── application-test.yaml
-│           ├── application-prod.yaml
-│           ├── db/migration/        # Flyway scripts
-│           └── log4j2-spring.xml
-│
-├── archforge-server-web/             # C-end API entry point (:8081)
-│
-├── archforge-example/
-│   └── archforge-example-task/       # Example bounded context
-│
-├── archforge-starters/               # cache / lock / redisson / trace
-├── archforge-dependencies/           # Centralized BOM (java-platform)
-│
-├── docker/                           # Deployment files
-└── skills/                           # Agent skill snippets
+├── archforge, archforge.bat          # CLI launcher (./archforge)
+├── archforge-cli/                    # picocli developer CLI (no Spring)
+├── archforge-dependencies/           # java-platform BOM — every library version
+├── archforge-common/                 # kernel: no business knowledge
+│   ├── archforge-common-base/        # utilities, enums, encryption, Jackson
+│   ├── archforge-common-error/       # ErrorCode, ErrorInfo, exception hierarchy
+│   └── archforge-common-jpa/         # the single EntityManagerFactory, QueryHelp / SafeExpr,
+│                                     #   Flyway (db/migration/__root + module orchestrator)
+├── archforge-infrastructure/         # sa-token (StpAdminUtil / StpWebUtil), data scope, file storage,
+│                                     #   rate limit, repeat submit, CORS, error handling
+├── archforge-starters/               # cache / lock / redisson / trace / request-log (business-free)
+├── archforge-builtin/                # platform capabilities (L3)
+│   ├── archforge-admin-user/         # users, roles, menus, depts, dict, logs, notices, scheduler jobs
+│   ├── archforge-meta-runtime/       # meta-table model + dynamic CRUD (shipped)
+│   └── archforge-meta-designer/      # meta-table designer, DDL, codegen (design time only)
+├── archforge-module-cms/             # business domain (L4): articles, categories
+├── archforge-module-task/            # business domain (L4): task example
+├── archforge-server-admin/           # admin API :8080 — assembles every module
+├── archforge-server-web/             # C-end API :8081
+├── spec/                             # openapi.yaml (generated), enums.yaml, schemas/
+├── docs/                             # adr/, specs/ (standards), architecture.md
+├── .agents/                          # skills, memory, change records for AI agents
+├── project-definition/meta/          # meta-table definitions as YAML
+└── docker/, scripts/                 # compose files, image variants, deploy scripts
 ```
+
+Every domain module (`archforge-builtin/*`, `archforge-module-*`) has exactly two top-level packages:
+
+- `api` — what other modules may use: domain types, DTOs, service interfaces, error codes;
+- `internal` — implementations, including the Spring Data repositories (`internal.dao`). Other modules never reach
+  in; they call an `api` service ([ADR-0010](https://github.com/sofn/ArchForge/blob/main/docs/adr/0010-repositories-are-internal.md)).
+
+ArchUnit and Spring Modulith enforce both in the build. New business modules come from
+`./archforge module new <name>`, which also registers them in `settings.gradle.kts` and server-admin.
 
 ## Frontend (ArchForgeAdmin)
 
 ```
 ArchForgeAdmin/
 ├── src/
-│   ├── api/                 # API endpoint definitions (Axios)
-│   ├── assets/              # Static assets (images, SVGs)
-│   ├── components/          # Shared Vue components
-│   ├── config/              # App configuration
-│   ├── directives/          # Vue custom directives
-│   ├── layout/              # Page layouts (sidebar, header, tabs)
-│   ├── plugins/             # Plugin registrations (Element Plus, i18n)
-│   ├── router/              # Vue Router configuration
-│   ├── store/               # Pinia state stores
-│   ├── utils/               # Utility functions (auth, http, hasPerms)
-│   ├── views/               # Page components
-│   └── App.vue
-├── Dockerfile
-├── vite.config.ts
-└── package.json
+│   ├── api/                 # API calls (Axios, base URL /api)
+│   ├── components/          # shared components (ReDialog, ReIcon, …)
+│   ├── directives/          # v-perms and friends
+│   ├── layout/              # sidebar, header, tabs
+│   ├── router/              # static routes + routes from the backend
+│   ├── store/               # Pinia
+│   ├── types/schema.d.ts    # generated from ArchForge spec/openapi.yaml (pnpm gen:api)
+│   ├── utils/               # auth, http, hasPerms, latestRequest
+│   └── views/               # pages
+├── locales/                 # i18n
+└── vite.config.ts           # dev server :8848, proxy /api → :8080
 ```
-
-Dev server: `http://localhost:8848`, proxying to `http://localhost:8080`.
 
 ## C-end (ArchForgeWeb)
 
-Next.js App Router application. Dev server: `http://localhost:3000`, talking to `http://localhost:8081`. Details: [C-end Web](./c-end-web.md).
+Next.js App Router application in `apps/web` (pnpm + Turborepo). Dev server `http://localhost:3000`, talking to
+`http://localhost:8081`; its `src/types/schema.d.ts` is generated from the contract as well. Details:
+[C-end Web](./c-end-web.md).
 
-## Module Dependencies
+## Module dependencies
 
 ```
 archforge-server-admin / archforge-server-web
-  ├── archforge-infrastructure
-  │     ├── archforge-common-base
-  │     ├── archforge-common-jpa
-  │     └── archforge-common-error
-  └── archforge-domain/*
-        ├── archforge-common-base
-        ├── archforge-common-jpa
-        └── archforge-common-error
+  ├── archforge-module-* / archforge-builtin/*   (through their api packages only)
+  └── archforge-infrastructure
+        └── archforge-common/{base, error, jpa}, archforge-starters/*
 ```
 
-The dependency flow is strictly top-down: server modules depend on infrastructure and domain modules, but domain modules never depend on the web layer.
-
-Gradle task names use the prefixed project path:
+Dependencies point down: kernel (`common`, `infrastructure`) never depends on modules or servers, built-in modules
+never depend on business modules, and starters stay business-free.
 
 ```bash
 ./gradlew :archforge-server-admin:bootRun
 ./gradlew :archforge-server-web:bootRun
-./gradlew :archforge-server-admin:test
-./gradlew :archforge-cli:shadowJar
+./gradlew verify            # every gate across all modules
 ```
 
-## Key Design Decisions
+## Key design decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| Five sibling repos | Independent release cadence for backend, admin, web, docs, contracts |
-| `archforge-` Gradle prefix | Avoids colliding module names and matches published artifact IDs |
-| `archforge-dependencies/` BOM | Single source of truth for library versions |
-| Domain per bounded context | `archforge-admin-user` can be replaced or extended independently |
-| Split common modules | Utilities, errors, and persistence stay isolated |
-| Flyway scripts in `archforge-server-admin/resources/` | Migrations deploy with the admin app |
-| Separate `archforge-infrastructure/` | Auth, filters, file storage, i18n, and config are reusable |
-| Dual servers | Admin (`:8080`, `{code,message,data}`) vs web (`:8081`, ProblemDetail) |
+The decisions behind this layout are recorded as ADRs in
+[`ArchForge/docs/adr`](https://github.com/sofn/ArchForge/tree/main/docs/adr) — see the [ADR index](../reference/adr/).
+
+| Decision | ADR |
+|----------|-----|
+| Domain modules: `api` + `internal` only | 0001 |
+| One EntityManagerFactory per datasource group | 0002 |
+| Two server processes (admin / web), all-in-one image | 0006 |
+| Repositories are internal | 0010 |
+| sa-token instead of Spring Security JWT | 0011 |
+| Four sibling repositories | 0012 |
+| JPA + static metamodel instead of MyBatis | 0013 |
 
 ## Related Pages
 

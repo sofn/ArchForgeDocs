@@ -85,7 +85,7 @@ Alerts are delivered to `ALERT_WEBHOOK_URL` (set it in the environment of `docke
 
 1. Trigger a request against the backend.
 2. Open Grafana → Explore → `Jaeger` datasource.
-3. Search by service name `ArchForge` or paste a `traceId`.
+3. Search by service name — `ArchForge` (admin) or `server-web` (C-end) — or paste a `traceId`. staging/prod sample 10% of requests by default (`SAMPLING_PROBABILITY`), both applications.
 
 You can also use the standalone Jaeger UI at http://localhost:16686.
 

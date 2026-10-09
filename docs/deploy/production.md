@@ -11,7 +11,7 @@ A checklist and guide for deploying ArchForge to a production environment.
 | 3 | Change PostgreSQL password | **Critical** | Use a strong password |
 | 4 | Enable captcha | High | Set `arch-forge.captcha.enabled: true` |
 | 5 | Configure PostgreSQL (master/slave) | High | Set up replication if needed |
-| 6 | Configure Redis | High | Dedicated instance **with a password** — `REDIS_PASSWORD` (`docker-compose.prod.yml` starts Redis with `--requirepass` and fails without it) |
+| 6 | Configure Redis | High | Dedicated instance **with a password** — `REDIS_PASSWORD` (`docker-compose.prod.yml` and `docker-compose.staging.yml` start Redis with `--requirepass` and fail without it) |
 | 7 | Enable Flyway | High | Set `arch-forge.flyway.enabled: true` |
 | 8 | Set JPA DDL to validate | High | `spring.jpa.hibernate.ddl-auto: validate` |
 | 9 | Configure HTTPS | High | Terminate SSL at Nginx or load balancer |

@@ -4,11 +4,11 @@ ArchForge is written so an agent can start without tribal knowledge. Humans and 
 
 ## Start here
 
-1. Clone the five repos **side by side**. No submodules.
-2. Read `../ArchForgeSpec/repos.yaml` (machine map).
-3. Read `../ArchForgeSpec/architecture.md` (ports and envelopes).
+1. Clone the four repos **side by side**. No submodules.
+2. Read `ArchForge/repos.yaml` (machine map).
+3. Read `ArchForge/docs/architecture.md` (ports and envelopes).
 4. Open the current repo's `AGENTS.md` / `CLAUDE.md`.
-5. Load **one** skill from `../ArchForgeSpec/skills/index.yaml`.
+5. Load **one** skill from `ArchForge/.agents/skills/index.yaml`.
 
 Do not load every skill. Progressive disclosure keeps context small.
 
@@ -16,11 +16,10 @@ Do not load every skill. Progressive disclosure keeps context small.
 
 | Repo | What an agent should know |
 |------|---------------------------|
-| ArchForge | Java 25, Gradle, sa-token, two servers, Spotless. Contract sync: OpenAPI in Spec. |
+| ArchForge | Java 25, Gradle, sa-token, two servers, Spotless. Owns the contract: `spec/openapi.yaml` is generated (`./gradlew generateOpenApi`). |
 | ArchForgeAdmin | Vue 3 admin on `:8848`, `/api` → `:8080`. `{code,message,data}`. |
 | ArchForgeWeb | Next.js C-end on `:3000` → `:8081`. ProblemDetail errors. Locale prefix `/en` `/zh`. |
 | ArchForgeDocs | VitePress only. Describe, do not invent APIs. |
-| ArchForgeSpec | Constitution. Change this first when a contract does not fit. |
 
 ## CLI and MCP
 
@@ -36,7 +35,7 @@ From the backend repo:
 
 ## Cross-repo change
 
-Use the Spec skill `cross-repo-change` when an enum, path, or OpenAPI shape moves. Order: Spec → backend → clients. See [contract-first](./contract-first.md).
+When an enum, path, or OpenAPI shape moves: change the backend and regenerate `spec/` first, then the clients (`pnpm gen:api`). See [contract-first](./contract-first.md) and each repo's `CONTRIBUTING.md`.
 
 ## Bootstrap
 

@@ -1,6 +1,6 @@
 # What is ArchForge?
 
-ArchForge is a **contract-first** enterprise platform split across **five sibling Git repositories**: a Spring Boot 4.1 backend, a Vue 3 admin UI, a Next.js C-end, this VitePress site, and a Spec repo that AI agents read first.
+ArchForge is a **contract-first** enterprise platform split across **four sibling Git repositories**: a Spring Boot 4.1 backend that also owns the API contract and the AI context agents read first, a Vue 3 admin UI, a Next.js C-end, and this VitePress site.
 
 It is not “another RuoYi with a newer JDK”. The product bet is **shared constitution + dual servers + AI-native docs**.
 
@@ -8,7 +8,7 @@ It is not “another RuoYi with a newer JDK”. The product bet is **shared cons
 
 Java admin templates still win on feature count. ArchForge wins on **how work is specified**:
 
-- A Spec repo (`repos.yaml`, OpenAPI, enums, skills) that humans and agents share
+- One source of truth in the backend repo (`repos.yaml`, generated OpenAPI, enums, skills) that humans and agents share
 - Two Spring Boot apps with two auth realms and two error envelopes
 - DDD modules with Spring Modulith **2.1.0** boundary checks
 - Per-repo `AGENTS.md` and a CLI that can install skills / speak MCP
@@ -25,28 +25,25 @@ Version numbers move. yudao (RuoYi-Vue-Pro) already ships Spring Boot 4.1 + JDK 
 - **Flyway 12.4.0**, dynamic datasource, OpenTelemetry **1.62.0**
 - **Spring Modulith 2.1.0** — module boundaries and documentation tests
 
-## Five sibling repositories
+## Four sibling repositories
 
 Clone them **side by side**. No git submodules.
 
 ```
 workspace/
-├── ArchForge/          # backend: admin :8080 + web :8081
+├── ArchForge/          # backend (admin :8080 + web :8081) + contract (spec/) + AI context (.agents/)
 ├── ArchForgeAdmin/     # admin client — consumes :8080
 ├── ArchForgeWeb/       # C-end — consumes :8081
-├── ArchForgeDocs/      # this site
-└── ArchForgeSpec/      # contracts / architecture / AI context
+└── ArchForgeDocs/      # this site
 ```
 
 ```mermaid
 flowchart LR
-  Spec[ArchForgeSpec]
   Backend[ArchForge]
   Admin[ArchForgeAdmin]
   Web[ArchForgeWeb]
-  Spec --> Backend
-  Spec --> Admin
-  Spec --> Web
+  Backend -->|contract| Admin
+  Backend -->|contract| Web
   Admin -->|8848 to 8080| Backend
   Web -->|3000 to 8081| Backend
 ```
@@ -57,7 +54,6 @@ flowchart LR
 | [ArchForgeAdmin](https://github.com/sofn/ArchForgeAdmin) | Admin UI | `pnpm dev` → `http://localhost:8848` |
 | [ArchForgeWeb](https://github.com/sofn/ArchForgeWeb) | C-end UI | `pnpm dev` → `http://localhost:3000/en` |
 | [ArchForgeDocs](https://github.com/sofn/ArchForgeDocs) | Docs | `npm run docs:dev` |
-| [ArchForgeSpec](https://github.com/sofn/ArchForgeSpec) | Constitution | Read-only until a contract must change |
 
 API envelopes:
 
@@ -70,12 +66,12 @@ Comparison data dated **2026-04**. Competitor versions change; check their chang
 
 | Dimension | ArchForge | Typical Java admin templates |
 |-----------|-----------|------------------------------|
-| Source of truth | Dedicated Spec repo + OpenAPI + enums.yaml | Wiki / scattered Swagger |
-| Layout | Five sibling Git repos, no submodules | One monorepo or backend+UI pair |
+| Source of truth | OpenAPI generated from the code + enums.yaml, checked by client CI | Wiki / scattered Swagger |
+| Layout | Four sibling Git repos, no submodules | One monorepo or backend+UI pair |
 | Auth | sa-token, two realms | Spring Security JWT, one realm |
 | Errors | Dual envelope (admin wrap vs ProblemDetail) | One `{code,msg,data}` everywhere |
 | Domain | DDD modules + Modulith 2.1.0 | Layered packages + MyBatis XML |
-| Agents | AGENTS.md, Spec skills, CLI MCP | Optional README |
+| Agents | AGENTS.md, skills, CLI MCP | Optional README |
 | Runtime | Spring Boot 4.1 + JDK 25 (same class as yudao `master-jdk25`) | Mix of Boot 2/3/4 depending on branch |
 
 ## Who is it for?

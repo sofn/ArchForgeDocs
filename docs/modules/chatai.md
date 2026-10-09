@@ -49,4 +49,4 @@ Rate limit: `@RateLimit` 20 messages / minute / user on send.
 ## Related
 
 - UI: `ArchForgeAdmin` ChatAI page.
-- Errors: `CHAT_AI` module (`107xx`) in `ArchForgeSpec/specs/error-codes.md`.
+- Errors: `CHAT_AI` module (`107xx`) in `ArchForge/docs/specs/error-codes.md`.

@@ -1,6 +1,6 @@
 # 什么是 ArchForge？
 
-ArchForge 是一套 **契约先行** 的企业级平台，拆成 **五个并列 Git 仓库**：Spring Boot 4.1 后端、Vue 3 管理端、Next.js C 端、本 VitePress 站点，以及 AI Agent 最先读的 Spec 仓。
+ArchForge 是一套 **契约先行** 的企业级平台，拆成 **四个并列 Git 仓库**：Spring Boot 4.1 后端（同时拥有 API 契约和 AI Agent 最先读的上下文）、Vue 3 管理端、Next.js C 端、本 VitePress 站点。
 
 它不是「换了新 JDK 的 RuoYi」。产品赌注是 **共享宪法 + 双服务 + AI 原生文档**。
 
@@ -8,7 +8,7 @@ ArchForge 是一套 **契约先行** 的企业级平台，拆成 **五个并列 
 
 Java 管理模板仍然靠功能数量取胜。ArchForge 靠 **工作如何被规定** 取胜：
 
-- Spec 仓（`repos.yaml`、OpenAPI、枚举、skills）人和 Agent 共用
+- 后端仓里唯一的事实源（`repos.yaml`、生成的 OpenAPI、枚举、skills），人和 Agent 共用
 - 两套 Spring Boot 应用、两套登录域、两套错误信封
 - DDD 模块 + Spring Modulith **2.1.0** 边界检查
 - 每仓 `AGENTS.md`，CLI 可安装 skill / 作为 MCP
@@ -25,28 +25,25 @@ Java 管理模板仍然靠功能数量取胜。ArchForge 靠 **工作如何被�
 - **Flyway 12.4.0**、动态数据源、OpenTelemetry **1.62.0**
 - **Spring Modulith 2.1.0** — 模块边界与文档测试
 
-## 五个并列仓库
+## 四个并列仓库
 
 **并列克隆**。没有 git submodule。
 
 ```
 workspace/
-├── ArchForge/          # 后端：admin :8080 + web :8081
+├── ArchForge/          # 后端（admin :8080 + web :8081）+ 契约（spec/）+ AI 上下文（.agents/）
 ├── ArchForgeAdmin/     # 管理端 — 调用 :8080
 ├── ArchForgeWeb/       # C 端 — 调用 :8081
-├── ArchForgeDocs/      # 本文档
-└── ArchForgeSpec/      # 契约 / 架构 / AI 上下文
+└── ArchForgeDocs/      # 本文档
 ```
 
 ```mermaid
 flowchart LR
-  Spec[ArchForgeSpec]
   Backend[ArchForge]
   Admin[ArchForgeAdmin]
   Web[ArchForgeWeb]
-  Spec --> Backend
-  Spec --> Admin
-  Spec --> Web
+  Backend -->|契约| Admin
+  Backend -->|契约| Web
   Admin -->|8848 to 8080| Backend
   Web -->|3000 to 8081| Backend
 ```
@@ -57,7 +54,6 @@ flowchart LR
 | [ArchForgeAdmin](https://github.com/sofn/ArchForgeAdmin) | 管理端 UI | `pnpm dev` → `http://localhost:8848` |
 | [ArchForgeWeb](https://github.com/sofn/ArchForgeWeb) | C 端 UI | `pnpm dev` → `http://localhost:3000/en` |
 | [ArchForgeDocs](https://github.com/sofn/ArchForgeDocs) | 文档 | `npm run docs:dev` |
-| [ArchForgeSpec](https://github.com/sofn/ArchForgeSpec) | 宪法 | 契约不变时只读 |
 
 API 信封：
 
@@ -70,12 +66,12 @@ API 信封：
 
 | 维度 | ArchForge | 常见 Java 管理模板 |
 |------|-----------|--------------------|
-| 事实源 | 独立 Spec 仓 + OpenAPI + enums.yaml | Wiki / 零散 Swagger |
-| 布局 | 五个并列 Git 仓，无 submodule | 一个 monorepo 或后端+UI |
+| 事实源 | 由代码生成的 OpenAPI + enums.yaml，客户端 CI 校验 | Wiki / 零散 Swagger |
+| 布局 | 四个并列 Git 仓，无 submodule | 一个 monorepo 或后端+UI |
 | 认证 | sa-token，两个登录域 | Spring Security JWT，一个域 |
 | 错误 | 双信封（管理端包装 vs ProblemDetail） | 到处 `{code,msg,data}` |
 | 领域 | DDD 模块 + Modulith 2.1.0 | 分层包 + MyBatis XML |
-| Agent | AGENTS.md、Spec skills、CLI MCP | 可选 README |
+| Agent | AGENTS.md、skills、CLI MCP | 可选 README |
 | 运行时 | Spring Boot 4.1 + JDK 25（与芋道 `master-jdk25` 同一档） | 视分支混用 Boot 2/3/4 |
 
 ## 适用人群

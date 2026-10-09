@@ -85,7 +85,7 @@ Prometheus 告警规则位于 `docker/observability/prometheus/rules/archforge.y
 
 1. 发起一次后端请求。
 2. 打开 Grafana → Explore → `Jaeger` 数据源。
-3. 按服务名 `ArchForge` 或 `traceId` 搜索。
+3. 按服务名搜索——`ArchForge`（管理端）或 `server-web`（C 端）——或者粘贴 `traceId`。staging/prod 两个应用默认都按 10% 采样（`SAMPLING_PROBABILITY`）。
 
 也可直接使用 Jaeger UI：http://localhost:16686。
 

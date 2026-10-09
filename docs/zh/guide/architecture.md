@@ -1,10 +1,10 @@
 # 系统架构
 
-ArchForge 由五个并列 Git 仓库组成。本页说明**各部分如何协作**：一次请求如何穿过后端、CI 用哪些门禁保证实现不偏离契约。
+ArchForge 由四个并列 Git 仓库组成。本页说明**各部分如何协作**：一次请求如何穿过后端、CI 用哪些门禁保证实现不偏离契约。
 
 ## 系统上下文
 
-一套后端代码构建两个 Spring Boot 应用，各自拥有独立的 sa-token 认证域与响应风格。Spec 仓库是共同"宪法"——它的 OpenAPI 与枚举登记表通过生成的 TypeScript 喂给两个前端。
+一套后端代码构建两个 Spring Boot 应用，各自拥有独立的 sa-token 认证域与响应风格。契约归后端所有：它生成的 OpenAPI 与枚举登记表（`spec/`）通过生成的 TypeScript 喂给两个前端。
 
 ```mermaid
 flowchart LR
@@ -18,13 +18,14 @@ flowchart LR
   end
   PG[("PostgreSQL 17")]
   RD[("Redis 7")]
-  SPEC["ArchForgeSpec<br/>OpenAPI · enums.yaml · rules"]
+  SPEC["ArchForge spec/<br/>openapi.yaml（生成）· enums.yaml"]
 
   A -->|"REST /api（vite 代理）"| SA
   W -->|"REST + SSE"| SW
   SA --> PG & RD
   SW --> PG & RD
-  SPEC -. "openapi.yaml —— 破坏性变更门禁" .-> SA
+  SA -. "generateOpenApi" .-> SPEC
+  SW -. "generateOpenApi" .-> SPEC
   SPEC -. "schema.d.ts + enums.generated.ts" .-> A
   SPEC -. "schema.d.ts + enums.generated.ts" .-> W
 ```
@@ -104,17 +105,14 @@ flowchart TD
 
 ## 契约先行工作流
 
-契约永远先改 Spec 仓库；代码随后跟上。下面每条箭头的终点都是一个 CI 门禁：
+契约的源头是后端：`spec/openapi.yaml` 由运行中的代码生成，和引起它变化的改动一起提交。下面每条箭头的终点都是一个 CI 门禁：
 
 ```mermaid
 flowchart LR
-  subgraph spec["ArchForgeSpec"]
-    OAS["api/openapi.yaml"]
-    ENUMS["enums/enums.yaml"]
-    ERRC["specs/error-codes.md"]
-  end
-  subgraph be["ArchForge 后端"]
-    LIVE["live springdoc JSON"]
+  subgraph be["ArchForge"]
+    LIVE["live springdoc（admin + web）"]
+    OAS["spec/openapi.yaml"]
+    ENUMS["spec/enums.yaml"]
     CODES["ErrorCode 枚举"]
   end
   subgraph fe["Web + Admin"]
@@ -122,15 +120,17 @@ flowchart LR
     ENUMTS["enums.generated.ts"]
   end
 
+  LIVE -->|"generateOpenApi + git diff"| GATE0["契约新鲜度门禁"]
+  LIVE -->|"oasdiff breaking"| GATE3["无破坏性变更门禁"]
+  OAS -->|"redocly lint"| GATE5["契约 lint"]
   OAS -->|"gen:api"| SDKT
   ENUMS -->|"gen-enums.mjs"| ENUMTS
   SDKT -->|"git diff --exit-code"| GATE1["sdk-sync 门禁"]
   ENUMTS -->|"git diff --exit-code"| GATE2["enum-sync 门禁"]
-  LIVE -->|"oasdiff breaking"| GATE3["无破坏性变更门禁"]
   CODES -->|"check-error-codes.py"| GATE4["错误码登记门禁"]
 ```
 
-新增或修改接口的路径：先改 `openapi.yaml` → 在 controller/service 后面实现 → 用 `OpenApiSnapshotTest` 导出 live springdoc 文档 → 让 `oasdiff` 证明对既有消费方零破坏。
+新增或修改接口：在 controller/service 后面实现 → 执行 `./gradlew generateOpenApi` 并提交重新生成的 `spec/openapi.yaml`；文件过期时 CI 失败，`oasdiff` 证明对既有消费方零破坏。随后客户端重新生成类型（`pnpm gen:api`）。
 
 ## 部署拓扑
 

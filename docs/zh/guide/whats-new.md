@@ -14,6 +14,11 @@
 - **告警**：按应用并带流量门槛的错误率、整堆内存、两级磁盘、数据库连接池耗尽；Alertmanager 投递到 `ALERT_WEBHOOK_URL`；prod/staging 链路采样 10%。
 - **CLI**：`init` 不加 `--write` 时是纯演练，也不再生成没人读取的 `AES_KEY`。
 - **复审修复**：prod/staging 部署脚本从正确的目录导入种子数据；`docker-compose.prod.yml` 补齐管理端必需的变量；REFERENCE 字段只能关联本表或已登记的元表格；数据范围失败关闭；生成的控制器校验权限；告警新增 `ApplicationMissing`；带点的页面路径也有 CSP；元表格编辑页显示加载到的定义。
+- **结构**：Repository 属于模块内部，其他模块通过 api 服务读取（[ADR-0010](https://github.com/sofn/ArchForge/blob/main/docs/adr/0010-repositories-are-internal.md)）。删除未使用的 `common.constant.Constants`。module-task、admin-user 补了测试并提高覆盖率地板。
+- **运维**：staging 的 Redis 与 prod 一样必须设置 `REDIS_PASSWORD`；server-web 的链路按比例采样、服务名为 `server-web`；请求日志 IP 只信任可信代理；CI 额外按 prod 拓扑启动（管理端口、探针）。
+- **元表格**：字段长度 / 精度 / 小数位与 ARRAY 元素类型在执行 DDL 前校验。
+- **管理端**：删除 xlsx / mqtt 演示页及两个依赖（已知漏洞且无修复版本）。
+- **流程**：只保留一套 ADR（[ArchForge/docs/adr](https://github.com/sofn/ArchForge/tree/main/docs/adr)），每个仓库都有 `CONTRIBUTING.md`，CI 统一为 trunk-based。
 - **请求日志**：`mask-fields` 现在按键名片段匹配（`token` 也会遮住 `accessToken`），见[配置](./configuration.md)。
 
 ## 2026-04

@@ -24,7 +24,7 @@ java -version
 
 ### 1. 并列克隆仓库
 
-五个仓库需 **并列克隆**：ArchForge、ArchForgeAdmin、ArchForgeWeb、ArchForgeDocs、ArchForgeSpec。
+四个仓库需 **并列克隆**：ArchForge、ArchForgeAdmin、ArchForgeWeb、ArchForgeDocs（ArchForgeSpec 已并入 ArchForge）。
 
 ```bash
 # 后端

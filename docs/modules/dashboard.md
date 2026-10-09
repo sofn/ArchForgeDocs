@@ -27,9 +27,11 @@ Typical `data`:
   "userCount": 12,
   "articleCount": 40,
   "metaTableCount": 3,
-  "taskCount": 8
+  "taskCount": 0
 }
 ```
+
+`taskCount` is always `0` for now — no task source is wired into the dashboard yet.
 
 `trends` accepts `days` (default 7). The Welcome page charts that series.
 
@@ -41,5 +43,5 @@ There is no hosted screenshot set in this repo. Run Admin locally on `:8848` wit
 
 ## Related
 
-- Permission: typically `dashboard:view` (see Flyway `V17`).
-- Contract: `ArchForgeSpec/api/openapi.yaml` (`/admin/dashboard/*`).
+- Permission: every endpoint checks `dashboard:view` (seeded by Flyway `V17`).
+- Contract: `ArchForge/spec/openapi.yaml` (`/admin/dashboard/*`).

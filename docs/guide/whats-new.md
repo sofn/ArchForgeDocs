@@ -14,6 +14,11 @@ Manual changelog for the documentation site. Data as of **2026-10**.
 - **Alerts**: per-application error rate with a traffic floor, whole-heap memory, two disk tiers, DB pool exhaustion; Alertmanager delivers to `ALERT_WEBHOOK_URL`; prod/staging sample 10% of traces.
 - **CLI**: `init` without `--write` is a pure dry-run, and it no longer generates an `AES_KEY` nothing reads.
 - **Re-review fixes**: the prod/staging deploy scripts seed from the right directory; `docker-compose.prod.yml` passes every variable the admin requires; REFERENCE columns can only join the table itself or a registered meta table; data scope fails closed; generated controllers check permissions; the alert set gains `ApplicationMissing`; dotted page paths get their CSP; the meta-table edit page shows the loaded definition.
+- **Structure**: repositories are module-internal; other modules read through api services ([ADR-0010](https://github.com/sofn/ArchForge/blob/main/docs/adr/0010-repositories-are-internal.md)). `common.constant.Constants` was removed (unused). module-task and admin-user got real tests and higher coverage floors.
+- **Ops**: staging Redis requires `REDIS_PASSWORD` like prod; server-web traces are sampled and named `server-web`; the request-log IP honours trusted proxies; CI also boots the prod topology (management port, probes).
+- **Meta-table**: column length / precision / scale and ARRAY element types are validated before any DDL runs.
+- **Admin**: the xlsx / mqtt demo pages and both dependencies are gone (known vulnerabilities, no fixed release).
+- **Process**: one ADR series ([ArchForge/docs/adr](https://github.com/sofn/ArchForge/tree/main/docs/adr)), `CONTRIBUTING.md` in every repository, trunk-based CI everywhere.
 - **Request log**: `mask-fields` entries are key fragments now (`token` also masks `accessToken`), see [Configuration](./configuration.md).
 
 ## 2026-04

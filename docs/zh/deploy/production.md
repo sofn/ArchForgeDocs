@@ -11,7 +11,7 @@ ArchForge 生产环境部署的检查清单与指南。
 | 3 | 更换 PostgreSQL 密码 | **关键** | 使用强密码 |
 | 4 | 启用验证码 | 高 | 设置 `arch-forge.captcha.enabled: true` |
 | 5 | 配置 PostgreSQL（主/从） | 高 | 按需设置数据库复制 |
-| 6 | 配置 Redis | 高 | 使用独立实例并**设置密码**——`REDIS_PASSWORD`（`docker-compose.prod.yml` 以 `--requirepass` 启动 Redis，不设置就起不来） |
+| 6 | 配置 Redis | 高 | 使用独立实例并**设置密码**——`REDIS_PASSWORD`（`docker-compose.prod.yml` 与 `docker-compose.staging.yml` 都以 `--requirepass` 启动 Redis，不设置就起不来） |
 | 7 | 启用 Flyway | 高 | 设置 `arch-forge.flyway.enabled: true` |
 | 8 | 设置 JPA DDL 为 validate | 高 | `spring.jpa.hibernate.ddl-auto: validate` |
 | 9 | 配置 HTTPS | 高 | 在 Nginx 或负载均衡器处终止 SSL |

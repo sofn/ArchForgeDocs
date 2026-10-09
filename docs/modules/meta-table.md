@@ -41,7 +41,7 @@ Meta tables support the following column types:
 
 Each column can be configured with:
 
-- **Length / precision / scale** — for string, decimal, and array element sizing
+- **Length / precision / scale** — for string, decimal, and array element sizing. Validated against PostgreSQL's limits: length ≤ 10485760, precision ≤ 1000, 0 ≤ scale ≤ precision (18 when unset); an ARRAY element type must be STRING, INTEGER, DECIMAL or BOOLEAN
 - **Nullable / required** — controls `NOT NULL`
 - **Default value** — checked against the column type before any DDL runs: numbers are parsed and re-printed, text is quoted; a value that does not fit the type is rejected
 - **Unique** — enforces unique values
