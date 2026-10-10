@@ -98,6 +98,7 @@ db-scheduler 自身的单表（由迁移 V23 创建）：每个任务实例一�
 
 - 所有管理接口要求 `ADMIN` 角色及 `system:scheduler-job:*` 权限（以前校验的 `monitor:job:*` 从来没有菜单授予过）。
 - 反射调用仅限名单内 Bean 的公有声明方法——通过 `arch-forge.scheduler.allowed-job-beans` 配置。
+- `arch-forge.scheduler.enabled`（默认 `true`）：设为 `false` 时该进程不加入 db-scheduler 集群——CLI 的一次性 `meta` 进程会传这个值，避免接走到期任务；此时任务管理接口会拒绝操作。
 
 ## 相关页面
 

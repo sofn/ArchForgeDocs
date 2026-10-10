@@ -277,6 +277,7 @@ management:
 - `staging` 与 `prod` 把 `include-request-payload`、`include-response-payload` 设为 `false`——请求/响应体里有会话 token 和个人信息。
 - 超过 64 KB（或更大的 `max-payload-length`）的载荷只记录长度。
 - 每行日志都带 `[traceId,requestId]`，把 traceId 粘到 Jaeger / Grafana 就能打开这次请求的链路。
+- 脱敏是一次线性扫描，写日志出错也不会改变响应。每个请求只记录一次——异常逃出过滤链时由随后的 `/error` 转发记录最终状态码。
 - 日志里的客户端 IP 只信任 `arch-forge.security.trusted-proxies`（与限流共用这份名单）转发来的头：在这些代理之后，取 `X-Forwarded-For` 里代理没有追加的最右一个地址；否则取对端地址。客户端没法自己决定写进日志的 IP。
 
 ## 相关页面

@@ -36,7 +36,7 @@ java --enable-preview -jar archforge-cli/build/libs/archforge-cli.jar --help
 | `./archforge build [--profile dev]` | `bootBuildImage` for admin + web; optional frontend Docker images. |
 | `./archforge docker up\|down [--profile dev]` | Start deps, migrate, then bring compose services up / down. |
 | `./archforge doctor` | Check the local environment (JDK 25, Docker / Compose, Node / pnpm, ports, `.env`). Prints `[ OK ]` / `[FAIL]` lines (ASCII, readable on any console) and exits 1 when something fails. |
-| `./archforge meta export\|import\|check [--dir <dir>] [--table <code>]` | Meta-table definition files ↔ DB. `import` is a dry-run unless `--apply`. `check` exits 1 on drift **and** when a registered table has no physical table — the sync never runs DDL. |
+| `./archforge meta export\|import\|check [--dir <dir>] [--table <code>]` | Meta-table definition files ↔ DB. `import` is a dry-run unless `--apply`. `check` exits 1 on drift **and** when a registered table has no physical table — the sync never runs DDL. The one-shot process starts no web server and no scheduler, so it is safe next to a running server. |
 | `./archforge skills install\|update\|remove --tool <claude\|codex\|cursor\|devin>` | Install or remove agent skill snippets. |
 | `./archforge skills list` | List supported AI tools. |
 | `./archforge --mcp` | Start the MCP stdio server. |

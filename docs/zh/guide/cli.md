@@ -36,7 +36,7 @@ java --enable-preview -jar archforge-cli/build/libs/archforge-cli.jar --help
 | `./archforge build [--profile dev]` | 为 admin + web 执行 `bootBuildImage`；可选构建前端镜像。 |
 | `./archforge docker up\|down [--profile dev]` | 启动依赖、迁移，再拉起 / 停止 compose 服务。 |
 | `./archforge doctor` | 检查本地环境（JDK 25、Docker / Compose、Node / pnpm、端口、`.env`）。输出 `[ OK ]` / `[FAIL]`（纯 ASCII，任何控制台都能正常显示），有失败项时退出码为 1。 |
-| `./archforge meta export\|import\|check [--dir <dir>] [--table <code>]` | 元表格定义文件 ↔ 数据库。`import` 不加 `--apply` 只做演练。`check` 在出现漂移、**以及**登记了但物理表不存在时退出码为 1——同步本身从不执行 DDL。 |
+| `./archforge meta export\|import\|check [--dir <dir>] [--table <code>]` | 元表格定义文件 ↔ 数据库。`import` 不加 `--apply` 只做演练。`check` 在出现漂移、**以及**登记了但物理表不存在时退出码为 1——同步本身从不执行 DDL。这个一次性进程不启动 Web 服务也不启动调度器，可以和运行中的服务同时用。 |
 | `./archforge skills install\|update\|remove --tool <claude\|codex\|cursor\|devin>` | 安装或移除 AI skill 片段。 |
 | `./archforge skills list` | 列出支持的 AI 工具。 |
 | `./archforge --mcp` | 启动 MCP stdio 服务。 |

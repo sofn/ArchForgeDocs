@@ -98,6 +98,7 @@ Every endpoint checks a `system:scheduler-job:*` permission: `list` (the menu it
 
 - All management endpoints require the `ADMIN` role plus a `system:scheduler-job:*` permission (they used to check `monitor:job:*`, which no menu ever granted).
 - Reflective dispatch is restricted to allowlisted beans with a public declared method — configure via `arch-forge.scheduler.allowed-job-beans`.
+- `arch-forge.scheduler.enabled` (default `true`): `false` keeps a process out of the db-scheduler cluster — the CLI's one-shot `meta` processes pass it so they never pick up due jobs; job management APIs then refuse.
 
 ## Related Pages
 

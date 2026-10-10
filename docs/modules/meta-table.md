@@ -30,9 +30,9 @@ Meta tables support the following column types:
 | DATE | `DATE` | Calendar date |
 | DATETIME | `TIMESTAMP` | Without timezone |
 | TIMESTAMPTZ | `TIMESTAMPTZ` | With timezone |
-| ENUM | `VARCHAR(length)` | Options stored as JSON list |
-| JSON | `JSONB` | JSON documents |
-| GEO | `JSONB` | Geographic/JSON data |
+| ENUM | `VARCHAR(length)` | Values must be items of the column's dictionary (`dictCode`) |
+| JSON | `JSONB` | JSON documents — send an object / array, or JSON text |
+| GEO | `JSONB` | `{"lat": …, "lng": …}` (object or JSON text) |
 | FILE | `VARCHAR(512)` | File reference |
 | UUID | `UUID` | UUID values |
 | ARRAY | `element_type[]` | Arrays of STRING, INTEGER, DECIMAL, or BOOLEAN |
@@ -44,12 +44,12 @@ Each column can be configured with:
 - **Length / precision / scale** — for string, decimal, and array element sizing. Validated against PostgreSQL's limits: length ≤ 10485760, precision ≤ 1000, 0 ≤ scale ≤ precision (18 when unset); an ARRAY element type must be STRING, INTEGER, DECIMAL or BOOLEAN
 - **Nullable / required** — controls `NOT NULL`
 - **Default value** — checked against the column type before any DDL runs: numbers are parsed and re-printed, text is quoted; a value that does not fit the type is rejected
-- **Unique** — enforces unique values
+- **Unique** — enforces unique values among non-deleted rows; a duplicate is a validation error (`10408`, `<column> 的值已存在`), not a server error
 - **Index / index type / index group** — single or composite indexes (`BTREE`, `GIN`, `GIST`, `FULLTEXT`)
 - **Searchable** — exposed in the data list search form
 - **List visible** — shown in the data grid by default
 - **Tenant / owner column** — flags for multi-tenant or row-owner semantics
-- **Options** — for ENUM type value lists
+- **Dictionary** — ENUM values are checked against the column's dictionary; a missing or empty dictionary rejects every write (fail-closed). Legacy inline options still count when the dictionary has not been created
 - **Reference table / column / display expression** — for `REFERENCE` columns. The display expression may only use `ref.<column>` (optionally `::text`), `'string literals'` and `||`, e.g. `ref.username || ' (' || ref.email || ')'`; functions, operators and sub-queries are rejected. The referenced table must be the table itself or a registered meta table — platform tables (`sys_*` and the like) can never be joined, so a display expression cannot read e.g. `sys_user.password`
 
 ### Schema Evolution
@@ -75,6 +75,9 @@ Once a table is defined and the physical table exists, you can:
 - Update existing rows
 - Soft-delete rows
 - Import data from CSV or JSON
+
+Every write is validated against the column definitions first; invalid values, ENUM values outside the dictionary and
+duplicates on unique columns all come back as `10408` with the column name.
 - Export data to EXCEL, CSV, or JSON
 
 ### Code Generation

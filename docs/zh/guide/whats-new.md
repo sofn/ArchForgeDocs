@@ -14,6 +14,9 @@
 - **告警**：按应用并带流量门槛的错误率、整堆内存、两级磁盘、数据库连接池耗尽；Alertmanager 投递到 `ALERT_WEBHOOK_URL`；prod/staging 链路采样 10%。
 - **CLI**：`init` 不加 `--write` 时是纯演练，也不再生成没人读取的 `AES_KEY`。
 - **复审修复**：prod/staging 部署脚本从正确的目录导入种子数据；`docker-compose.prod.yml` 补齐管理端必需的变量；REFERENCE 字段只能关联本表或已登记的元表格；数据范围失败关闭；生成的控制器校验权限；告警新增 `ApplicationMissing`；带点的页面路径也有 CSP；元表格编辑页显示加载到的定义。
+- **请求日志**：脱敏改为线性扫描——在记录载荷的 profile（dev/test）里，超长值（base64 验证码图片、大量转义字符的请求体）会撑爆栈，让 `GET /admin/auth/captchaImage` 返回 500；每个请求只记录一次。
+- **元表格取值**：JSON/GEO 列接受对象和数组；不在字典里的 ENUM 值——或字典根本不存在——都会被拒绝；唯一字段上的重复值返回 `10408` 而不是 500。
+- **CLI**：`meta check/export/import` 不再启动任务调度器（`arch-forge.scheduler.enabled=false`）。
 - **结构**：Repository 属于模块内部，其他模块通过 api 服务读取（[ADR-0010](https://github.com/sofn/ArchForge/blob/main/docs/adr/0010-repositories-are-internal.md)）。删除未使用的 `common.constant.Constants`。module-task、admin-user 补了测试并提高覆盖率地板。
 - **运维**：staging 的 Redis 与 prod 一样必须设置 `REDIS_PASSWORD`；server-web 的链路按比例采样、服务名为 `server-web`；请求日志 IP 只信任可信代理；CI 额外按 prod 拓扑启动（管理端口、探针）。
 - **元表格**：字段长度 / 精度 / 小数位与 ARRAY 元素类型在执行 DDL 前校验。

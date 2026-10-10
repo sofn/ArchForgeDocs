@@ -277,6 +277,7 @@ Orchestrator probes keep using the business port through `/livez` and `/readyz` 
 - `staging` and `prod` set `include-request-payload` and `include-response-payload` to `false` — bodies carry session tokens and personal data.
 - Payloads longer than 64 KB (or `max-payload-length`, if larger) are logged as their length only.
 - Every log line carries `[traceId,requestId]`; paste the traceId into Jaeger / Grafana to open the request's trace.
+- Masking is a single linear scan, and a failure while writing the log line never changes the response. A request is recorded once — the `/error` dispatch that follows an escaping exception records the final status.
 - The logged client IP trusts forwarding headers only from `arch-forge.security.trusted-proxies` (the list rate limiting uses): behind such a proxy it is the right-most `X-Forwarded-For` entry the proxies did not add; otherwise it is the peer address. A client cannot choose the IP that lands in the log.
 
 ## Related Pages
