@@ -26,9 +26,9 @@
 | parentId | Long | 父菜单 ID（0 = 根节点） |
 | path | String | 路由路径 |
 | isButton | Boolean | 是否为按钮权限 |
-| permission | String | 权限字符串（如 `system:user:create`） |
+| permission | String | 权限字符串（如 `system:user:add`） |
 | metaInfo | JSON | 序列化的 MetaDTO（见下表） |
-| status | Integer | 状态（0：禁用，1：启用） |
+| status | Integer | `1` 启用，`0` 禁用 |
 | remark | String | 备注 |
 
 ### MetaDTO（以 JSON 格式存储在 `metaInfo` 中）
@@ -44,6 +44,8 @@
 | frameSrc | String | iframe URL（用于 IFRAME 类型） |
 | isFrameSrcInternal | Boolean | iframe URL 是否相对于后端 |
 | rank | Integer | 排序序号（越大越靠后） |
+| extraIcon | Object | 标题旁的额外图标 |
+| transition | Object | 页面过渡动画设置 |
 | keepAlive | Boolean | 缓存页面状态 |
 | frameLoading | Boolean | iframe 显示加载动画 |
 | hiddenTag | Boolean | 从标签栏隐藏 |
@@ -51,25 +53,21 @@
 
 ## API 接口
 
-### 管理端 API
+`MenuController`（server-admin）。旧的 `/system/menu/*` 接口已不存在。
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| POST | `/admin-api/menu` | 查询所有菜单（树形结构） |
-| POST | `/admin-api/menu/create` | 创建菜单 |
-| PUT | `/admin-api/menu/update` | 更新菜单 |
-| POST | `/admin-api/menu/delete` | 删除菜单 |
-
-### 当前管理端 API
-
-`/system/menu/*` 已删除，使用 `/admin/menu/*` 与 `system:menu:*` 权限。
+| 方法 | 接口路径 | 权限 | 描述 |
+|------|----------|------|------|
+| POST | `/admin/menu` | `system:menu:list` | 全部菜单（前端组装成树） |
+| POST | `/admin/menu/create` | `system:menu:add` | 创建菜单、页面或按钮 |
+| PUT | `/admin/menu/update` | `system:menu:edit` | 更新菜单 |
+| POST | `/admin/menu/delete` | `system:menu:remove` | 删除菜单 |
 
 ## 异步路由加载
 
 前端在登录后动态加载路由：
 
 1. 用户登录并获得 sa-token `token`
-2. 前端携带令牌调用 `GET /auth/get-async-routes`
+2. 前端携带令牌调用 `GET /admin/auth/get-async-routes`
 3. 后端根据用户的角色权限过滤后返回菜单树
 4. 前端将菜单树转换为 Vue Router 路由对象
 5. 通过 `router.addRoute()` 动态添加路由

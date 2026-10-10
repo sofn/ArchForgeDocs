@@ -26,9 +26,9 @@ Button-level permissions are represented as menu entries with `isButton = true`,
 | parentId | Long | Parent menu ID (0 = root) |
 | path | String | Route path |
 | isButton | Boolean | Whether this is a button permission |
-| permission | String | Permission string (e.g., `system:user:create`) |
+| permission | String | Permission string (e.g., `system:user:add`) |
 | metaInfo | JSON | Serialized MetaDTO (see below) |
-| status | Integer | Status (0: disabled, 1: enabled) |
+| status | Integer | `1` enabled, `0` disabled |
 | remark | String | Notes |
 
 ### MetaDTO (stored as JSON in `metaInfo`)
@@ -44,6 +44,8 @@ Button-level permissions are represented as menu entries with `isButton = true`,
 | frameSrc | String | Iframe URL (for IFRAME type) |
 | isFrameSrcInternal | Boolean | Whether iframe URL is relative to backend |
 | rank | Integer | Sort order (higher = later) |
+| extraIcon | Object | Extra icon shown next to the title |
+| transition | Object | Page transition settings |
 | keepAlive | Boolean | Cache the page state |
 | frameLoading | Boolean | Show loading animation for iframe |
 | hiddenTag | Boolean | Hide from tab bar |
@@ -51,25 +53,21 @@ Button-level permissions are represented as menu entries with `isButton = true`,
 
 ## API Endpoints
 
-### Admin API
+`MenuController` (server-admin). The old `/system/menu/*` endpoints no longer exist.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/admin-api/menu` | List all menus (tree structure) |
-| POST | `/admin-api/menu/create` | Create menu |
-| PUT | `/admin-api/menu/update` | Update menu |
-| POST | `/admin-api/menu/delete` | Delete menu |
-
-### Current admin API
-
-`/system/menu/*` was deleted. Use `/admin/menu/*` with `system:menu:*` permissions.
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| POST | `/admin/menu` | `system:menu:list` | All menus (the client builds the tree) |
+| POST | `/admin/menu/create` | `system:menu:add` | Create a menu, page or button |
+| PUT | `/admin/menu/update` | `system:menu:edit` | Update a menu |
+| POST | `/admin/menu/delete` | `system:menu:remove` | Delete a menu |
 
 ## Async Route Loading
 
 The frontend loads routes dynamically after login:
 
 1. User logs in and receives a sa-token `token`
-2. Frontend calls `GET /auth/get-async-routes` with the token
+2. Frontend calls `GET /admin/auth/get-async-routes` with the token
 3. Backend returns the menu tree filtered by the user's role permissions
 4. Frontend converts the menu tree into Vue Router route objects
 5. Routes are dynamically added to the router via `router.addRoute()`

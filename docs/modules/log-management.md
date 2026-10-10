@@ -1,92 +1,89 @@
 # Log Management
 
-ArchForge provides built-in logging for both user operations and login attempts, enabling audit trails and security monitoring.
+ArchForge keeps two audit logs in the database: **operation logs** for annotated admin actions and **login logs** for
+every admin login attempt.
 
 ## Operation Logs
 
-### Features
+### How They Are Written
 
-- Automatic logging of CRUD operations
-- Records operator, action, request parameters, and response
-- Paginated list with search filters
-- Batch delete and clear all
+Handlers annotated with `@Log` are wrapped by `LogAspect`: it records who called, which module, a summary, the client
+IP and its location, OS and browser, and whether the call succeeded. The record is published as an event and saved
+asynchronously after the transaction commits (`logTaskExecutor`), so logging never slows down or fails the request.
 
 ### Data Model — SysOperLog (`sys_oper_log`)
 
 | Field | Type | Description |
 |-------|------|-------------|
 | operId | Long | Primary key |
-| title | String | Operation module name |
-| businessType | Integer | Operation type (create/update/delete/etc.) |
-| method | String | Controller method name |
-| requestMethod | String | HTTP method (GET/POST/PUT/DELETE) |
-| operUrl | String | Request URL |
-| operIp | String | Operator IP address |
-| operLocation | String | IP geolocation (via ip2region) |
-| operParam | String | Request parameters (JSON) |
-| jsonResult | String | Response body (JSON) |
-| status | Integer | Result status (0: fail, 1: success) |
-| errorMsg | String | Error message (if failed) |
-| operName | String | Operator username |
-| operTime | DateTime | Operation timestamp |
+| username | String | Operator |
+| module | String | Module (from `@Log` or the class) |
+| summary | String | What was done (from `@Log` or the method) |
+| ip | String | Client IP |
+| address | String | IP location |
+| systemName | String | Operating system |
+| browser | String | Browser |
+| status | Integer | `1` success, `0` failure |
+| operatingTime | DateTime | When |
 
 ### API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/admin-api/operation-logs` | List operation logs (paginated) |
-| POST | `/admin-api/operation-logs/delete` | Delete selected logs |
-| POST | `/admin-api/operation-logs/clear` | Clear all operation logs |
+`OperationLogController` (server-admin):
+
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| POST | `/admin/operation-log` | `monitor:operlog:list` | Paginated list |
+| POST | `/admin/operation-log/delete` | `monitor:operlog:remove` | Delete selected entries |
+| POST | `/admin/operation-log/clear` | `monitor:operlog:list` | Delete all entries |
 
 ## Login Logs
 
-### Features
+### How They Are Written
 
-- Records every login attempt (success and failure)
-- Captures browser, OS, IP, and geolocation
-- Useful for security auditing and anomaly detection
-- Paginated list with search filters
+`LoginService` writes one record per admin login attempt — success and failure, with the reason in `behavior`.
 
 ### Data Model — SysLoginLog (`sys_login_log`)
 
 | Field | Type | Description |
 |-------|------|-------------|
-| loginId | Long | Primary key |
-| username | String | Login username |
-| ipaddr | String | Login IP address |
-| loginLocation | String | IP geolocation |
-| browser | String | Browser name and version |
-| os | String | Operating system |
-| status | Integer | Result (0: fail, 1: success) |
-| msg | String | Message (success or error reason) |
-| loginTime | DateTime | Login timestamp |
-
-Browser and OS detection is powered by the **UserAgentUtils** library, and IP geolocation uses the offline **ip2region** database.
+| infoId | Long | Primary key |
+| username | String | Login name |
+| ip | String | Client IP |
+| address | String | IP location |
+| systemName | String | Operating system |
+| browser | String | Browser |
+| status | Integer | `1` login succeeded, `0` login failed (`2` logout and `3` registration are defined values) |
+| behavior | String | Message, e.g. "登录成功" / "登录失败" |
+| loginTime | DateTime | When |
 
 ### API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/admin-api/login-logs` | List login logs (paginated) |
-| POST | `/admin-api/login-logs/delete` | Delete selected logs |
-| POST | `/admin-api/login-logs/clear` | Clear all login logs |
+`LoginLogController` (server-admin):
+
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| POST | `/admin/login-log` | `monitor:logininfor:list` | Paginated list |
+| POST | `/admin/login-log/delete` | `monitor:logininfor:remove` | Delete selected entries |
+| POST | `/admin/login-log/clear` | `monitor:logininfor:list` | Delete all entries |
+
+## Browser, OS and Location
+
+- User-Agent parsing uses **Yauaa** (`UserAgentUtil`).
+- IP location: private addresses show "内网IP"; public ones are looked up in the offline **ip2region** xdb files
+  (downloaded and cached on first use), falling back to an online lookup (`whois.pconline.com.cn`).
 
 ## Log Retention
 
-By default, logs are stored indefinitely. Administrators can:
-
-- **Manually delete** specific log entries via the admin panel
-- **Clear all** logs using the clear endpoint
-- **Implement automated cleanup** by adding a scheduled task that deletes logs older than a configurable period
+Logs are kept until someone deletes them: individual entries, everything via *clear*, or your own scheduled job that
+removes old rows. Nothing is pruned automatically.
 
 ## Service Layer
 
-- `SysOperLogService` — operation log CRUD and query
-- `SysLoginLogService` — login log CRUD and query
-- Both services use Spring Data JPA repositories with QueryDSL for dynamic filtering
+`SysOperLogService` and `SysLoginLogService` (admin-user `api`) — CRUD and paginated queries; the C-end dashboard also
+uses them for today's counts and the latest operations.
 
 ## Related Pages
 
 - [User Management](./user-management.md) — users whose actions are logged
-- [Authentication](./authentication.md) — login flow that generates login logs
+- [Authentication](./authentication.md) — the login flow that writes login logs
 - [Server Monitor](./server-monitor.md) — system-level monitoring

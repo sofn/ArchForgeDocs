@@ -1,86 +1,81 @@
 # User Management
 
-The user management module provides complete CRUD operations for system users, including department-based filtering, status control, password management, and role assignment.
+The user management module covers the admin console's users: paginated search with a department tree, create / edit
+/ soft-delete, enable / disable, password reset, role assignment and export.
 
 ## Features
 
-- User list with pagination, search, and department tree filter
-- Create / edit / delete users
-- Enable / disable user accounts
-- Reset user passwords
-- Assign roles to users
-- Department-based organization
+- User list with pagination, filters and a department tree; the list runs under the caller's
+  [data scope](./role-permission.md#data-permission)
+- Create, edit and delete users (delete is a soft delete)
+- Enable / disable accounts
+- Reset passwords
+- Assign a role (one role per user)
+- Export the list as xlsx
 
 ## Data Model
 
-The `SysUser` entity (`sys_user` table) contains:
+`SysUser` (`sys_user`), plus the audit fields every entity has (`creatorId`, `createTime`, `updaterId`, `updateTime`,
+`deleted`):
 
 | Field | Type | Description |
 |-------|------|-------------|
-| userId | Long | Primary key (auto-increment) |
-| username | String | Login username (unique) |
+| userId | Long | Primary key |
+| roleId | Long | The user's role (`0` = none) |
+| deptId | Long | Department |
+| username | String | Login name — 2–64 letters, digits, `_`, `.` or `-` |
 | nickname | String | Display name |
-| email | String | Email address |
-| phone | String | Phone number |
-| sex | Integer | Gender (0: female, 1: male) |
+| userType | Integer | User type |
+| email | String | Email (format-checked when present) |
+| phoneNumber | String | Mobile number (`1[3-9]` + 9 digits when present) |
+| sex | Integer | `0` male, `1` female, `2` unknown |
 | avatar | String | Avatar URL |
-| password | String | BCrypt-hashed password |
-| status | Integer | Account status (0: disabled, 1: enabled) |
-| deptId | Long | Department ID (foreign key) |
+| password | String | BCrypt hash |
+| status | Integer | `1` normal; any other value blocks login (the backend defines `2` disabled, `3` frozen; the admin UI's switch writes `0`) |
+| loginIp / loginDate | String / DateTime | Last successful login |
+| isAdmin | Boolean | Super administrator |
 | remark | String | Notes |
-| createTime | DateTime | Creation timestamp |
-| updateTime | DateTime | Last update timestamp |
 
 ## API Endpoints
 
-### Admin API (`AdminApiController`)
+`UserController` and `UserExportController` (server-admin). The authoritative list is `ArchForge/spec/openapi.yaml`.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/admin-api/user` | List users (paginated, with filters) |
-| POST | `/admin-api/user/create` | Create a new user |
-| PUT | `/admin-api/user/update` | Update user info |
-| POST | `/admin-api/user/delete` | Delete user(s) |
-| POST | `/admin-api/user/status` | Toggle user status |
-| POST | `/admin-api/user/reset-password` | Reset user password |
-| POST | `/admin-api/user/assign-role` | Assign roles to user |
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| POST | `/admin/user` | `system:user:list` | Paginated list with filters (data scope applied) |
+| POST | `/admin/user/create` | `system:user:add` | Create a user |
+| PUT | `/admin/user/update` | `system:user:edit` | Update profile fields (and status, if sent) |
+| POST | `/admin/user/delete` | `system:user:remove` | Soft-delete a user |
+| POST | `/admin/user/status` | `system:user:edit` | Change the status |
+| POST | `/admin/user/reset-password` | `system:user:resetPwd` | Set a new password |
+| POST | `/admin/user/assign-role` | `system:user:edit` | Assign a role (the first id in `ids` is used) |
+| POST | `/admin/user/list-role-ids` | `system:user:query` | The user's role id (as a list) |
+| GET | `/admin/user/export` | `system:user:export` | Export users as xlsx |
 
-### RESTful API (`SysUserController`)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/system/user` | List all users |
-| GET | `/system/user/{id}` | Get user by ID |
-| GET | `/system/user/username/{username}` | Get user by username |
-| POST | `/system/user` | Create user |
-| PUT | `/system/user/{id}` | Update user |
-| DELETE | `/system/user/{id}` | Delete user |
-| POST | `/system/user/{id}/reset-password` | Reset password |
-| GET | `/system/user/active` | List active users |
-| GET | `/system/user/dept/{deptId}` | List users by department |
+The old RESTful `/system/user/*` endpoints no longer exist.
 
 ## Department Tree Filter
 
-The user list page includes a department tree on the left side. Clicking a department node filters users belonging to that department and its children. The tree data comes from the `SysDept` entity.
+The user page shows the department tree on the left (`POST /admin/dept`, which accepts `system:dept:list`,
+`system:user:list` or `system:role:list`). Clicking a node filters the list to that department.
 
-## Password Security
+## Login Rules and Password Security
 
-- Passwords are encrypted with **BCrypt** before storage
-- The frontend encrypts the password with **RSA** (using the server's public key) before transmitting
-- The server decrypts with the RSA private key, then hashes with BCrypt
-- The RSA private key is configured in `arch-forge.rsa-private-key`
+- An admin login needs `status = 1`, a user that is not deleted, and a role — unless the user is a super administrator
+  (`isAdmin`). Otherwise the login is refused.
+- The server expects the login password RSA-encrypted (PKCS#1 v1.5) with the public key of `arch-forge.rsa-private-key`. The prod profile rejects a password it cannot decrypt (code `10106`, "密码解密失败"); other profiles fall back to the password as sent. **The stock admin UI sends the password unencrypted today**, so a prod deployment needs a login client that encrypts it. The decrypted password is checked against the BCrypt hash.
+- Create and reset-password send the new password in the request body (use HTTPS); the server stores only the BCrypt
+  hash.
 
 ## Service Layer
 
-The `SysUserService` and `UserService` classes handle business logic:
-
-- Username uniqueness validation
-- Department existence check
-- Default role assignment on creation
-- QueryDSL-based dynamic filtering (`SysUserPredicates`)
+`UserController` → `AdminUserService` (server-admin, DTO mapping and data scope) → `SysUserService` (admin-user `api`).
+`SysUserService` validates username, email and phone formats and fills defaults (`status = 1`, `roleId = 0`). Queries
+use JPA Specifications (`QueryHelp`); the repository is internal to the admin-user module
+([ADR-0010](https://github.com/sofn/ArchForge/blob/main/docs/adr/0010-repositories-are-internal.md)).
 
 ## Related Pages
 
-- [Role & Permission](./role-permission.md) — role assignment details
+- [Role & Permission](./role-permission.md) — roles, menu permissions, data scope
 - [Authentication](./authentication.md) — login and Sa-Token flow
-- [Log Management](./log-management.md) — user operation logging
+- [Log Management](./log-management.md) — login and operation logs

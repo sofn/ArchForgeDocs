@@ -13,67 +13,44 @@ ArchForge 内置了基于 [Oshi](https://github.com/oshi/oshi) 的服务器监�
 
 ## 配置
 
-在应用 YAML 中启用或禁用监控：
+监控默认开启，需要时手动关闭：
 
 ```yaml
 arch-forge:
   monitor:
-    enabled: true    # Set to false to disable the /server-info endpoint
+    enabled: false   # 默认 true；关闭后 GET /admin/server 返回 {"error": "服务器监控未启用"}
 ```
-
-监控在 dev 配置文件中默认启用。
 
 ## API 接口
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| GET | `/admin-api/server-info` | 返回当前服务器指标 |
+| 方法 | 接口路径 | 访问控制 | 描述 |
+|------|----------|----------|------|
+| GET | `/admin/server` | 角色 `ADMIN` + `monitor:server:list` | 当前服务器指标 |
 
 ### 响应结构
 
+位于管理端信封的 `data` 中；容量为格式化字符串，使用率为百分比：
+
 ```json
 {
-  "cpu": {
-    "cpuNum": 8,
-    "total": 100.0,
-    "sys": 12.5,
-    "used": 35.2,
-    "wait": 0.8,
-    "free": 51.5
-  },
-  "memory": {
-    "total": "16.00 GB",
-    "used": "10.24 GB",
-    "free": "5.76 GB",
-    "usage": 64.0
-  },
+  "cpu": { "name": "…", "physicalCount": 8, "logicalCount": 16, "userUsage": 12.5, "sysUsage": 3.1, "idle": 84.4 },
+  "memory": { "total": "16.00 GB", "used": "10.24 GB", "available": "5.76 GB", "usage": 64.0 },
   "jvm": {
-    "total": "512.00 MB",
-    "max": "2048.00 MB",
-    "free": "256.00 MB",
-    "usage": 50.0,
-    "version": "21.0.7",
-    "home": "/usr/lib/jvm/java-21"
+    "heapMax": "2.00 GB", "heapUsed": "512.00 MB", "nonHeapUsed": "180.00 MB",
+    "javaVersion": "25", "javaVendor": "…", "javaHome": "/usr/lib/jvm/…", "vmName": "OpenJDK 64-Bit Server VM",
+    "startTime": "2026-10-08T09:00:00Z"
   },
-  "sys": {
-    "computerName": "archforge-server",
-    "osName": "Linux",
-    "osArch": "amd64",
-    "userDir": "/app"
-  },
-  "sysFiles": [
-    {
-      "dirName": "/",
-      "sysTypeName": "ext4",
-      "typeName": "Local Disk",
-      "total": "100.00 GB",
-      "free": "45.00 GB",
-      "used": "55.00 GB",
-      "usage": 55.0
-    }
-  ]
+  "os": { "name": "…", "arch": "amd64", "hostName": "archforge", "hostAddress": "172.18.0.5",
+          "processCount": 312, "threadCount": 1420 },
+  "disks": [
+    { "name": "/dev/sda1", "mount": "/", "type": "ext4", "total": "100.00 GB", "used": "55.00 GB",
+      "available": "45.00 GB", "usage": 55.0 }
+  ],
+  "error": null
 }
 ```
+
+五个部分并行采集（`StructuredTaskScope`）。
 
 ## 前端仪表盘
 
@@ -86,7 +63,7 @@ arch-forge:
 
 ## 工作原理
 
-1. 前端调用 `GET /admin-api/server-info`
+1. 前端调用 `GET /admin/server`
 2. 后端使用 Oshi 查询硬件和操作系统传感器数据
 3. JVM 指标通过 `Runtime.getRuntime()` 和 `ManagementFactory` 采集
 4. 所有数据格式化后以单个 JSON 响应返回
@@ -96,7 +73,7 @@ Oshi 是一个纯 Java 库，没有原生依赖，因此兼容 JVM 和 Native Im
 ## 性能说明
 
 - Oshi 查询非常轻量（每次调用约 10ms）
-- 该接口受认证保护——仅已登录的管理员可以访问
+- 该接口要求已登录、具备 `ADMIN` 角色且拥有 `monitor:server:list` 权限
 - 建议在生产环境中调整前端自动刷新间隔，避免不必要的负载
 
 ## 相关页面

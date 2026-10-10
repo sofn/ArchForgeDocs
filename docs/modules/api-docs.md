@@ -31,98 +31,78 @@ springdoc:
 
 | Resource | URL | Description |
 |----------|-----|-------------|
-| Swagger UI | `http://localhost:8080/swagger-ui/index.html` | Interactive API explorer |
-| OpenAPI JSON | `http://localhost:8080/v3/api-docs` | Raw OpenAPI 3.0 spec |
-| Admin Panel | Embedded iframe in admin menu | Swagger UI inside the admin panel |
+| Swagger UI | `http://localhost:8080/swagger-ui/index.html` | Interactive explorer for server-admin |
+| OpenAPI JSON | `http://localhost:8080/v3/api-docs` | Live OpenAPI document (no login needed) |
+| server-web | `http://localhost:8081/swagger-ui/index.html` | The C-end API, outside prod |
+| Admin panel | "Swagger" iframe menu | Swagger UI inside the admin console |
+
+`application-prod.yaml` switches both springdoc endpoints off, so production serves neither page.
 
 ## Embedded in Admin Panel
 
-The Swagger UI is embedded in the admin panel as an iframe menu item. This is configured as a menu entry with:
+Flyway seeds an iframe menu for Swagger UI:
 
 - **Menu Type**: Iframe (3)
 - **frameSrc**: `/swagger-ui/index.html`
-- **isFrameSrcInternal**: `true`
+- **isFrameSrcInternal**: `true` — the admin UI prefixes the frame URL with its own origin
 
-The Nginx configuration proxies Swagger requests to the backend:
+In development the admin dev server proxies `/swagger-ui` and `/v3/api-docs` to `:8080` (`vite.config.ts`), so the
+iframe works out of the box. The production frontend image proxies only `/api/`, and prod disables springdoc anyway —
+treat the embedded page as a development aid.
 
-```nginx
-# Swagger UI proxy (for iframe embedding)
-location /swagger-ui/ {
-    proxy_pass http://archforge:8080/swagger-ui/;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-}
+## The Contract
 
-# OpenAPI docs proxy
-location /v3/api-docs {
-    proxy_pass http://archforge:8080/v3/api-docs;
-    proxy_set_header Host $host;
-}
-```
+The full, current list of endpoints is the generated contract `ArchForge/spec/openapi.yaml` (server-admin and
+server-web merged, 147 operations as of 2026-10). It is regenerated from the running code with
+`./gradlew generateOpenApi`; CI fails when it is stale, and the admin / C-end clients generate their TypeScript types
+from it. The old `/admin-api/*` and `/system/*` paths no longer exist.
 
-## API Endpoint Summary
+### Endpoint Map (server-admin)
 
-### Authentication
+| Area | Prefix | Operations | Page |
+|------|--------|-----------:|------|
+| Login, routes, captcha | `/admin/auth` | 8 | [Authentication](./authentication.md) |
+| Users | `/admin/user` | 9 | [User Management](./user-management.md) |
+| Roles, permission matrix | `/admin/role`, `/admin/permission-matrix` | 10 + 3 | [Role & Permission](./role-permission.md) |
+| Menus | `/admin/menu` | 4 | [Menu Management](./menu-management.md) |
+| Departments | `/admin/dept` | 4 | — |
+| Dictionaries | `/admin/system/dict` | 8 | — |
+| Parameters, notices | `/admin/config`, `/admin/notice` | 4 + 4 | [Config & Notice](./config-notice.md) |
+| Operation / login logs | `/admin/operation-log`, `/admin/login-log` | 3 + 3 | [Log Management](./log-management.md) |
+| Server, cache, online users | `/admin/server`, `/admin/monitor` | 1 + 2 | [Server Monitor](./server-monitor.md) |
+| Files | `/admin/file` | 5 | [File Management](./file-management.md) |
+| Scheduled jobs | `/admin/scheduler-job` | 9 | [Scheduler](./scheduler.md) |
+| Meta-table | `/admin/meta-table` | 21 | [Meta-table](./meta-table.md) |
+| CMS | `/admin/cms` | 11 | — |
+| Tasks | `/admin/task` | 7 | — |
+| ChatAI | `/admin/chat` | 6 | [ChatAI](./chatai.md) |
+| Dashboard | `/admin/dashboard` | 4 | [Dashboard](./dashboard.md) |
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/auth/login` | User login |
-| POST | `/auth/refresh-token` | Refresh Sa-Token via refresh token |
-| GET | `/auth/getLoginUserInfo` | Get current user info |
-| GET | `/auth/getRouters` | Get menu routes (legacy) |
-| GET | `/auth/get-async-routes` | Get async routes for frontend |
-| GET | `/auth/captchaImage` | Generate captcha image |
-| GET | `/auth/getConfig` | Get app config |
-
-### Admin CRUD API (`/admin-api/`)
-
-| Category | Endpoints | Count |
-|----------|-----------|-------|
-| User Management | `/admin-api/user/*` | 7 endpoints |
-| Role Management | `/admin-api/role/*` | 6 endpoints |
-| Menu Management | `/admin-api/menu/*` | 4 endpoints |
-| Department | `/admin-api/dept/*` | 3 endpoints |
-| Config | `/admin-api/config/*` | 4 endpoints |
-| Notice | `/admin-api/notice/*` | 4 endpoints |
-| Operation Logs | `/admin-api/operation-logs/*` | 3 endpoints |
-| Login Logs | `/admin-api/login-logs/*` | 3 endpoints |
-| Server Monitor | `/admin-api/server-info` | 1 endpoint |
-| File Management | `/admin-api/file/*` | 2 endpoints |
-
-### File Upload/Download
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/admin-api/file/upload` | Upload a file (local or S3/RustFS backend) |
-| GET | `/admin-api/file/download/{id}` | Download a file by ID |
-
-### RESTful System API (`/system/`)
-
-| Controller | Base Path | Endpoints |
-|-----------|-----------|-----------|
-| SysUserController | `/system/user` | 10 endpoints |
-| SysRoleController | `/system/role` | 12 endpoints |
-| SysMenuController | `/system/menu` | 11 endpoints |
+server-web serves the C-end under `/web/*` (login and registration, articles, categories, notices, files, dashboard) —
+see [C-end Web](../guide/c-end-web.md).
 
 ## Adding API Documentation to New Endpoints
 
-Use SpringDoc annotations on your controllers:
+Use SpringDoc annotations on your controllers. Admin endpoints live under `/admin/*` and declare a permission:
 
 ```java
 @Tag(name = "Custom Module", description = "Custom module operations")
 @RestController
-@RequestMapping("/custom")
+@RequestMapping("/admin/custom")
 public class CustomController {
 
     @Operation(summary = "Get item", description = "Retrieve an item by ID")
     @Parameter(name = "id", description = "Item ID", required = true)
+    @SaCheckPermission(value = "custom:item:query", type = StpAdminUtil.TYPE)
     @GetMapping("/{id}")
     public CustomItem getItem(@PathVariable Long id) {
         // ...
     }
 }
 ```
+
+Then run `./gradlew generateOpenApi` and commit the regenerated `spec/openapi.yaml` with the change; seed the new
+permission as a menu button so a role can be granted it.
 
 ## Related Pages
 

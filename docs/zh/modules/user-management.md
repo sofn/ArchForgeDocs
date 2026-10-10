@@ -1,86 +1,72 @@
 # 用户管理
 
-用户管理模块提供完整的系统用户增删改查操作，包括基于部门的筛选、状态控制、密码管理和角色分配。
+用户管理模块负责管理端的用户：带部门树的分页查询、创建 / 编辑 / 软删除、启用 / 停用、重置密码、分配角色与导出。
 
 ## 功能特性
 
-- 用户列表，支持分页、搜索和部门树筛选
-- 创建 / 编辑 / 删除用户
-- 启用 / 禁用用户账户
-- 重置用户密码
-- 为用户分配角色
-- 基于部门的组织架构
+- 用户列表：分页、筛选、部门树；查询按调用者的[数据范围](./role-permission.md#数据权限)执行
+- 创建、编辑、删除用户（删除为软删除）
+- 启用 / 停用账号
+- 重置密码
+- 分配角色（每个用户一个角色）
+- 导出为 xlsx
 
 ## 数据模型
 
-`SysUser` 实体（`sys_user` 表）包含以下字段：
+`SysUser`（`sys_user`），另有所有实体共有的审计字段（`creatorId`、`createTime`、`updaterId`、`updateTime`、`deleted`）：
 
 | 字段 | 类型 | 描述 |
-|-------|------|-------------|
-| userId | Long | 主键（自增） |
-| username | String | 登录用户名（唯一） |
-| nickname | String | 显示昵称 |
-| email | String | 邮箱地址 |
-| phone | String | 手机号码 |
-| sex | Integer | 性别（0：女，1：男） |
-| avatar | String | 头像 URL |
-| password | String | BCrypt 加密后的密码 |
-| status | Integer | 账户状态（0：禁用，1：启用） |
-| deptId | Long | 部门 ID（外键） |
+|------|------|------|
+| userId | Long | 主键 |
+| roleId | Long | 用户的角色（`0` 表示无角色） |
+| deptId | Long | 所属部门 |
+| username | String | 登录名——2~64 位字母、数字、`_`、`.` 或 `-` |
+| nickname | String | 昵称 |
+| userType | Integer | 用户类型 |
+| email | String | 邮箱（填写时校验格式） |
+| phoneNumber | String | 手机号（填写时须为 `1[3-9]` 开头的 11 位号码） |
+| sex | Integer | `0` 男，`1` 女，`2` 未知 |
+| avatar | String | 头像地址 |
+| password | String | BCrypt 哈希 |
+| status | Integer | `1` 正常；其他值都不能登录（后端定义了 `2` 停用、`3` 冻结；管理端的开关写入 `0`） |
+| loginIp / loginDate | String / DateTime | 最近一次成功登录 |
+| isAdmin | Boolean | 超级管理员 |
 | remark | String | 备注 |
-| createTime | DateTime | 创建时间 |
-| updateTime | DateTime | 最后更新时间 |
 
 ## API 接口
 
-### 管理端 API（`AdminApiController`）
+`UserController` 与 `UserExportController`（server-admin）。权威清单是 `ArchForge/spec/openapi.yaml`。
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| POST | `/admin-api/user` | 查询用户列表（分页，支持筛选） |
-| POST | `/admin-api/user/create` | 创建新用户 |
-| PUT | `/admin-api/user/update` | 更新用户信息 |
-| POST | `/admin-api/user/delete` | 删除用户 |
-| POST | `/admin-api/user/status` | 切换用户状态 |
-| POST | `/admin-api/user/reset-password` | 重置用户密码 |
-| POST | `/admin-api/user/assign-role` | 为用户分配角色 |
+| 方法 | 接口路径 | 权限 | 描述 |
+|------|----------|------|------|
+| POST | `/admin/user` | `system:user:list` | 分页查询（按数据范围过滤） |
+| POST | `/admin/user/create` | `system:user:add` | 创建用户 |
+| PUT | `/admin/user/update` | `system:user:edit` | 更新资料（传了状态则一并更新） |
+| POST | `/admin/user/delete` | `system:user:remove` | 软删除用户 |
+| POST | `/admin/user/status` | `system:user:edit` | 修改状态 |
+| POST | `/admin/user/reset-password` | `system:user:resetPwd` | 设置新密码 |
+| POST | `/admin/user/assign-role` | `system:user:edit` | 分配角色（取 `ids` 中的第一个） |
+| POST | `/admin/user/list-role-ids` | `system:user:query` | 用户的角色 id（列表形式） |
+| GET | `/admin/user/export` | `system:user:export` | 导出用户为 xlsx |
 
-### RESTful API（`SysUserController`）
-
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| GET | `/system/user` | 查询所有用户 |
-| GET | `/system/user/{id}` | 根据 ID 查询用户 |
-| GET | `/system/user/username/{username}` | 根据用户名查询用户 |
-| POST | `/system/user` | 创建用户 |
-| PUT | `/system/user/{id}` | 更新用户 |
-| DELETE | `/system/user/{id}` | 删除用户 |
-| POST | `/system/user/{id}/reset-password` | 重置密码 |
-| GET | `/system/user/active` | 查询活跃用户 |
-| GET | `/system/user/dept/{deptId}` | 按部门查询用户 |
+旧的 RESTful `/system/user/*` 接口已不存在。
 
 ## 部门树筛选
 
-用户列表页面左侧包含部门树。点击某个部门节点后，会筛选出该部门及其子部门下的用户。树形数据来源于 `SysDept` 实体。
+用户页左侧是部门树（`POST /admin/dept`，拥有 `system:dept:list`、`system:user:list`、`system:role:list` 任一权限即可）。点击节点即按该部门筛选列表。
 
-## 密码安全
+## 登录规则与密码安全
 
-- 密码在存储前使用 **BCrypt** 加密
-- 前端使用服务器的公钥通过 **RSA** 加密密码后再传输
-- 服务器使用 RSA 私钥解密，然后使用 BCrypt 进行哈希
-- RSA 私钥在 `arch-forge.rsa-private-key` 中配置
+- 登录管理端需要 `status = 1`、未删除，并且有角色——超级管理员（`isAdmin`）除外。否则拒绝登录。
+- 服务端要求登录密码用 `arch-forge.rsa-private-key` 对应的公钥做 RSA 加密（PKCS#1 v1.5）。prod profile 解不开就拒绝（错误码 `10106`，"密码解密失败"）；其他 profile 回退为按原文处理。**目前自带的管理端界面发送的是明文密码**，所以 prod 部署需要一个会加密密码的登录客户端。解密后的密码与 BCrypt 哈希比对。
+- 创建用户与重置密码时，新密码放在请求体里（请使用 HTTPS），服务端只保存 BCrypt 哈希。
 
 ## 服务层
 
-`SysUserService` 和 `UserService` 类处理业务逻辑：
-
-- 用户名唯一性验证
-- 部门存在性检查
-- 创建时分配默认角色
-- 基于 QueryDSL 的动态筛选（`SysUserPredicates`）
+`UserController` → `AdminUserService`（server-admin，负责 DTO 转换与数据范围）→ `SysUserService`（admin-user 的 `api`）。`SysUserService` 校验登录名、邮箱、手机号格式并补默认值（`status = 1`、`roleId = 0`）。查询使用 JPA Specification（`QueryHelp`）；Repository 属于 admin-user 模块内部（[ADR-0010](https://github.com/sofn/ArchForge/blob/main/docs/adr/0010-repositories-are-internal.md)）。
 
 ## 相关页面
 
-- [角色与权限](./role-permission.md) — 角色分配详情
-- [认证鉴权](./authentication.md) — 登录和 sa-token 流程
-- [日志管理](./log-management.md) — 用户操作日志
+- [角色与权限](./role-permission.md) — 角色、菜单权限、数据范围
+- [认证鉴权](./authentication.md) — 登录与 Sa-Token 流程
+- [日志管理](./log-management.md) — 登录日志与操作日志

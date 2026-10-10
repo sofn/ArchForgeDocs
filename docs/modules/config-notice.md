@@ -1,15 +1,13 @@
 # Config & Notice
 
-System configuration and notice (announcement) management modules for storing application settings and broadcasting messages to users.
+Two small admin modules: key-value system parameters, and notices (announcements) that also appear on the C-end.
 
 ## System Configuration
 
 ### Features
 
-- Key-value configuration stored in database
-- CRUD operations with pagination and search
-- Configurations can be cached to Redis for fast access
-- Used for runtime-tunable application settings
+- Key-value parameters stored in `sys_config`
+- Paginated list, create, update, delete
 
 ### Data Model — SysConfig (`sys_config`)
 
@@ -17,78 +15,66 @@ System configuration and notice (announcement) management modules for storing ap
 |-------|------|-------------|
 | configId | Long | Primary key |
 | configName | String | Display name |
-| configKey | String | Unique config key |
-| configValue | String | Config value |
+| configKey | String | Parameter key |
+| configValue | String | Parameter value |
 | configType | Integer | Built-in or custom |
 | remark | String | Notes |
-| createTime | DateTime | Creation timestamp |
-| updateTime | DateTime | Last update timestamp |
+
+Plus the common audit fields (`creatorId`, `createTime`, `updaterId`, `updateTime`, `deleted`).
 
 ### API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/admin-api/config` | List configs (paginated) |
-| POST | `/admin-api/config/create` | Create config entry |
-| PUT | `/admin-api/config/update` | Update config entry |
-| POST | `/admin-api/config/delete` | Delete config(s) |
+`ConfigController` (server-admin):
 
-### Usage Example
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| POST | `/admin/config` | `system:config:list` | Paginated list |
+| POST | `/admin/config/create` | `system:config:add` | Create a parameter |
+| PUT | `/admin/config/update` | `system:config:edit` | Update a parameter |
+| POST | `/admin/config/delete` | `system:config:remove` | Delete a parameter |
 
-Store a system-wide setting like the default pagination size:
+### Seeded Parameters
 
-| Config Key | Config Value | Description |
-|-----------|-------------|-------------|
-| `sys.default.pageSize` | `20` | Default page size |
-| `sys.account.registerEnabled` | `false` | Allow self-registration |
-| `sys.captcha.type` | `math` | Captcha type |
+Flyway `V2` seeds `sys.index.skinName`, `sys.index.sideTheme` and `sys.user.initPassword`. They are data for the
+admin UI and your own code — the backend does not read them on its own, and values are not cached.
 
 ### Service Layer
 
-`SysConfigService` provides:
-- `findByConfigKey(String key)` — look up a config value by key
-- Standard CRUD via Spring Data JPA `SysConfigRepository`
+`SysConfigService` (admin-user `api`): `findByConfigKey(key)` plus the usual CRUD; reads go straight to the database.
 
 ## Notice Management
 
 ### Features
 
-- Create and manage system notices / announcements
-- Support for different notice types (notification, announcement)
-- Status management (draft, published)
-- List with pagination and search
+- Create and manage notices and announcements
+- Open / closed status — open notices are what the C-end shows
+- Paginated list
 
 ### Data Model — SysNotice (`sys_notice`)
 
 | Field | Type | Description |
 |-------|------|-------------|
 | noticeId | Long | Primary key |
-| noticeTitle | String | Notice title |
-| noticeType | Integer | Type (1: notification, 2: announcement) |
-| noticeContent | String | Content (supports rich text) |
-| status | Integer | Status (0: draft, 1: published) |
-| createBy | String | Creator |
+| noticeTitle | String | Title |
+| noticeType | Integer | `1` notification, `2` announcement |
+| noticeContent | String | Content |
+| status | Integer | `1` open, `0` closed |
 | remark | String | Notes |
-| createTime | DateTime | Creation timestamp |
-| updateTime | DateTime | Last update timestamp |
 
 ### API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/admin-api/notice` | List notices (paginated) |
-| POST | `/admin-api/notice/create` | Create notice |
-| PUT | `/admin-api/notice/update` | Update notice |
-| POST | `/admin-api/notice/delete` | Delete notice(s) |
+`NoticeController` (server-admin):
 
-### Notice Types
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| POST | `/admin/notice` | `system:notice:list` | Paginated list |
+| POST | `/admin/notice/create` | `system:notice:add` | Create a notice |
+| PUT | `/admin/notice/update` | `system:notice:edit` | Update a notice |
+| POST | `/admin/notice/delete` | `system:notice:remove` | Delete a notice |
 
-| Type | Value | Description |
-|------|-------|-------------|
-| Notification | 1 | Internal team notifications |
-| Announcement | 2 | System-wide announcements |
+On the C-end, `GET /web/notices` returns the 20 most recent open notices (newest first).
 
 ## Related Pages
 
-- [User Management](./user-management.md) — system users who manage configs
-- [Role & Permission](./role-permission.md) — permission control for config operations
+- [Role & Permission](./role-permission.md) — permissions for these endpoints
+- [C-end Web](../guide/c-end-web.md) — where notices are shown

@@ -44,12 +44,12 @@ openssl rand -base64 32
 生成新的 RSA 私钥：
 
 ```bash
-openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:1024
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
 openssl pkcs8 -topk8 -inform PEM -outform DER -in private.pem -out private.der -nocrypt
 base64 private.der
 ```
 
-将 Base64 编码的私钥设置到 `arch-forge.rsa-private-key` 中。将对应的公钥分享给前端。
+将 Base64 编码的私钥设置到 `arch-forge.rsa-private-key`（`ARCH_FORGE_RSA_PRIVATE_KEY`）。登录客户端用对应的公钥加密密码——prod 拒绝解不开的密码，而自带的管理端界面目前还不加密（见[认证鉴权](../modules/authentication.md#密码加密)）。
 
 ## 生产环境配置
 

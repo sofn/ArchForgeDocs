@@ -13,67 +13,44 @@ ArchForge includes a built-in server monitoring dashboard powered by [Oshi](http
 
 ## Configuration
 
-Enable or disable the monitor in your application YAML:
+The monitor is on unless you turn it off:
 
 ```yaml
 arch-forge:
   monitor:
-    enabled: true    # Set to false to disable the /server-info endpoint
+    enabled: false   # default true; when off, GET /admin/server returns {"error": "服务器监控未启用"}
 ```
-
-The monitor is enabled by default in the dev profile.
 
 ## API Endpoint
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/admin-api/server-info` | Returns current server metrics |
+| Method | Endpoint | Guard | Description |
+|--------|----------|-------|-------------|
+| GET | `/admin/server` | role `ADMIN` + `monitor:server:list` | Current server metrics |
 
 ### Response Structure
 
+`data` of the admin envelope; sizes are formatted strings, usages are percentages:
+
 ```json
 {
-  "cpu": {
-    "cpuNum": 8,
-    "total": 100.0,
-    "sys": 12.5,
-    "used": 35.2,
-    "wait": 0.8,
-    "free": 51.5
-  },
-  "memory": {
-    "total": "16.00 GB",
-    "used": "10.24 GB",
-    "free": "5.76 GB",
-    "usage": 64.0
-  },
+  "cpu": { "name": "…", "physicalCount": 8, "logicalCount": 16, "userUsage": 12.5, "sysUsage": 3.1, "idle": 84.4 },
+  "memory": { "total": "16.00 GB", "used": "10.24 GB", "available": "5.76 GB", "usage": 64.0 },
   "jvm": {
-    "total": "512.00 MB",
-    "max": "2048.00 MB",
-    "free": "256.00 MB",
-    "usage": 50.0,
-    "version": "21.0.7",
-    "home": "/usr/lib/jvm/java-21"
+    "heapMax": "2.00 GB", "heapUsed": "512.00 MB", "nonHeapUsed": "180.00 MB",
+    "javaVersion": "25", "javaVendor": "…", "javaHome": "/usr/lib/jvm/…", "vmName": "OpenJDK 64-Bit Server VM",
+    "startTime": "2026-10-08T09:00:00Z"
   },
-  "sys": {
-    "computerName": "archforge-server",
-    "osName": "Linux",
-    "osArch": "amd64",
-    "userDir": "/app"
-  },
-  "sysFiles": [
-    {
-      "dirName": "/",
-      "sysTypeName": "ext4",
-      "typeName": "Local Disk",
-      "total": "100.00 GB",
-      "free": "45.00 GB",
-      "used": "55.00 GB",
-      "usage": 55.0
-    }
-  ]
+  "os": { "name": "…", "arch": "amd64", "hostName": "archforge", "hostAddress": "172.18.0.5",
+          "processCount": 312, "threadCount": 1420 },
+  "disks": [
+    { "name": "/dev/sda1", "mount": "/", "type": "ext4", "total": "100.00 GB", "used": "55.00 GB",
+      "available": "45.00 GB", "usage": 55.0 }
+  ],
+  "error": null
 }
 ```
+
+The five sections are collected in parallel (`StructuredTaskScope`).
 
 ## Frontend Dashboard
 
@@ -86,7 +63,7 @@ The monitoring page displays the server metrics in a visual dashboard with:
 
 ## How It Works
 
-1. The frontend calls `GET /admin-api/server-info`
+1. The frontend calls `GET /admin/server`
 2. The backend uses Oshi to query hardware and OS sensors
 3. JVM metrics are collected from `Runtime.getRuntime()` and `ManagementFactory`
 4. All data is formatted and returned as a single JSON response
@@ -96,7 +73,7 @@ Oshi is a pure Java library with no native dependencies, making it compatible wi
 ## Performance Notes
 
 - Oshi queries are lightweight (~10ms per call)
-- The endpoint is protected by authentication — only logged-in admins can access it
+- The endpoint needs a logged-in admin with role `ADMIN` and `monitor:server:list`
 - Consider adjusting the frontend auto-refresh interval in production to avoid unnecessary load
 
 ## Related Pages

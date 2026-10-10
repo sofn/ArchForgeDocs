@@ -1,94 +1,79 @@
 # 参数配置与通知公告
 
-系统参数配置和通知公告管理模块，用于存储应用设置和向用户发布消息。
+两个小的管理端模块：键值型的系统参数，以及同时会在 C 端展示的通知公告。
 
-## 系统配置
+## 参数配置
 
 ### 功能特性
 
-- 键值对配置存储在数据库中
-- 支持分页和搜索的增删改查操作
-- 配置可缓存到 Redis 以实现快速访问
-- 用于运行时可调整的应用设置
+- 键值参数存放在 `sys_config`
+- 分页查询、创建、更新、删除
 
-### 数据模型 — SysConfig（`sys_config`）
+### 数据模型——SysConfig（`sys_config`）
 
 | 字段 | 类型 | 描述 |
-|-------|------|-------------|
+|------|------|------|
 | configId | Long | 主键 |
 | configName | String | 显示名称 |
-| configKey | String | 唯一配置键 |
-| configValue | String | 配置值 |
+| configKey | String | 参数键 |
+| configValue | String | 参数值 |
 | configType | Integer | 内置或自定义 |
 | remark | String | 备注 |
-| createTime | DateTime | 创建时间 |
-| updateTime | DateTime | 最后更新时间 |
+
+另有通用审计字段（`creatorId`、`createTime`、`updaterId`、`updateTime`、`deleted`）。
 
 ### API 接口
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| POST | `/admin-api/config` | 查询配置列表（分页） |
-| POST | `/admin-api/config/create` | 创建配置项 |
-| PUT | `/admin-api/config/update` | 更新配置项 |
-| POST | `/admin-api/config/delete` | 删除配置项 |
+`ConfigController`（server-admin）：
 
-### 使用示例
+| 方法 | 接口路径 | 权限 | 描述 |
+|------|----------|------|------|
+| POST | `/admin/config` | `system:config:list` | 分页查询 |
+| POST | `/admin/config/create` | `system:config:add` | 创建参数 |
+| PUT | `/admin/config/update` | `system:config:edit` | 更新参数 |
+| POST | `/admin/config/delete` | `system:config:remove` | 删除参数 |
 
-存储全局设置，例如默认分页大小：
+### 种子参数
 
-| 配置键 | 配置值 | 描述 |
-|-----------|-------------|-------------|
-| `sys.default.pageSize` | `20` | 默认分页大小 |
-| `sys.account.registerEnabled` | `false` | 是否允许自助注册 |
-| `sys.captcha.type` | `math` | 验证码类型 |
+Flyway `V2` 种入 `sys.index.skinName`、`sys.index.sideTheme`、`sys.user.initPassword`。它们是给管理端界面和你自己的代码用的数据——后端不会主动读取，也没有缓存。
 
 ### 服务层
 
-`SysConfigService` 提供：
-- `findByConfigKey(String key)` — 根据键查找配置值
-- 通过 Spring Data JPA `SysConfigRepository` 实现标准增删改查
+`SysConfigService`（admin-user 的 `api`）：`findByConfigKey(key)` 加常规增删改查；读取直接查数据库。
 
-## 通知公告管理
+## 通知公告
 
 ### 功能特性
 
-- 创建和管理系统通知/公告
-- 支持不同的通知类型（通知、公告）
-- 状态管理（草稿、已发布）
-- 支持分页和搜索的列表
+- 创建、管理通知与公告
+- 开启 / 关闭状态——C 端只展示开启的公告
+- 分页查询
 
-### 数据模型 — SysNotice（`sys_notice`）
+### 数据模型——SysNotice（`sys_notice`）
 
 | 字段 | 类型 | 描述 |
-|-------|------|-------------|
+|------|------|------|
 | noticeId | Long | 主键 |
-| noticeTitle | String | 通知标题 |
-| noticeType | Integer | 类型（1：通知，2：公告） |
-| noticeContent | String | 内容（支持富文本） |
-| status | Integer | 状态（0：草稿，1：已发布） |
-| createBy | String | 创建者 |
+| noticeTitle | String | 标题 |
+| noticeType | Integer | `1` 通知，`2` 公告 |
+| noticeContent | String | 内容 |
+| status | Integer | `1` 开启，`0` 关闭 |
 | remark | String | 备注 |
-| createTime | DateTime | 创建时间 |
-| updateTime | DateTime | 最后更新时间 |
 
 ### API 接口
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| POST | `/admin-api/notice` | 查询通知列表（分页） |
-| POST | `/admin-api/notice/create` | 创建通知 |
-| PUT | `/admin-api/notice/update` | 更新通知 |
-| POST | `/admin-api/notice/delete` | 删除通知 |
+`NoticeController`（server-admin）：
 
-### 通知类型
+| 方法 | 接口路径 | 权限 | 描述 |
+|------|----------|------|------|
+| POST | `/admin/notice` | `system:notice:list` | 分页查询 |
+| POST | `/admin/notice/create` | `system:notice:add` | 创建公告 |
+| PUT | `/admin/notice/update` | `system:notice:edit` | 更新公告 |
+| POST | `/admin/notice/delete` | `system:notice:remove` | 删除公告 |
 
-| 类型 | 值 | 描述 |
-|------|-------|-------------|
-| 通知 | 1 | 内部团队通知 |
-| 公告 | 2 | 系统级公告 |
+C 端的 `GET /web/notices` 返回最近 20 条开启状态的公告（新的在前）。
 
 ## 相关页面
 
-- [用户管理](./user-management.md) — 管理配置的系统用户
-- [角色与权限](./role-permission.md) — 配置操作的权限控制
+- [角色与权限](./role-permission.md) — 这些接口的权限
+- [C 端 Web](../guide/c-end-web.md) — 公告的展示位置

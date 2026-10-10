@@ -15,7 +15,7 @@ ArchForge 使用 **Sa-Token 1.45.0** 做认证，**不是 JWT，也不是 Spring
 ┌──────────┐                  ┌──────────────┐                ┌──────────┐
 │ Frontend  │                  │ LoginController│               │ TokenService│
 └────┬─────┘                  └──────┬───────┘                └────┬─────┘
-     │  POST /auth/login             │                              │
+     │  POST /admin/auth/login       │                              │
      │  {username, password, code}   │                              │
      ├──────────────────────────────►│                              │
      │                               │  Verify captcha              │
@@ -47,7 +47,7 @@ Sa-Token 签发的是 **UUID** 访问令牌（`token-style: uuid`），**不是*
 
 ### 刷新令牌（管理端）
 
-- 接口：`POST /auth/refresh-token`
+- 接口：`POST /admin/auth/refresh-token`
 - 随机 UUID 存在 Redis，映射到用户 ID
 - 返回新的 Sa-Token 访问令牌以及新的刷新令牌
 
@@ -80,7 +80,7 @@ sa-token:
 public void addUser(...) { }
 ```
 
-权限字符串来自 `sys_menu.permission`，例如 `system:user:add`、`system:role:query`、`monitor:job:list`。
+权限字符串来自 `sys_menu.permission`，例如 `system:user:add`、`system:role:query`、`system:scheduler-job:list`。
 
 获取当前管理端用户：
 
@@ -92,7 +92,7 @@ SystemLoginUser loginUser = LoginContext.getAdminUser();
 
 仍然是双层：
 
-1. **RSA** —— 前端用公钥加密密码，后端用 `arch-forge.rsa-private-key` 解密
+1. **RSA** —— 登录密码的传输加密。服务端要求登录密码用 `arch-forge.rsa-private-key` 对应的公钥做 RSA 加密（PKCS#1 v1.5）。prod profile 解不开就拒绝（错误码 `10106`，"密码解密失败"）；其他 profile 回退为按原文处理。**目前自带的管理端界面发送的是明文密码**，所以 prod 部署需要一个会加密密码的登录客户端。
 2. **BCrypt** —— 数据库中存储哈希
 
 ## 公开接口（管理端）

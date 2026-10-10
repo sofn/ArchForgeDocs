@@ -44,12 +44,12 @@ Copy values into `.env` / your secret manager. Do not commit `application-prod.y
 Generate a new RSA private key:
 
 ```bash
-openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:1024
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
 openssl pkcs8 -topk8 -inform PEM -outform DER -in private.pem -out private.der -nocrypt
 base64 private.der
 ```
 
-Set the Base64-encoded private key in `arch-forge.rsa-private-key`. Share the corresponding public key with the frontend.
+Set the Base64-encoded private key in `arch-forge.rsa-private-key` (`ARCH_FORGE_RSA_PRIVATE_KEY`). Login clients encrypt the password with the matching public key — prod rejects passwords it cannot decrypt, and the stock admin UI does not encrypt yet (see [Authentication](../modules/authentication.md#password-encryption)).
 
 ## Production Configuration
 

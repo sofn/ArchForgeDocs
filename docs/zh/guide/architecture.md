@@ -47,7 +47,7 @@ sequenceDiagram
   participant SA as server-admin :8080
   participant R as Redis
 
-  UI->>SA: POST /auth/login (username, password)
+  UI->>SA: POST /admin/auth/login (username, password)
   SA->>SA: 验证码 · @RateLimit（5 次/分/IP）
   SA->>R: 写入会话（sa-token, StpAdminUtil）
   SA-->>UI: {code:0, data:{accessToken, refreshToken}}
@@ -57,7 +57,7 @@ sequenceDiagram
   SA-->>UI: {code:0, data:{list, total}}
 
   Note over UI,SA: ……access token 过期……
-  UI->>SA: POST /auth/refresh-token (refreshToken)
+  UI->>SA: POST /admin/auth/refresh-token (refreshToken)
   SA-->>UI: 新 accessToken（单次轮换）
   Note over UI: 排队中的请求自动重放
 ```

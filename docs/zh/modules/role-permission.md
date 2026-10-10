@@ -1,91 +1,88 @@
 # 角色与权限
 
-角色与权限系统提供细粒度的访问控制，支持基于菜单的权限和按钮级别的授权。
+角色承载三样东西：成员能用的菜单（和按钮）、后端校验的权限字符串，以及限定可见数据行的数据范围。
 
 ## 功能特性
 
-- 角色增删改查及状态管理
-- 每个角色对应的菜单权限树
-- 通过 `permissions` 数组实现按钮级别的权限控制
-- 角色标识/名称重复检测
-- 角色-菜单关系管理
-- 角色数据范围（数据权限）
+- 角色增删改查与状态管理
+- 每个角色一棵菜单权限树（菜单、页面、按钮）
+- 按钮级权限——与后端 `@SaCheckPermission` 校验的是同一批字符串
+- 角色级数据范围
 
 ## 数据模型
 
 ### SysRole（`sys_role`）
 
 | 字段 | 类型 | 描述 |
-|-------|------|-------------|
+|------|------|------|
 | roleId | Long | 主键 |
 | roleName | String | 显示名称（如"管理员"） |
-| roleKey | String | 唯一标识符（如"admin"） |
-| roleSort | Integer | 排序序号 |
-| status | Integer | 状态（0：禁用，1：启用） |
-| dataScope | Integer | 数据范围（1 全部，2 自定义，3 本部门，4 本部门及以下，5 仅本人） |
+| roleKey | String | 角色标识（如 `admin`） |
+| roleSort | Integer | 排序 |
+| status | Short | `1` 启用，`0` 停用 |
+| dataScope | Short | `1` 全部，`2` 自定义，`3` 本部门，`4` 本部门及以下，`5` 仅本人 |
+| deptIdSet | String | 自定义数据范围的部门 |
 | remark | String | 备注 |
 
 ### SysRoleMenu（`sys_role_menu`）
 
 | 字段 | 类型 | 描述 |
-|-------|------|-------------|
+|------|------|------|
 | roleId | Long | 角色 ID |
 | menuId | Long | 菜单 ID |
 
-这是一个多对多关联表，将角色与其允许访问的菜单关联起来。
+角色与其可用菜单 / 按钮之间的多对多关联表。
 
 ## API 接口
 
-### 管理端 API
+`RoleController` 与 `PermissionMatrixController`（server-admin）。权威清单是 `ArchForge/spec/openapi.yaml`；旧的 `/system/role/*` 接口已不存在。
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| GET | `/admin-api/list-all-role` | 查询所有角色 |
-| POST | `/admin-api/list-role-ids` | 获取用户的角色 ID 列表 |
-| POST | `/admin-api/role` | 查询角色列表（分页） |
-| POST | `/admin-api/role/create` | 创建角色 |
-| PUT | `/admin-api/role/update` | 更新角色 |
-| POST | `/admin-api/role/delete` | 删除角色 |
-| POST | `/admin-api/role/status` | 切换角色状态 |
-| POST | `/admin-api/role/save-menu` | 保存角色的菜单权限 |
-| POST | `/admin-api/role-menu` | 查询角色-菜单数据 |
-| POST | `/admin-api/role-menu-ids` | 获取角色的菜单 ID 列表 |
-
-### 当前管理端 API
-
-`/system/role/*` 已删除，使用 `/admin/role/*`（`system:role:query|add|edit|remove`）。
+| 方法 | 接口路径 | 权限 | 描述 |
+|------|----------|------|------|
+| POST | `/admin/role` | `system:role:list` | 分页角色列表 |
+| GET | `/admin/role/all` | `system:role:query` | 全部角色（供选择器使用） |
+| POST | `/admin/role/create` | `system:role:add` | 创建角色 |
+| PUT | `/admin/role/update` | `system:role:edit` | 更新角色 |
+| POST | `/admin/role/delete` | `system:role:remove` | 删除角色 |
+| POST | `/admin/role/status` | `system:role:edit` | 启用 / 停用 |
+| POST | `/admin/role/data-scope` | `system:role:edit` | 设置数据范围（自定义时含部门） |
+| POST | `/admin/role/menu` | `system:role:query` | 权限对话框的菜单树 |
+| POST | `/admin/role/menu-ids` | `system:role:query` | 角色已授权的菜单 id |
+| POST | `/admin/role/save-menu` | `system:role:edit` | 保存角色菜单 |
+| GET | `/admin/permission-matrix/menus/tree` | `system:role:query` | 菜单权限树 |
+| GET | `/admin/permission-matrix/roles/{roleId}/permissions` | `system:role:query` | 角色已授权菜单 |
+| PUT | `/admin/permission-matrix/roles/{roleId}/permissions` | `system:role:edit` | 保存角色授权 |
 
 ## 权限模型
 
 ### 菜单级权限
 
-每个角色被分配一组菜单。当用户登录时，系统会加载与其角色关联的所有菜单来构建侧边栏导航。不在用户角色集中的菜单将被隐藏。
+每个角色被授予一组菜单。登录时后端加载角色的菜单，侧边栏由它们生成（`GET /admin/auth/get-async-routes`），不在其中的菜单不会返回。
 
 ### 按钮级权限
 
-菜单项可以设置 `isButton = true` 并带有一个 `permission` 字符串（如 `system:user:add`）。控制器用 `@SaCheckPermission(value = "system:user:add", type = StpAdminUtil.TYPE)` 强制校验同一字符串。这些权限也会出现在路由数据的 `meta.auths` 数组中。
+`isButton = true` 的菜单项带一个权限字符串，如 `system:user:add`。控制器校验同一个字符串——`@SaCheckPermission(value = "system:user:add", type = StpAdminUtil.TYPE)`——这些字符串也会出现在每条路由的 `meta.auths` 里下发给前端。每个管理端接口都声明了权限，并且每个被校验的权限都必须能通过种子菜单或按钮授予（两点都有测试保证）。
 
-在前端，使用 `hasPerms()` 工具函数来条件渲染按钮：
+前端用 `hasPerms()` / `v-perms` 隐藏用户无权执行的操作：
 
 ```vue
 <template>
-  <el-button v-if="hasPerms(['system:user:create'])">
-    Create User
-  </el-button>
+  <el-button v-if="hasPerms(['system:user:add'])">新增用户</el-button>
 </template>
 ```
 
 ### 权限格式
 
-权限遵循以下模式：`module:entity:action`
+`模块:实体:动作`，种子数据中统一使用这些动作：
 
 | 权限 | 描述 |
-|-----------|-------------|
-| `system:user:create` | 创建用户 |
-| `system:user:update` | 更新用户 |
-| `system:user:delete` | 删除用户 |
-| `system:role:create` | 创建角色 |
-| `system:menu:create` | 创建菜单 |
+|------|------|
+| `system:user:list` / `query` | 查询 / 查看用户 |
+| `system:user:add` | 新增用户 |
+| `system:user:edit` | 修改用户 |
+| `system:user:remove` | 删除用户 |
+| `system:role:add` | 新增角色 |
+| `system:menu:add` | 新增菜单 |
 
 ## 数据权限
 
@@ -122,14 +119,14 @@ public AdminPageResponse<AdminUserDTO> getUserList(AdminUserListRequest request)
 
 ## 角色分配流程
 
-1. 管理员创建角色并通过权限树分配菜单权限
-2. 管理员设置角色的数据范围（可选）
-3. 管理员在用户管理页面为用户分配角色
-4. 登录时，后端获取用户的角色、菜单权限和数据范围
-5. 前端根据这些权限构建侧边栏和按钮可见性
+1. 管理员创建角色，并在权限树中授予菜单与按钮
+2. 可选：设置角色的数据范围
+3. 在用户页为用户分配角色（每个用户一个角色）
+4. 登录时后端加载用户的角色、权限与数据范围
+5. 前端据此生成侧边栏并控制按钮可见性
 
 ## 相关页面
 
-- [用户管理](./user-management.md) — 用户-角色分配
+- [用户管理](./user-management.md) — 为用户分配角色
 - [菜单管理](./menu-management.md) — 菜单类型与结构
-- [认证鉴权](./authentication.md) — 登录和权限加载
+- [认证鉴权](./authentication.md) — 登录与权限加载

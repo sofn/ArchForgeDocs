@@ -1,15 +1,14 @@
 # Role & Permission
 
-The role and permission system provides fine-grained access control with menu-based permissions and button-level authorization.
+Roles carry three things: the menus (and buttons) their members can use, the permission strings the backend checks,
+and a data scope that limits which rows they see.
 
 ## Features
 
 - Role CRUD with status management
-- Menu permission tree for each role
-- Button-level permission control via `permissions` array
-- Duplicate role key/name detection
-- Role-menu relationship management
-- Role-level data scope / data permission
+- Menu permission tree per role (menus, pages and buttons)
+- Button-level permissions — the same strings the backend checks with `@SaCheckPermission`
+- Role-level data scope
 
 ## Data Model
 
@@ -18,11 +17,12 @@ The role and permission system provides fine-grained access control with menu-ba
 | Field | Type | Description |
 |-------|------|-------------|
 | roleId | Long | Primary key |
-| roleName | String | Display name (e.g., "Administrator") |
-| roleKey | String | Unique identifier (e.g., "admin") |
+| roleName | String | Display name (e.g. "Administrator") |
+| roleKey | String | Role key (e.g. `admin`) |
 | roleSort | Integer | Sort order |
-| status | Integer | Status (0: disabled, 1: enabled) |
-| dataScope | Integer | Data scope (1 all, 2 custom, 3 single dept, 4 dept tree, 5 self-only) |
+| status | Short | `1` enabled, `0` disabled |
+| dataScope | Short | `1` all, `2` custom, `3` own department, `4` department tree, `5` self only |
+| deptIdSet | String | Departments for the custom scope |
 | remark | String | Notes |
 
 ### SysRoleMenu (`sys_role_menu`)
@@ -32,68 +32,63 @@ The role and permission system provides fine-grained access control with menu-ba
 | roleId | Long | Role ID |
 | menuId | Long | Menu ID |
 
-This is a many-to-many join table linking roles to their permitted menus.
+The many-to-many join between roles and the menus / buttons they may use.
 
 ## API Endpoints
 
-### Admin API
+`RoleController` and `PermissionMatrixController` (server-admin). The authoritative list is
+`ArchForge/spec/openapi.yaml`; the old `/system/role/*` endpoints no longer exist.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/admin-api/list-all-role` | List all roles |
-| POST | `/admin-api/list-role-ids` | Get role IDs for a user |
-| POST | `/admin-api/role` | List roles (paginated) |
-| POST | `/admin-api/role/create` | Create role |
-| PUT | `/admin-api/role/update` | Update role |
-| POST | `/admin-api/role/delete` | Delete role(s) |
-| POST | `/admin-api/role/status` | Toggle role status |
-| POST | `/admin-api/role/save-menu` | Save menu permissions for role |
-| POST | `/admin-api/role-menu` | List role-menu data |
-| POST | `/admin-api/role-menu-ids` | Get menu IDs for a role |
-
-### Current admin API (`RoleController`)
-
-`/system/role/*` was deleted. Use:
-
-| Method | Endpoint | Permission |
-|--------|----------|------------|
-| POST | `/admin/role` | `system:role:query` |
-| POST | `/admin/role/create` | `system:role:add` |
-| POST | `/admin/role/update` | `system:role:edit` |
-| POST | `/admin/role/delete` | `system:role:remove` |
-| POST | `/admin/role/menu-ids` | `system:role:query` |
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| POST | `/admin/role` | `system:role:list` | Paginated role list |
+| GET | `/admin/role/all` | `system:role:query` | All roles (for pickers) |
+| POST | `/admin/role/create` | `system:role:add` | Create a role |
+| PUT | `/admin/role/update` | `system:role:edit` | Update a role |
+| POST | `/admin/role/delete` | `system:role:remove` | Delete a role |
+| POST | `/admin/role/status` | `system:role:edit` | Enable / disable |
+| POST | `/admin/role/data-scope` | `system:role:edit` | Set the data scope (and departments for custom) |
+| POST | `/admin/role/menu` | `system:role:query` | Menu tree for the permission dialog |
+| POST | `/admin/role/menu-ids` | `system:role:query` | Menu ids granted to a role |
+| POST | `/admin/role/save-menu` | `system:role:edit` | Save the role's menus |
+| GET | `/admin/permission-matrix/menus/tree` | `system:role:query` | Menu permission tree |
+| GET | `/admin/permission-matrix/roles/{roleId}/permissions` | `system:role:query` | A role's granted menus |
+| PUT | `/admin/permission-matrix/roles/{roleId}/permissions` | `system:role:edit` | Save a role's grants |
 
 ## Permission Model
 
 ### Menu-Level Permissions
 
-Each role is assigned a set of menus. When a user logs in, the system loads all menus associated with their roles to build the sidebar navigation. Menus not in the user's role set are hidden.
+Each role is granted a set of menus. At login the backend loads the role's menus; the sidebar is built from them
+(`GET /admin/auth/get-async-routes`), and menus outside the set are not returned.
 
 ### Button-Level Permissions
 
-Menu items can have `isButton = true` with a `permission` string (e.g., `system:user:add`). Controllers enforce the same strings with `@SaCheckPermission(value = "system:user:add", type = StpAdminUtil.TYPE)`. These permissions are also returned in the `meta.auths` array of the route data.
+A menu entry with `isButton = true` carries a permission string such as `system:user:add`. Controllers check the same
+string — `@SaCheckPermission(value = "system:user:add", type = StpAdminUtil.TYPE)` — and the strings also reach the
+frontend in each route's `meta.auths`. Every admin handler declares a permission, and every checked permission must be
+grantable through a seeded menu or button (both enforced by tests).
 
-On the frontend, use the `hasPerms()` utility to conditionally render buttons:
+On the frontend, `hasPerms()` / `v-perms` hide what the user cannot do:
 
 ```vue
 <template>
-  <el-button v-if="hasPerms(['system:user:create'])">
-    Create User
-  </el-button>
+  <el-button v-if="hasPerms(['system:user:add'])">Create user</el-button>
 </template>
 ```
 
 ### Permission Format
 
-Permissions follow the pattern: `module:entity:action`
+`module:entity:action`, with the actions used throughout the seed data:
 
 | Permission | Description |
 |-----------|-------------|
-| `system:user:create` | Create user |
-| `system:user:update` | Update user |
-| `system:user:delete` | Delete user |
-| `system:role:create` | Create role |
-| `system:menu:create` | Create menu |
+| `system:user:list` / `query` | List / read users |
+| `system:user:add` | Create user |
+| `system:user:edit` | Update user |
+| `system:user:remove` | Delete user |
+| `system:role:add` | Create role |
+| `system:menu:add` | Create menu |
 
 ## Data Permission
 
@@ -130,14 +125,14 @@ The scope only exists inside a `@DataPermission` call, and it fails closed: when
 
 ## Role Assignment Flow
 
-1. Admin creates a role and assigns menu permissions via the permission tree
-2. Admin sets the role's data scope (optional)
-3. Admin assigns roles to users in the user management page
-4. On login, the backend fetches the user's roles, menu permissions, and data scope
-5. The frontend builds the sidebar and button visibility based on these permissions
+1. An admin creates a role and grants menus and buttons in the permission tree
+2. Optionally sets the role's data scope
+3. Assigns the role to users on the user page (one role per user)
+4. At login the backend loads the user's role, permissions and data scope
+5. The frontend builds the sidebar and button visibility from them
 
 ## Related Pages
 
-- [User Management](./user-management.md) — user-role assignment
+- [User Management](./user-management.md) — assigning roles to users
 - [Menu Management](./menu-management.md) — menu types and structure
 - [Authentication](./authentication.md) — login and permission loading

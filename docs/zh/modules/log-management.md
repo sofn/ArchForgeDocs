@@ -1,92 +1,83 @@
 # 日志管理
 
-ArchForge 内置了用户操作日志和登录日志功能，便于审计追踪和安全监控。
+ArchForge 在数据库里保存两类审计日志：带注解的管理端操作产生的**操作日志**，以及每次管理端登录尝试产生的**登录日志**。
 
 ## 操作日志
 
-### 功能特性
+### 如何写入
 
-- 自动记录增删改查操作
-- 记录操作者、操作类型、请求参数和响应
-- 分页列表，支持搜索筛选
-- 批量删除和清空全部
+带 `@Log` 注解的接口会被 `LogAspect` 包裹：记录调用人、模块、摘要、客户端 IP 及其归属地、操作系统与浏览器，以及调用是否成功。记录以事件形式发布，在事务提交后异步保存（`logTaskExecutor`），所以记日志既不会拖慢请求，也不会让请求失败。
 
-### 数据模型 — SysOperLog（`sys_oper_log`）
+### 数据模型——SysOperLog（`sys_oper_log`）
 
 | 字段 | 类型 | 描述 |
-|-------|------|-------------|
+|------|------|------|
 | operId | Long | 主键 |
-| title | String | 操作模块名称 |
-| businessType | Integer | 操作类型（创建/更新/删除等） |
-| method | String | 控制器方法名 |
-| requestMethod | String | HTTP 方法（GET/POST/PUT/DELETE） |
-| operUrl | String | 请求 URL |
-| operIp | String | 操作者 IP 地址 |
-| operLocation | String | IP 地理位置（通过 ip2region） |
-| operParam | String | 请求参数（JSON） |
-| jsonResult | String | 响应内容（JSON） |
-| status | Integer | 结果状态（0：失败，1：成功） |
-| errorMsg | String | 错误信息（失败时） |
-| operName | String | 操作者用户名 |
-| operTime | DateTime | 操作时间 |
+| username | String | 操作人 |
+| module | String | 模块（取自 `@Log` 或类名） |
+| summary | String | 操作摘要（取自 `@Log` 或方法名） |
+| ip | String | 客户端 IP |
+| address | String | IP 归属地 |
+| systemName | String | 操作系统 |
+| browser | String | 浏览器 |
+| status | Integer | `1` 成功，`0` 失败 |
+| operatingTime | DateTime | 操作时间 |
 
 ### API 接口
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| POST | `/admin-api/operation-logs` | 查询操作日志列表（分页） |
-| POST | `/admin-api/operation-logs/delete` | 删除选中的日志 |
-| POST | `/admin-api/operation-logs/clear` | 清空所有操作日志 |
+`OperationLogController`（server-admin）：
+
+| 方法 | 接口路径 | 权限 | 描述 |
+|------|----------|------|------|
+| POST | `/admin/operation-log` | `monitor:operlog:list` | 分页查询 |
+| POST | `/admin/operation-log/delete` | `monitor:operlog:remove` | 删除选中记录 |
+| POST | `/admin/operation-log/clear` | `monitor:operlog:list` | 删除全部记录 |
 
 ## 登录日志
 
-### 功能特性
+### 如何写入
 
-- 记录每次登录尝试（成功和失败）
-- 捕获浏览器、操作系统、IP 和地理位置
-- 适用于安全审计和异常检测
-- 分页列表，支持搜索筛选
+`LoginService` 为每次管理端登录尝试写一条记录——成功与失败都写，原因放在 `behavior`。
 
-### 数据模型 — SysLoginLog（`sys_login_log`）
+### 数据模型——SysLoginLog（`sys_login_log`）
 
 | 字段 | 类型 | 描述 |
-|-------|------|-------------|
-| loginId | Long | 主键 |
-| username | String | 登录用户名 |
-| ipaddr | String | 登录 IP 地址 |
-| loginLocation | String | IP 地理位置 |
-| browser | String | 浏览器名称和版本 |
-| os | String | 操作系统 |
-| status | Integer | 结果（0：失败，1：成功） |
-| msg | String | 消息（成功或错误原因） |
+|------|------|------|
+| infoId | Long | 主键 |
+| username | String | 登录名 |
+| ip | String | 客户端 IP |
+| address | String | IP 归属地 |
+| systemName | String | 操作系统 |
+| browser | String | 浏览器 |
+| status | Integer | `1` 登录成功，`0` 登录失败（另定义了 `2` 退出、`3` 注册） |
+| behavior | String | 说明，如"登录成功" / "登录失败" |
 | loginTime | DateTime | 登录时间 |
-
-浏览器和操作系统检测使用 **UserAgentUtils** 库，IP 地理位置使用离线的 **ip2region** 数据库。
 
 ### API 接口
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| POST | `/admin-api/login-logs` | 查询登录日志列表（分页） |
-| POST | `/admin-api/login-logs/delete` | 删除选中的日志 |
-| POST | `/admin-api/login-logs/clear` | 清空所有登录日志 |
+`LoginLogController`（server-admin）：
 
-## 日志保留策略
+| 方法 | 接口路径 | 权限 | 描述 |
+|------|----------|------|------|
+| POST | `/admin/login-log` | `monitor:logininfor:list` | 分页查询 |
+| POST | `/admin/login-log/delete` | `monitor:logininfor:remove` | 删除选中记录 |
+| POST | `/admin/login-log/clear` | `monitor:logininfor:list` | 删除全部记录 |
 
-默认情况下，日志将永久保存。管理员可以：
+## 浏览器、系统与归属地
 
-- 通过管理后台**手动删除**特定日志条目
-- 使用清空接口**清空所有**日志
-- 通过添加定时任务来**实现自动清理**，删除超过可配置时间段的日志
+- User-Agent 解析使用 **Yauaa**（`UserAgentUtil`）。
+- IP 归属地：内网地址显示"内网IP"；公网地址先查离线的 **ip2region** xdb 文件（首次使用时下载并缓存），查不到再走在线查询（`whois.pconline.com.cn`）。
+
+## 日志保留
+
+日志会一直保留，直到有人删除：逐条删除、*清空*全部，或者写一个定时任务删除旧数据。系统不会自动清理。
 
 ## 服务层
 
-- `SysOperLogService` — 操作日志的增删改查
-- `SysLoginLogService` — 登录日志的增删改查
-- 两个服务都使用 Spring Data JPA 仓库配合 QueryDSL 进行动态筛选
+`SysOperLogService` 与 `SysLoginLogService`（admin-user 的 `api`）——增删改查与分页查询；C 端仪表盘也用它们统计当天数量、取最新操作。
 
 ## 相关页面
 
 - [用户管理](./user-management.md) — 被记录操作的用户
-- [认证鉴权](./authentication.md) — 生成登录日志的登录流程
+- [认证鉴权](./authentication.md) — 产生登录日志的登录流程
 - [服务监控](./server-monitor.md) — 系统级监控

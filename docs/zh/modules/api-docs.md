@@ -29,100 +29,73 @@ springdoc:
 
 ## 访问地址
 
-| 资源 | URL | 描述 |
-|----------|-----|-------------|
-| Swagger UI | `http://localhost:8080/swagger-ui/index.html` | 交互式 API 浏览器 |
-| OpenAPI JSON | `http://localhost:8080/v3/api-docs` | 原始 OpenAPI 3.0 规范 |
-| 管理后台 | 管理菜单中的嵌入 iframe | 管理后台内的 Swagger UI |
+| 资源 | 地址 | 描述 |
+|------|------|------|
+| Swagger UI | `http://localhost:8080/swagger-ui/index.html` | server-admin 的交互式接口浏览 |
+| OpenAPI JSON | `http://localhost:8080/v3/api-docs` | 实时 OpenAPI 文档（无需登录） |
+| server-web | `http://localhost:8081/swagger-ui/index.html` | C 端接口（prod 之外） |
+| 管理后台 | "Swagger" iframe 菜单 | 在管理控制台内打开 Swagger UI |
+
+`application-prod.yaml` 关闭了两个 springdoc 端点，生产环境两个页面都不提供。
 
 ## 嵌入管理后台
 
-Swagger UI 作为 iframe 菜单项嵌入管理后台。配置为如下菜单条目：
+Flyway 为 Swagger UI 种入了一个 iframe 菜单：
 
-- **菜单类型**：内嵌页（3）
+- **菜单类型**：Iframe（3）
 - **frameSrc**：`/swagger-ui/index.html`
-- **isFrameSrcInternal**：`true`
+- **isFrameSrcInternal**：`true`——管理端会在框架地址前加上自己的源
 
-Nginx 配置将 Swagger 请求代理到后端：
+开发时管理端的 dev server 把 `/swagger-ui`、`/v3/api-docs` 代理到 `:8080`（`vite.config.ts`），iframe 开箱即用。生产前端镜像只代理 `/api/`，prod 也关闭了 springdoc——把内嵌页面当作开发辅助即可。
 
-```nginx
-# Swagger UI proxy (for iframe embedding)
-location /swagger-ui/ {
-    proxy_pass http://archforge:8080/swagger-ui/;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-}
+## 契约
 
-# OpenAPI docs proxy
-location /v3/api-docs {
-    proxy_pass http://archforge:8080/v3/api-docs;
-    proxy_set_header Host $host;
-}
-```
+完整、最新的接口清单是生成的契约 `ArchForge/spec/openapi.yaml`（合并了 server-admin 与 server-web，2026-10 时为 147 个操作）。它由运行中的代码通过 `./gradlew generateOpenApi` 生成；过期时 CI 失败，管理端与 C 端也从它生成 TypeScript 类型。旧的 `/admin-api/*` 与 `/system/*` 路径都已不存在。
 
-## API 接口汇总
+### 接口地图（server-admin）
 
-### 认证相关
+| 领域 | 前缀 | 操作数 | 页面 |
+|------|------|------:|------|
+| 登录、路由、验证码 | `/admin/auth` | 8 | [认证鉴权](./authentication.md) |
+| 用户 | `/admin/user` | 9 | [用户管理](./user-management.md) |
+| 角色、权限矩阵 | `/admin/role`、`/admin/permission-matrix` | 10 + 3 | [角色与权限](./role-permission.md) |
+| 菜单 | `/admin/menu` | 4 | [菜单管理](./menu-management.md) |
+| 部门 | `/admin/dept` | 4 | — |
+| 字典 | `/admin/system/dict` | 8 | — |
+| 参数、公告 | `/admin/config`、`/admin/notice` | 4 + 4 | [参数配置与通知公告](./config-notice.md) |
+| 操作 / 登录日志 | `/admin/operation-log`、`/admin/login-log` | 3 + 3 | [日志管理](./log-management.md) |
+| 服务器、缓存、在线用户 | `/admin/server`、`/admin/monitor` | 1 + 2 | [服务监控](./server-monitor.md) |
+| 文件 | `/admin/file` | 5 | [文件管理](./file-management.md) |
+| 定时任务 | `/admin/scheduler-job` | 9 | [定时任务](./scheduler.md) |
+| 元表格 | `/admin/meta-table` | 21 | [元表格](./meta-table.md) |
+| CMS | `/admin/cms` | 11 | — |
+| 任务 | `/admin/task` | 7 | — |
+| ChatAI | `/admin/chat` | 6 | [ChatAI](./chatai.md) |
+| 仪表盘 | `/admin/dashboard` | 4 | [仪表盘](./dashboard.md) |
 
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| POST | `/auth/login` | 用户登录 |
-| POST | `/auth/refresh-token` | 通过刷新令牌换发 Sa-Token |
-| GET | `/auth/getLoginUserInfo` | 获取当前用户信息 |
-| GET | `/auth/getRouters` | 获取菜单路由（旧版） |
-| GET | `/auth/get-async-routes` | 获取前端异步路由 |
-| GET | `/auth/captchaImage` | 生成验证码图片 |
-| GET | `/auth/getConfig` | 获取应用配置 |
-
-### 管理端增删改查 API（`/admin-api/`）
-
-| 分类 | 接口路径 | 数量 |
-|----------|-----------|-------|
-| 用户管理 | `/admin-api/user/*` | 7 个接口 |
-| 角色管理 | `/admin-api/role/*` | 6 个接口 |
-| 菜单管理 | `/admin-api/menu/*` | 4 个接口 |
-| 部门管理 | `/admin-api/dept/*` | 3 个接口 |
-| 参数配置 | `/admin-api/config/*` | 4 个接口 |
-| 通知公告 | `/admin-api/notice/*` | 4 个接口 |
-| 操作日志 | `/admin-api/operation-logs/*` | 3 个接口 |
-| 登录日志 | `/admin-api/login-logs/*` | 3 个接口 |
-| 服务监控 | `/admin-api/server-info` | 1 个接口 |
-| 文件管理 | `/admin-api/file/*` | 2 个接口 |
-
-### 文件上传/下载
-
-| 方法 | 接口路径 | 描述 |
-|--------|----------|-------------|
-| POST | `/admin-api/file/upload` | 上传文件（本地或 S3/RustFS 后端） |
-| GET | `/admin-api/file/download/{id}` | 根据 ID 下载文件 |
-
-### RESTful 系统 API（`/system/`）
-
-| 控制器 | 基础路径 | 接口数 |
-|-----------|-----------|-----------|
-| SysUserController | `/system/user` | 10 个接口 |
-| SysRoleController | `/system/role` | 12 个接口 |
-| SysMenuController | `/system/menu` | 11 个接口 |
+server-web 在 `/web/*` 下提供 C 端接口（登录注册、文章、分类、公告、文件、仪表盘）——见 [C 端 Web](../guide/c-end-web.md)。
 
 ## 为新接口添加 API 文档
 
-在控制器上使用 SpringDoc 注解：
+在控制器上使用 SpringDoc 注解。管理端接口放在 `/admin/*` 下，并声明权限：
 
 ```java
 @Tag(name = "Custom Module", description = "Custom module operations")
 @RestController
-@RequestMapping("/custom")
+@RequestMapping("/admin/custom")
 public class CustomController {
 
     @Operation(summary = "Get item", description = "Retrieve an item by ID")
     @Parameter(name = "id", description = "Item ID", required = true)
+    @SaCheckPermission(value = "custom:item:query", type = StpAdminUtil.TYPE)
     @GetMapping("/{id}")
     public CustomItem getItem(@PathVariable Long id) {
         // ...
     }
 }
 ```
+
+然后执行 `./gradlew generateOpenApi`，把重新生成的 `spec/openapi.yaml` 和改动一起提交；再把新权限作为菜单按钮种入，角色才能被授予它。
 
 ## 相关页面
 

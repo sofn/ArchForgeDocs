@@ -47,7 +47,7 @@ sequenceDiagram
   participant SA as server-admin :8080
   participant R as Redis
 
-  UI->>SA: POST /auth/login (username, password)
+  UI->>SA: POST /admin/auth/login (username, password)
   SA->>SA: captcha check · @RateLimit (5/min/IP)
   SA->>R: store session (sa-token, StpAdminUtil)
   SA-->>UI: {code:0, data:{accessToken, refreshToken}}
@@ -57,7 +57,7 @@ sequenceDiagram
   SA-->>UI: {code:0, data:{list, total}}
 
   Note over UI,SA: ...access token expires...
-  UI->>SA: POST /auth/refresh-token (refreshToken)
+  UI->>SA: POST /admin/auth/refresh-token (refreshToken)
   SA-->>UI: new accessToken (single-use rotation)
   Note over UI: queued requests replay automatically
 ```

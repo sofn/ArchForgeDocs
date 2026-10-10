@@ -15,7 +15,7 @@ Two independent login types share Redis-backed sessions:
 ┌──────────┐                  ┌──────────────┐                ┌──────────┐
 │ Frontend  │                  │ LoginController│               │ TokenService│
 └────┬─────┘                  └──────┬───────┘                └────┬─────┘
-     │  POST /auth/login             │                              │
+     │  POST /admin/auth/login       │                              │
      │  {username, password, code}   │                              │
      ├──────────────────────────────►│                              │
      │                               │  Verify captcha              │
@@ -47,7 +47,7 @@ Sa-Token issues a **UUID** access token (`token-style: uuid`). It is **not** a s
 
 ### Refresh Token (admin)
 
-- Endpoint: `POST /auth/refresh-token`
+- Endpoint: `POST /admin/auth/refresh-token`
 - Random UUID stored in Redis, mapped to user id
 - Returns a new Sa-Token access token plus a new refresh token
 
@@ -80,7 +80,7 @@ Controllers use Sa-Token annotations with an explicit type:
 public void addUser(...) { }
 ```
 
-Permission strings come from `sys_menu.permission`, for example `system:user:add`, `system:role:query`, `monitor:job:list`.
+Permission strings come from `sys_menu.permission`, for example `system:user:add`, `system:role:query`, `system:scheduler-job:list`.
 
 Current admin user:
 
@@ -92,7 +92,7 @@ SystemLoginUser loginUser = LoginContext.getAdminUser();
 
 Two layers still apply:
 
-1. **RSA** — frontend encrypts the password with the server public key; backend decrypts with `arch-forge.rsa-private-key`
+1. **RSA** — transport encryption of the login password. The server expects the login password RSA-encrypted (PKCS#1 v1.5) with the public key of `arch-forge.rsa-private-key`. The prod profile rejects a password it cannot decrypt (code `10106`, "密码解密失败"); other profiles fall back to the password as sent. **The stock admin UI sends the password unencrypted today**, so a prod deployment needs a login client that encrypts it.
 2. **BCrypt** — stored hash in the database
 
 ## Public Endpoints (admin)
